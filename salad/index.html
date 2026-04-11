@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Art of Restaurant-Level Salads</title>
+<style>
+  :root {
+    --clr-bg: #faf8f5;
+    --clr-surface: #ffffff;
+    --clr-text: #2c2c2c;
+    --clr-text-muted: #6b6560;
+    --clr-accent: #5a7247;
+    --clr-accent-light: #e8efe3;
+    --clr-border: #e4dfd8;
+    --clr-callout-bg: #fdf6ee;
+    --clr-callout-border: #e0c9a6;
+    --clr-tip-bg: #eef4e9;
+    --clr-tip-border: #b3cda0;
+    --font-body: 'Georgia', 'Times New Roman', serif;
+    --font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --max-content: 52rem;
+    --nav-width: 16rem;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; scroll-padding-top: 2rem; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--clr-bg);
+    color: var(--clr-text);
+    line-height: 1.75;
+    font-size: 1.05rem;
+  }
+
+  /* ---------- HEADER ---------- */
+  .site-header {
+    text-align: center;
+    padding: 4rem 2rem 3rem;
+    border-bottom: 1px solid var(--clr-border);
+    background: var(--clr-surface);
+  }
+  .site-header h1 {
+    font-family: var(--font-heading);
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--clr-text);
+    margin-bottom: 0.5rem;
+  }
+  .site-header .subtitle {
+    font-size: 1.1rem;
+    color: var(--clr-text-muted);
+    max-width: 36rem;
+    margin: 0 auto;
+    font-style: italic;
+  }
+
+  /* ---------- LAYOUT ---------- */
+  .layout {
+    display: flex;
+    max-width: calc(var(--max-content) + var(--nav-width) + 4rem);
+    margin: 0 auto;
+    gap: 2rem;
+    padding: 2rem 1.5rem;
+  }
+
+  /* ---------- SIDEBAR NAV ---------- */
+  .sidebar {
+    position: sticky;
+    top: 2rem;
+    align-self: flex-start;
+    width: var(--nav-width);
+    flex-shrink: 0;
+  }
+  .sidebar nav { padding: 1rem 0; }
+  .sidebar .nav-label {
+    font-family: var(--font-heading);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--clr-text-muted);
+    margin-bottom: 0.75rem;
+  }
+  .sidebar a {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    color: var(--clr-text-muted);
+    text-decoration: none;
+    padding: 0.35rem 0.75rem;
+    border-left: 2px solid transparent;
+    transition: all 0.15s ease;
+    line-height: 1.4;
+  }
+  .sidebar a:hover,
+  .sidebar a.active {
+    color: var(--clr-accent);
+    border-left-color: var(--clr-accent);
+    background: var(--clr-accent-light);
+  }
+
+  /* ---------- MAIN CONTENT ---------- */
+  .content {
+    flex: 1;
+    min-width: 0;
+    max-width: var(--max-content);
+  }
+
+  .section {
+    background: var(--clr-surface);
+    border: 1px solid var(--clr-border);
+    border-radius: 8px;
+    padding: 2.5rem 2.5rem 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-number {
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--clr-accent);
+    margin-bottom: 0.25rem;
+  }
+
+  .section h2 {
+    font-family: var(--font-heading);
+    font-size: 1.55rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.25rem;
+    color: var(--clr-text);
+  }
+
+  .section .hook {
+    font-style: italic;
+    color: var(--clr-text-muted);
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+  }
+
+  .section h3 {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 1.75rem 0 0.5rem;
+    color: var(--clr-text);
+  }
+
+  .section p { margin-bottom: 1rem; }
+
+  .section ul, .section ol {
+    margin: 0.5rem 0 1rem 1.5rem;
+  }
+  .section li { margin-bottom: 0.4rem; }
+
+  .section strong { color: var(--clr-text); }
+
+  /* Callout boxes */
+  .callout {
+    border-left: 3px solid var(--clr-callout-border);
+    background: var(--clr-callout-bg);
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.95rem;
+  }
+  .callout-label {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #a07840;
+    margin-bottom: 0.3rem;
+  }
+
+  .tip {
+    border-left-color: var(--clr-tip-border);
+    background: var(--clr-tip-bg);
+  }
+  .tip .callout-label { color: var(--clr-accent); }
+
+  /* ---------- MOBILE NAV ---------- */
+  .mobile-nav {
+    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--clr-surface);
+    border-bottom: 1px solid var(--clr-border);
+    padding: 0.75rem 1.5rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  .mobile-nav a {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 0.8rem;
+    color: var(--clr-text-muted);
+    text-decoration: none;
+    padding: 0.3rem 0.75rem;
+    border-radius: 1rem;
+    transition: all 0.15s ease;
+  }
+  .mobile-nav a:hover,
+  .mobile-nav a.active {
+    color: var(--clr-accent);
+    background: var(--clr-accent-light);
+  }
+
+  /* ---------- FOOTER ---------- */
+  .site-footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--clr-text-muted);
+    font-size: 0.85rem;
+    font-family: var(--font-heading);
+    border-top: 1px solid var(--clr-border);
+    margin-top: 2rem;
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 860px) {
+    .sidebar { display: none; }
+    .mobile-nav { display: block; }
+    .layout { padding: 1.5rem 1rem; }
+    .section { padding: 1.75rem 1.5rem 1.5rem; }
+  }
+
+  @media (max-width: 500px) {
+    .section { padding: 1.25rem 1rem 1rem; }
+    .site-header { padding: 2.5rem 1.25rem 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<style>
+.fb-topnav{position:sticky;top:0;z-index:9999;display:flex;align-items:center;justify-content:space-between;padding:0.6rem 1.2rem;background:#1a1a1a;color:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;border-bottom:1px solid #333}
+.fb-topnav__brand{color:#f5f5f5;text-decoration:none;font-weight:600;font-size:0.95rem;letter-spacing:-0.01em}
+.fb-topnav__brand:hover{color:#fff}
+.fb-topnav__links{display:flex;gap:0.25rem}
+.fb-topnav__link{color:#bbb;text-decoration:none;font-size:0.85rem;font-weight:500;padding:0.45rem 0.9rem;border-radius:6px;transition:background 0.15s,color 0.15s}
+.fb-topnav__link:hover{color:#fff;background:#2a2a2a}
+.fb-topnav__link--active{color:#fff;background:#2a2a2a}
+</style>
+<nav class="fb-topnav" aria-label="Food Builder navigation">
+  <a href="../" class="fb-topnav__brand">Food Builder</a>
+  <div class="fb-topnav__links">
+    <a href="../salad/" class="fb-topnav__link fb-topnav__link--active">Salads</a>
+    <a href="../sandwich/" class="fb-topnav__link">Sandwiches</a>
+  </div>
+</nav>
+
+<header class="site-header">
+  <h1>The Art of Restaurant-Level Salads</h1>
+  <p class="subtitle">A comprehensive reference for serious cooks who believe a salad should be the best thing on the table.</p>
+  <p style="margin-top:1rem"><a href="builder.html" style="font-family:var(--font-heading);font-size:0.85rem;color:var(--clr-accent);text-decoration:none;border:1px solid var(--clr-accent);padding:0.45rem 1.2rem;border-radius:6px;transition:all 0.15s">Open the Salad Builder &rarr;</a></p>
+</header>
+
+<!-- Mobile horizontal nav -->
+<nav class="mobile-nav" aria-label="Section navigation (mobile)">
+  <a href="#greens">Greens</a>
+  <a href="#vegetables">Vegetables</a>
+  <a href="#layers">Layers</a>
+  <a href="#dressings">Dressings</a>
+  <a href="#seasoning">Seasoning</a>
+  <a href="#balance">Balance</a>
+  <a href="#temperature">Temperature</a>
+  <a href="#garnishes">Garnishes</a>
+  <a href="#plating">Plating</a>
+</nav>
+
+<div class="layout">
+
+  <!-- Sticky sidebar -->
+  <aside class="sidebar">
+    <nav aria-label="Section navigation">
+      <div class="nav-label">Guide</div>
+      <a href="#greens">Greens Selection &amp; Handling</a>
+      <a href="#vegetables">Vegetables as Main Event</a>
+      <a href="#layers">Layers of Flavor &amp; Texture</a>
+      <a href="#dressings">Dressings with Technique</a>
+      <a href="#seasoning">Seasoning at Every Stage</a>
+      <a href="#balance">Acid, Salt, Fat &amp; Sweet</a>
+      <a href="#temperature">Temperature &amp; Contrast</a>
+      <a href="#garnishes">Garnishes That Matter</a>
+      <a href="#plating">Plating with Architecture</a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="content">
+
+    <!-- 1. GREENS SELECTION & HANDLING -->
+    <article class="section" id="greens">
+      <div class="section-number">Section 01</div>
+      <h2>Greens Selection &amp; Handling</h2>
+      <p class="hook">The foundation dictates everything. A great salad starts before you even think about dressing.</p>
+
+      <h3>Choosing with intention</h3>
+      <p>Professional kitchens never grab "a bag of mixed greens." Every leaf is chosen for a reason — its bitterness, its structure, its water content, the way it holds dressing. A single salad might combine three or four types: butter lettuce for silk, frisée for structure and light bitterness, watercress for peppery bite, and Little Gem for crunch and sweetness.</p>
+      <p>Think about what each green <em>does</em>. Arugula adds mustard heat. Radicchio brings bitterness and dramatic color. Mâche is impossibly tender with a faintly nutty sweetness. Treviso holds up to warm dressings and grilling. Each has a job.</p>
+
+      <h3>The ice bath is non-negotiable</h3>
+      <p>Every serious kitchen ice-baths their greens. Tear or cut the leaves, submerge in ice water for 10–20 minutes, then spin dry aggressively. This does two things: it crisps the leaves by forcing the cells to turgidly take in water, and it buys you time — iced greens hold their structure for hours under refrigeration. Limp lettuce is a choice, not an inevitability.</p>
+
+      <h3>Spin. Then spin again.</h3>
+      <p>Water is the enemy of dressing adhesion. If your leaves still have water clinging to them, the vinaigrette will slide off and pool at the bottom of the bowl. Professional kitchens spin greens in large salad spinners, then often lay them on clean kitchen towels to wick remaining moisture. The goal is leaves that are crisp but <em>dry to the touch</em>.</p>
+
+      <h3>Hand-dressing, not drowning</h3>
+      <p>Dressing goes into the bowl first, greens go on top, and then you use your hands — not tongs, not spoons — to gently lift and turn the leaves. Your fingers can feel when every surface has a thin, even coat. Tongs bruise. Spoons miss spots. This is the single most impactful technique most home cooks skip.</p>
+
+      <div class="callout">
+        <div class="callout-label">Common Mistakes</div>
+        <ul>
+          <li><strong>Cutting with a dull knife or chopping aggressively</strong> — bruises cells and causes browning. Tear tender greens by hand; use a sharp knife for sturdy heads.</li>
+          <li><strong>Dressing ahead of time</strong> — acid wilts delicate leaves within minutes. Dress at the last possible moment before plating.</li>
+          <li><strong>Using only one type of green</strong> — monotony in a single leaf means monotony in every bite.</li>
+          <li><strong>Skipping the spin</strong> — wet greens dilute dressing and go limp faster.</li>
+        </ul>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-label">Quick Reference</div>
+        <p><strong>Tender &amp; mild:</strong> butter lettuce, mâche, Bibb, lamb's ear<br>
+        <strong>Crisp &amp; sweet:</strong> Little Gem, romaine hearts, iceberg<br>
+        <strong>Peppery &amp; bold:</strong> arugula, watercress, nasturtium leaves<br>
+        <strong>Bitter &amp; structural:</strong> frisée, radicchio, Treviso, escarole, endive<br>
+        <strong>Earthy &amp; hearty:</strong> baby kale, spinach, chard (de-stemmed)</p>
+      </div>
+    </article>
+
+    <!-- 2. TREATING VEGETABLES AS THE MAIN EVENT -->
+    <article class="section" id="vegetables">
+      <div class="section-number">Section 02</div>
+      <h2>Treating Vegetables as the Main Event</h2>
+      <p class="hook">In a restaurant salad, raw vegetables are the exception, not the rule. Everything gets a treatment.</p>
+
+      <h3>Roasting and charring</h3>
+      <p>High-heat roasting (220°C / 425°F+) transforms vegetables through the Maillard reaction — the same chemistry that makes a steak's crust so compelling. Carrots go from sharp and woody to caramelized and concentrated. Beets become earthy-sweet. Brassicas (broccoli, cauliflower, Brussels sprouts) develop nutty, almost meaty depth when their edges char. The key is to cut for maximum surface area and not overcrowd the pan — steamed vegetables masquerading as roasted ones are the enemy.</p>
+
+      <h3>Confiting</h3>
+      <p>Slow-cooking vegetables submerged in olive oil at low temperatures (90–120°C) produces silky, oil-enriched textures you simply cannot get any other way. Confit garlic, cherry tomatoes, shallots, and leeks are building blocks in professional salads. A spoonful of the flavored cooking oil doubles as a dressing component. This technique takes time but almost zero effort, and the results keep for a week in the fridge.</p>
+
+      <h3>Quick-pickling</h3>
+      <p>A simple brine of equal parts vinegar and water, sugar, salt, and whatever aromatics you like (coriander seed, mustard seed, chili flake, bay leaf) can transform shallots, radishes, carrots, fennel, or red onions in 30 minutes. Quick pickles add acid, crunch, and color — they're a workhorse component. Restaurant kitchens always have several varieties on hand.</p>
+
+      <h3>Fermenting and curing</h3>
+      <p>Lacto-fermented vegetables (sauerkraut-style, in a salt brine) add probiotic funk and a complex sour note that vinegar alone cannot replicate. Even a small amount of fermented carrot, turnip, or radish brings dimension to a salad. Salt-curing (as with beet gravlax or cured egg yolks) concentrates flavor and adds richness.</p>
+
+      <h3>Raw — but prepared</h3>
+      <p>When vegetables <em>are</em> served raw, they still get attention: paper-thin shaving on a mandoline, marinating in citrus or salt to lightly "cook" or soften them, or simply being cut to a shape that makes sense for the dish. A paper-thin fennel shave with lemon juice is a completely different ingredient than a rough fennel chop.</p>
+
+      <div class="callout">
+        <div class="callout-label">Common Mistakes</div>
+        <ul>
+          <li><strong>Overcrowding the roasting pan</strong> — vegetables steam instead of caramelizing. Give them space.</li>
+          <li><strong>Under-seasoning before cooking</strong> — season vegetables before they go into the oven, into the oil, or into the brine. Post-hoc seasoning rarely penetrates.</li>
+          <li><strong>One-note preparation</strong> — if every vegetable component is roasted, you lose contrast. Pair roasted with raw or pickled with confit.</li>
+          <li><strong>Forgetting to cool</strong> — hot roasted vegetables wilt greens on contact. Let them come to room temperature or just slightly warm before composing.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 3. BUILDING LAYERS OF FLAVOR & TEXTURE -->
+    <article class="section" id="layers">
+      <div class="section-number">Section 03</div>
+      <h2>Building Layers of Flavor &amp; Texture</h2>
+      <p class="hook">A great salad changes with every bite. No two forkfuls should feel the same.</p>
+
+      <h3>The texture checklist</h3>
+      <p>Professional salads almost always hit at least four textures: <strong>crispy</strong> (croutons, fried shallots, toasted nuts, puffed grains), <strong>creamy</strong> (avocado, burrata, goat cheese, a rich dressing), <strong>crunchy-snappy</strong> (raw radish, celery, cucumber, apple), and <strong>chewy or tender</strong> (dried fruit, roasted beets, grains, soft herbs). Missing one and the salad feels flat, even if it tastes good.</p>
+
+      <h3>Making your own crispy elements</h3>
+      <p>This is where restaurant salads pull away. Fried shallot rings, garlic chips, toasted breadcrumbs with herbs (pangrattato), spiced candied nuts, crispy quinoa, puffed rice, fried capers, torn croutons seared in brown butter — these take minutes but add a dimension that store-bought croutons never will. The key principle: fry or toast small things until just past golden, season immediately, and store in an airtight container.</p>
+
+      <h3>Creamy elements beyond cheese</h3>
+      <p>A swipe of whipped ricotta, labneh, or hummus across the plate. A silky tahini drizzle. Smashed avocado with lime and flaky salt. Soft-boiled eggs with yolks that run when cut. Cream-enriched dressings spooned, not poured. These creamy anchors give richness that fat in the dressing alone cannot.</p>
+
+      <h3>Grains and legumes for substance</h3>
+      <p>Farro, freekeh, quinoa, lentils, or white beans tossed with a little vinaigrette while still warm — they absorb dressing and add heartiness without turning the salad into a grain bowl. The key is treating them as a component, not the base: a scattering of dressed lentils, not a mound.</p>
+
+      <h3>Layering flavors intentionally</h3>
+      <p>Think in terms of flavor <em>modes</em>: something bright (acid, citrus), something savory (aged cheese, anchovy, miso), something sweet (roasted root veg, dried fruit, a touch of honey), something bitter (radicchio, toasted walnuts), something aromatic (fresh herbs, spice-bloomed oil). You don't need all five in every salad, but hitting three or four creates a salad that holds your attention.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>Build a "salad pantry" — a rotating set of prepared elements you keep on hand. Toasted nuts, pickled onions, a jar of crispy shallots, cooked grains, a good vinaigrette. When these are ready to go, assembling a restaurant-quality salad takes five minutes, not thirty.</p>
+      </div>
+    </article>
+
+    <!-- 4. DRESSINGS MADE WITH REAL TECHNIQUE -->
+    <article class="section" id="dressings">
+      <div class="section-number">Section 04</div>
+      <h2>Dressings Made with Real Technique</h2>
+      <p class="hook">Dressing is not oil plus vinegar shaken in a jar. It's where technique pays the highest dividend.</p>
+
+      <h3>Emulsification</h3>
+      <p>The difference between a broken vinaigrette and a creamy, clinging one is emulsification — physically forcing oil and water-based liquids into a stable suspension. Mustard (Dijon is the workhorse) is a natural emulsifier. So are egg yolks, garlic paste, tahini, miso, and honey. Start with your acid and emulsifier, whisk aggressively, then drizzle oil in a very slow stream. This is the single most important dressing technique. A properly emulsified vinaigrette coats leaves instead of sliding off.</p>
+
+      <h3>Blooming spices</h3>
+      <p>Toasting whole spices (cumin, coriander, fennel seed) in a dry pan until fragrant, then grinding them, unlocks volatile oils that raw spices don't release. Going further: bloom ground spices in warm oil or rendered fat for 30 seconds, just until fragrant. This spice-infused oil becomes the fat base of your dressing — a technique borrowed from Indian and Middle Eastern kitchens that adds tremendous depth.</p>
+
+      <h3>Building with rendered fats</h3>
+      <p>Warm bacon fat, brown butter, schmaltz, or chorizo-infused oil as the fat in a dressing is a restaurant staple. The classic wilted spinach salad works because the warm bacon vinaigrette partially softens the greens while delivering smoky richness. Brown butter vinaigrette (brown butter + sherry vinegar + shallot + Dijon) is one of the most versatile dressings in a professional kitchen and almost never seen at home.</p>
+
+      <h3>Layering acids</h3>
+      <p>Professional kitchens rarely use a single acid. They might combine sherry vinegar for depth, a squeeze of lemon for brightness, and a dash of rice vinegar for roundness. Each acid has a different <em>shape</em> — citrus hits immediately and fades, balsamic lingers with sweetness, red wine vinegar is steady and sharp, rice vinegar is gentle and clean. Blending two or three creates a more complex, less one-note result.</p>
+
+      <h3>Umami bombs</h3>
+      <p>A teaspoon of white miso, a mashed anchovy fillet, a grating of Parmesan, a splash of fish sauce, or a spoonful of nutritional yeast — these are dressing secrets that make people say "what IS this?" without being able to identify the ingredient. Umami amplifies every other flavor. It makes a salad taste more like itself.</p>
+
+      <div class="callout">
+        <div class="callout-label">Common Mistakes</div>
+        <ul>
+          <li><strong>Wrong oil-to-acid ratio</strong> — the classic 3:1 oil-to-vinegar ratio is a starting point, not a rule. Taste and adjust. Many restaurant dressings run closer to 2:1 for more punch.</li>
+          <li><strong>Using extra-virgin olive oil for everything</strong> — EVOO can be bitter and peppery. For lighter dressings, blend it 50/50 with a neutral oil (grapeseed, sunflower) to let other flavors come forward.</li>
+          <li><strong>Under-seasoning the dressing</strong> — dressing should taste slightly too strong on its own, because it's about to be diluted across a bowl of greens.</li>
+          <li><strong>Making too much</strong> — emulsified dressings break over time. Make what you need, or just a bit more.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 5. SEASONING AT EVERY STAGE -->
+    <article class="section" id="seasoning">
+      <div class="section-number">Section 05</div>
+      <h2>Seasoning at Every Stage</h2>
+      <p class="hook">Restaurants don't season the salad. They season every single component, independently, before it ever hits the plate.</p>
+
+      <h3>The principle of independent seasoning</h3>
+      <p>A roasted carrot gets salted before it goes in the oven. The grains are cooked in seasoned water and dressed while warm. The nuts are toasted with salt. The dressing is seasoned. The greens get a pinch of flaky salt after dressing. This means every component tastes complete on its own — and when they come together, the salad has a depth that no amount of end-stage salting can replicate.</p>
+
+      <h3>Salt types and when to use them</h3>
+      <p><strong>Fine sea salt or kosher salt</strong> — for seasoning during cooking, in dressings, in brines. It dissolves evenly. <strong>Flaky salt</strong> (Maldon, fleur de sel) — for finishing. The crystal structure gives texture and little bursts of salinity. <strong>Smoked salt</strong> — sparingly, as a finishing accent on roasted or charred elements. The wrong salt at the wrong stage wastes its qualities.</p>
+
+      <h3>Beyond salt: pepper, acid, sugar</h3>
+      <p>Black pepper, freshly cracked, should be applied to specific components (a sliced tomato, a piece of burrata) rather than dusted over the entire salad. A squeeze of lemon over roasted vegetables just before plating brightens them independently. A tiny pinch of sugar in a vinaigrette rounds harsh edges in cheap vinegar. These micro-adjustments are second nature in professional kitchens.</p>
+
+      <h3>The final adjustment</h3>
+      <p>After composing the salad, taste a bite that includes all the elements together. This is when you add the last squeeze of lemon, the final pinch of flaky salt, the extra drop of olive oil. Professional cooks never skip this step. The salad is done when it tastes right <em>now</em>, not when all the components are on the plate.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>Keep a small bowl of flaky salt and a halved lemon next to your plating station. These two things solve 80% of last-second adjustments.</p>
+      </div>
+    </article>
+
+    <!-- 6. BALANCING ACID, SALT, FAT & SWEET -->
+    <article class="section" id="balance">
+      <div class="section-number">Section 06</div>
+      <h2>Balancing Acid, Salt, Fat &amp; Sweet</h2>
+      <p class="hook">The four pillars. When all four are present and in proportion, a salad clicks. When one dominates or is absent, something feels off — even if you can't name it.</p>
+
+      <h3>Acid: the engine of a salad</h3>
+      <p>Acid is what makes a salad feel alive. Without enough of it, the dish feels flat and oily. Vinegar in the dressing is the obvious source, but think broader: pickled elements, citrus segments, a squeeze of lemon over composed components, fermented vegetables, sumac dusted on top. Multiple sources of acid at different intensities create vibrancy without sharpness. If your salad tastes dull, it almost always needs more acid.</p>
+
+      <h3>Salt: the amplifier</h3>
+      <p>Salt makes every other flavor louder. It suppresses bitterness, enhances sweetness, and brings out aromatics. In salads, salt comes from the dressing, from the component-level seasoning, and from salty ingredients themselves — feta, Parmesan, olives, capers, anchovies, cured meats. When you have salty ingredients, you need less salt elsewhere. When you don't, you need to be more deliberate with flaky finishing salt.</p>
+
+      <h3>Fat: the vehicle</h3>
+      <p>Fat carries flavor across your palate and gives a sensation of richness and satisfaction. Olive oil in the dressing, avocado on the plate, toasted nuts, cheese, a drizzle of finishing oil — these are all doing the same job. A salad that's "too healthy" and feels unsatisfying is almost always lacking fat. You don't need much, but you need some, and it should be high-quality.</p>
+
+      <h3>Sweet: the quiet balancer</h3>
+      <p>Sweetness in a salad is usually subtle — it rounds and bridges. Roasted root vegetables, dried cranberries or apricots, a drizzle of aged balsamic, honey in a dressing, caramelized onions, ripe stone fruit in summer. The mistake is either forgetting it entirely (the salad tastes austere) or overdoing it (the salad tastes like dessert). A touch of sweet tames aggressive acid and bitter elements.</p>
+
+      <h3>The balancing act in practice</h3>
+      <p>Take a bite. If it's flat, add acid. If it's sharp, add fat or sweet. If it's dull, add salt. If it's one-note, figure out which pillar is missing. This mental framework is what chefs use in real time, and once it becomes instinct, you can correct any salad in seconds.</p>
+
+      <div class="callout">
+        <div class="callout-label">Common Mistakes</div>
+        <ul>
+          <li><strong>Over-relying on dressing for all four pillars</strong> — the dressing handles acid and fat, but salt and sweet should come from multiple sources across the whole salad.</li>
+          <li><strong>Confusing "balanced" with "mild"</strong> — a balanced salad can be bold and intense. Balance means nothing is out of proportion, not that everything is restrained.</li>
+          <li><strong>Adding sugar instead of sweet ingredients</strong> — granulated sugar in a dressing works, but sweet components (fruit, roasted veg, balsamic reduction) add sweetness with more complexity.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 7. TEMPERATURE & CONTRAST -->
+    <article class="section" id="temperature">
+      <div class="section-number">Section 07</div>
+      <h2>Temperature &amp; Contrast</h2>
+      <p class="hook">Professional salads are rarely one temperature. The interplay of warm and cool is a tool as powerful as seasoning.</p>
+
+      <h3>Warm elements on cold greens</h3>
+      <p>This is the single most underused technique in home cooking. A handful of warm, just-roasted vegetables, a seared piece of halloumi, crispy fried chickpeas straight from the pan, a warm grain pilaf — placed on top of cold, crisp greens — creates a thermal contrast that makes the salad feel dynamic and almost exciting. The slight wilting where warm meets cold is a feature, not a bug. It creates a textural gradient.</p>
+
+      <h3>Warm dressings</h3>
+      <p>A warm vinaigrette (brown butter, bacon fat, or warmed olive oil with aromatics) poured over sturdy greens partially softens them and infuses flavor in a way cold dressing cannot. This technique works best with heartier greens like spinach, kale, frisée, or escarole. The dressing should be warm, not scorching — you're gently wilting, not cooking.</p>
+
+      <h3>Chilled plates</h3>
+      <p>Restaurants serve salads on chilled plates for a reason: it keeps the greens cold and crisp longer, and it signals freshness the moment the plate arrives. Fifteen minutes in the fridge (or five in the freezer) is enough. This is a tiny detail that meaningfully improves the eating experience, especially in warm weather or for a composed salad that takes a few minutes to eat.</p>
+
+      <h3>Strategic temperature zones</h3>
+      <p>Think of your composed salad in zones: a cold zone (the bed of greens, raw shaved vegetables), a room-temperature zone (marinated elements, cheese, avocado), and a warm zone (just-cooked proteins, roasted vegetables, fried garnishes). These arrive on the plate at their own temperatures and create a sensory journey as you eat through the salad.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>Add hot fried elements (shallots, croutons, fried herbs) at the very last second before serving. They cool quickly, and every second counts for maintaining that crispy-meets-cold contrast.</p>
+      </div>
+    </article>
+
+    <!-- 8. GARNISHES THAT ACTUALLY MATTER -->
+    <article class="section" id="garnishes">
+      <div class="section-number">Section 08</div>
+      <h2>Garnishes That Actually Matter</h2>
+      <p class="hook">A garnish should be the last layer of flavor, not decoration. If it doesn't taste like something, it doesn't belong.</p>
+
+      <h3>Whole herb leaves</h3>
+      <p>Restaurants treat herbs as a salad ingredient, not a sprinkle. Whole leaves of basil, mint, dill, tarragon, chervil, or cilantro are torn and mixed in with the greens — or laid deliberately on top. A few leaves of fresh mint in a grain salad or torn basil over tomatoes does more than a tablespoon of chopped herbs ever could, because you get concentrated bursts of flavor in individual bites rather than a diffused herby haze.</p>
+
+      <h3>Microgreens — chosen for flavor</h3>
+      <p>The best microgreens are not "micro salad mix." They're specific: pea shoots (sweet, tender), micro cilantro (intense), shiso (aromatic, unusual), bull's blood beet (earthy, beautiful), micro basil, radish sprouts (peppery kick). Choose microgreens that echo or contrast a flavor already in the salad. If they taste like nothing, swap them for a whole herb leaf that does.</p>
+
+      <h3>Finishing oils</h3>
+      <p>A high-quality finishing oil applied after plating — grassy extra-virgin olive oil, toasted sesame oil, walnut oil, pistachio oil, chili oil — adds a last hit of aroma and richness that the dressing can't deliver because it's been mixed and diluted. The key is restraint: a thin drizzle, not a pour. Finishing oils should be fresh (nut oils go rancid quickly) and genuinely good.</p>
+
+      <h3>Citrus zest and juice</h3>
+      <p>A Microplane pass of lemon, lime, orange, or grapefruit zest over a finished salad adds bright, volatile aromatics that disappear within minutes — which is exactly why it's done at the last second. This is different from acid in the dressing; zest is about fragrance and essential oils on the surface. A squeeze of citrus at the very end also wakes up every component beneath it.</p>
+
+      <h3>Edible flowers</h3>
+      <p>Used well, edible flowers are a legitimate flavor and textural element. Nasturtiums are peppery. Borage tastes like cucumber. Lavender adds floral perfume (use sparingly). Marigold petals are mildly bitter and visually striking. Chive blossoms taste like mild chives. The rule: if you can describe what the flower <em>tastes</em> like, it belongs. If you can only describe what it <em>looks</em> like, leave it off.</p>
+
+      <div class="callout">
+        <div class="callout-label">Common Mistakes</div>
+        <ul>
+          <li><strong>Garnishing with dried herbs</strong> — dried herbs are for cooking, not finishing. They add nothing visually or texturally to a salad.</li>
+          <li><strong>Over-garnishing</strong> — more is not better. Two or three intentional garnish elements are stronger than six scattered ones that confuse the palate.</li>
+          <li><strong>Forgetting that garnishes need seasoning too</strong> — a pinch of flaky salt over a garnish (especially herbs and microgreens) makes them pop.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 9. PLATING WITH ARCHITECTURE -->
+    <article class="section" id="plating">
+      <div class="section-number">Section 09</div>
+      <h2>Plating with Architecture</h2>
+      <p class="hook">A salad is built, not dumped. How it arrives on the plate determines the first impression and the eating experience.</p>
+
+      <h3>Height and dimension</h3>
+      <p>Professional salads have <em>lift</em>. Greens are placed, not pressed. Components lean against each other. There's a peak. This isn't about being fussy — it's about creating a structure that allows each ingredient to be seen and accessed. A flat, compressed salad hides its components and feels less abundant. Gently mound the greens upward, place feature components where they're visible, and let the salad breathe.</p>
+
+      <h3>Dressing placement</h3>
+      <p>In a fine dining kitchen, dressing is applied in stages. The greens are hand-dressed (lightly) in a bowl. The salad is plated. Then additional dressing, finishing oil, or sauce is applied <em>on and around</em> the composed plate — a spoon-drizzle across the top, a pool of tahini sauce on the plate before the salad is set down, dots of balsamic reduction around the rim. This layered application ensures every bite is dressed without drowning anything.</p>
+
+      <h3>Composing versus tossing</h3>
+      <p>A tossed salad is fine for family style. But for a composed salad, each element is placed. The base goes down first (a smear of labneh, a bed of grains, or the greens themselves). Then the feature ingredients are arranged with intention — sliced avocado fanned, beet wedges leaned, a halved soft-boiled egg placed yolk-up. Garnishes go on last, placed where they'll be seen and not buried.</p>
+
+      <h3>Negative space and plate choice</h3>
+      <p>A common home-cook instinct is to fill the plate. Restaurants leave room. White space (or whatever color the plate is) frames the food and makes it look abundant, not sparse. Choose a plate or bowl slightly larger than you think you need. A wide, shallow bowl with a rim is the most versatile vessel for salads — it contains dressing while giving the greens room to spread.</p>
+
+      <h3>The finishing pass</h3>
+      <p>After everything is placed, the chef does a final pass: a drizzle of oil, a scatter of flaky salt, a last herb leaf, a grind of pepper, a citrus zest. This is the equivalent of a painter stepping back and adding a final stroke. It takes five seconds and it's the difference between "put together" and "finished."</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>Wipe the rim of the plate with a clean, damp towel before serving. A smudge of vinaigrette on the rim makes everything look careless. A clean rim makes the same salad look intentional.</p>
+      </div>
+    </article>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <p>A reference for cooks who take their salads seriously.</p>
+</footer>
+
+<script>
+  // Highlight active nav link on scroll
+  (function () {
+    const sections = document.querySelectorAll('.section[id]');
+    const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+    const mobileLinks = document.querySelectorAll('.mobile-nav a[href^="#"]');
+
+    if (!sections.length) return;
+
+    function setActive() {
+      let current = '';
+      for (const section of sections) {
+        const top = section.getBoundingClientRect().top;
+        if (top <= 120) current = section.id;
+      }
+      for (const link of sidebarLinks) {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+      }
+      for (const link of mobileLinks) {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+      }
+    }
+
+    window.addEventListener('scroll', setActive, { passive: true });
+    setActive();
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sandwich Builder — Compose a Restaurant-Level Sandwich</title>
+<style>
+:root {
+  --bg: #faf7f2;
+  --surface: #ffffff;
+  --text: #2c2c2c;
+  --muted: #6b6155;
+  --accent: #9a7032;
+  --accent-light: #f5eed9;
+  --accent-dark: #5c4a28;
+  --border: #e4ddd2;
+  --warm: #c4854c;
+  --warm-light: #fdf6ee;
+  --warm-border: #dbb978;
+  --terra: #b0623a;
+  --green: #5a7247;
+  --green-light: #e8efe3;
+  --font-body: 'Georgia','Times New Roman',serif;
+  --font-ui: -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.65;font-size:1rem}
+
+/* Header */
+.header{text-align:center;padding:2.5rem 1.5rem 2rem;border-bottom:1px solid var(--border);background:var(--surface)}
+.header h1{font-family:var(--font-ui);font-size:clamp(1.5rem,3.5vw,2.2rem);font-weight:700;letter-spacing:-0.02em;margin-bottom:0.3rem}
+.header p{color:var(--muted);font-size:0.95rem;max-width:32rem;margin:0 auto;font-style:italic}
+
+/* Progress */
+.progress-bar{display:flex;gap:0;background:var(--surface);border-bottom:1px solid var(--border);padding:0.5rem 1rem;overflow-x:auto;-webkit-overflow-scrolling:touch;position:sticky;top:0;z-index:50}
+.progress-step{flex:1;min-width:0;text-align:center;font-family:var(--font-ui);font-size:0.7rem;letter-spacing:0.03em;padding:0.5rem 0.25rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.progress-step.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.progress-step.done{color:var(--accent-dark);border-bottom-color:var(--accent-light)}
+.progress-step:hover{color:var(--accent)}
+
+/* Main */
+/* Layout wrapper */
+.layout{display:flex;max-width:72rem;margin:0 auto;gap:0;padding:0}
+.main{flex:1;min-width:0;max-width:46rem;margin:0 auto;padding:1.5rem 1rem 4rem}
+
+/* Selection sidebar */
+.sel-sidebar{width:15rem;flex-shrink:0;padding:1rem 0.75rem 2rem 1rem;position:sticky;top:3.5rem;align-self:flex-start;max-height:calc(100vh - 4rem);overflow-y:auto}
+.sel-sidebar::-webkit-scrollbar{width:4px}
+.sel-sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.sel-sidebar .sel-title{font-family:var(--font-ui);font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.6rem}
+.sel-sidebar .sel-group{margin-bottom:0.75rem}
+.sel-sidebar .sel-label{font-family:var(--font-ui);font-size:0.62rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent);margin-bottom:0.2rem}
+.sel-sidebar .sel-item{font-family:var(--font-ui);font-size:0.75rem;color:var(--text);line-height:1.4;padding:0.1rem 0}
+.sel-sidebar .sel-item .sel-detail{color:var(--muted);font-size:0.68rem}
+.sel-sidebar .sel-empty{font-family:var(--font-ui);font-size:0.72rem;color:var(--muted);font-style:italic;padding:0.5rem 0}
+
+/* Stage */
+.stage{display:none;animation:fadeIn 0.3s ease}
+.stage.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.stage-title{font-family:var(--font-ui);font-size:1.4rem;font-weight:700;margin-bottom:0.2rem}
+.stage-sub{color:var(--muted);font-size:0.92rem;margin-bottom:1.5rem;font-style:italic}
+
+/* Category groups */
+.cat-group{margin-bottom:1.5rem}
+.cat-label{font-family:var(--font-ui);font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem}
+
+/* Cards */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.6rem}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:0.7rem 0.85rem;cursor:pointer;transition:all 0.15s}
+.card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.card.selected{border-color:var(--accent);background:var(--accent-light)}
+.card .name{font-family:var(--font-ui);font-size:0.88rem;font-weight:600;margin-bottom:0.15rem}
+.card .desc{font-size:0.78rem;color:var(--muted);line-height:1.4}
+.card .badge{display:inline-block;font-family:var(--font-ui);font-size:0.6rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--warm);background:var(--warm-light);border:1px solid var(--warm-border);padding:0.1rem 0.4rem;border-radius:1rem;margin-bottom:0.3rem}
+
+/* Prep selector */
+.prep-card{padding:0.7rem 0.85rem}
+.prep-card .prep-row{display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.4rem}
+.prep-btn{font-family:var(--font-ui);font-size:0.68rem;padding:0.2rem 0.55rem;border-radius:1rem;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--muted);transition:all 0.15s}
+.prep-btn:hover{border-color:var(--accent);color:var(--accent)}
+.prep-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* Chip rows for spreads etc */
+.chip-row{display:flex;flex-wrap:wrap;gap:0.35rem}
+.chip{font-family:var(--font-ui);font-size:0.78rem;padding:0.3rem 0.7rem;border-radius:1rem;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--text);transition:all 0.15s}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
+.chip .rec{color:var(--warm);margin-left:0.2rem;font-size:0.65rem}
+
+/* Balance meters */
+.balance-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0}
+.balance-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem}
+.balance-item .pillar-name{font-family:var(--font-ui);font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.4rem}
+.meter-track{height:8px;background:#eee;border-radius:4px;overflow:hidden;margin-bottom:0.4rem}
+.meter-fill{height:100%;border-radius:4px;transition:width 0.4s ease}
+.meter-fill.acid{background:#c9a52c}
+.meter-fill.salt{background:#8b7355}
+.meter-fill.fat{background:var(--warm)}
+.meter-fill.heat{background:var(--terra)}
+.balance-item .sources{font-size:0.75rem;color:var(--muted);line-height:1.4}
+.balance-item .suggestion{font-size:0.8rem;color:var(--terra);margin-top:0.35rem;font-style:italic}
+.fix-links{display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.4rem}
+.fix-btn{font-family:var(--font-ui);font-size:0.72rem;padding:0.25rem 0.6rem;border-radius:1rem;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent-dark);cursor:pointer;transition:all 0.15s;text-align:left;line-height:1.3}
+.fix-btn:hover{background:var(--accent);color:#fff}
+
+/* Warning callout */
+.warn-box{background:#fef3e8;border:1px solid #e8c49a;border-radius:var(--radius);padding:0.75rem 1rem;margin:1rem 0;font-family:var(--font-ui);font-size:0.82rem;color:var(--terra)}
+
+/* Premade spreads */
+.premade-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.6rem;margin-bottom:1.5rem}
+.premade-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:0.7rem 0.85rem;cursor:pointer;transition:all 0.15s}
+.premade-card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.premade-card.selected{border-color:var(--accent);background:var(--accent-light)}
+.premade-card .name{font-family:var(--font-ui);font-size:0.88rem;font-weight:600;margin-bottom:0.15rem}
+.premade-card .desc{font-size:0.78rem;color:var(--muted);line-height:1.4}
+.howto-box{background:var(--warm-light);border:1px solid var(--warm-border);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:1.5rem}
+.howto-box h4{font-family:var(--font-ui);font-size:0.85rem;font-weight:700;margin-bottom:0.4rem;color:var(--warm)}
+.howto-box ul{margin:0.3rem 0 0 1.2rem;font-size:0.88rem;line-height:1.7}
+.howto-box li{margin-bottom:0.2rem}
+
+/* Saved sandwiches */
+.save-btn{font-family:var(--font-ui);font-size:0.88rem;font-weight:600;padding:0.65rem 1.5rem;border-radius:var(--radius);border:1.5px solid var(--accent);background:var(--accent-light);color:var(--accent-dark);cursor:pointer;transition:all 0.15s;margin-right:0.5rem}
+.save-btn:hover{background:var(--accent);color:#fff}
+.save-confirm{font-family:var(--font-ui);font-size:0.82rem;color:var(--accent);margin-left:0.5rem;opacity:0;transition:opacity 0.3s}
+.save-confirm.show{opacity:1}
+.saved-link-btn{font-family:var(--font-ui);font-size:0.82rem;color:var(--accent);cursor:pointer;background:none;border:1px solid var(--accent);padding:0.35rem 0.9rem;border-radius:var(--radius);transition:all 0.15s;text-decoration:none}
+.saved-link-btn:hover{background:var(--accent);color:#fff}
+.saved-page{max-width:46rem;margin:0 auto;padding:2rem 1rem 4rem}
+.saved-page h2{font-family:var(--font-ui);font-size:1.4rem;font-weight:700;margin-bottom:0.3rem}
+.saved-page .saved-sub{color:var(--muted);font-size:0.92rem;font-style:italic;margin-bottom:1.5rem}
+.saved-page .back-link{font-family:var(--font-ui);font-size:0.82rem;color:var(--accent);cursor:pointer;background:none;border:none;text-decoration:underline;margin-bottom:1.5rem;display:inline-block}
+.saved-page .back-link:hover{color:var(--accent-dark)}
+.saved-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.saved-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;transition:all 0.15s}
+.saved-card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.saved-card .saved-name-row{display:flex;align-items:center;gap:0.4rem;margin-bottom:0.15rem}
+.saved-card .saved-name{font-family:var(--font-ui);font-size:0.95rem;font-weight:600;flex:1;min-width:0}
+.saved-card .saved-name input{font-family:var(--font-ui);font-size:0.95rem;font-weight:600;border:1px solid var(--border);border-radius:4px;padding:0.15rem 0.4rem;width:100%;background:var(--bg)}
+.saved-card .saved-name input:focus{outline:none;border-color:var(--accent)}
+.saved-card .rename-btn{font-family:var(--font-ui);font-size:0.65rem;color:var(--muted);cursor:pointer;background:none;border:none;text-decoration:underline;flex-shrink:0}
+.saved-card .rename-btn:hover{color:var(--accent)}
+.saved-card .saved-date{font-family:var(--font-ui);font-size:0.7rem;color:var(--muted);margin-bottom:0.5rem}
+.saved-card .saved-preview{font-size:0.82rem;color:var(--text);line-height:1.5;margin-bottom:0.75rem}
+.saved-card .saved-actions{display:flex;gap:0.5rem}
+.saved-card .saved-actions button{font-family:var(--font-ui);font-size:0.78rem;padding:0.35rem 0.8rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:all 0.15s}
+.saved-card .load-btn{color:var(--accent);border-color:var(--accent)}
+.saved-card .load-btn:hover{background:var(--accent);color:#fff}
+.saved-card .del-btn{color:var(--muted)}
+.saved-card .del-btn:hover{border-color:var(--terra);color:var(--terra)}
+.saved-card .confirm-del{display:inline-flex;gap:0.3rem;align-items:center}
+.saved-card .confirm-del span{font-family:var(--font-ui);font-size:0.72rem;color:var(--terra)}
+.saved-card .confirm-del .yes-btn{color:var(--terra);border-color:var(--terra)}
+.saved-card .confirm-del .yes-btn:hover{background:var(--terra);color:#fff}
+.saved-card .confirm-del .no-btn{color:var(--muted)}
+.no-saved{font-family:var(--font-ui);font-size:0.92rem;color:var(--muted);font-style:italic;text-align:center;padding:3rem 1rem}
+
+/* Export buttons */
+.export-row{display:flex;gap:0.4rem;margin-top:0.75rem;flex-wrap:wrap}
+.export-btn{font-family:var(--font-ui);font-size:0.75rem;padding:0.35rem 0.7rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:all 0.15s}
+.export-btn:hover{border-color:var(--accent);color:var(--accent)}
+.export-toast{font-family:var(--font-ui);font-size:0.75rem;color:var(--accent);margin-left:0.3rem;opacity:0;transition:opacity 0.3s}
+.export-toast.show{opacity:1}
+
+/* Collapsible recipe */
+.recipe-toggle{font-family:var(--font-ui);font-size:0.8rem;color:var(--warm);cursor:pointer;background:none;border:none;padding:0.3rem 0;margin-top:0.3rem;transition:color 0.15s}
+.recipe-toggle:hover{color:var(--terra)}
+.recipe-expand{display:none;background:var(--warm-light);border:1px solid var(--warm-border);border-radius:var(--radius);padding:0.75rem 1rem;margin-top:0.4rem}
+.recipe-expand.open{display:block}
+.recipe-expand h5{font-family:var(--font-ui);font-size:0.78rem;font-weight:700;color:var(--warm);margin-bottom:0.3rem}
+.recipe-expand ul{margin:0.2rem 0 0 1.2rem;font-size:0.82rem;line-height:1.6}
+.recipe-expand li{margin-bottom:0.15rem}
+
+/* Start screen */
+.start-screen{max-width:46rem;margin:0 auto;padding:2rem 1rem 4rem}
+.start-fork{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem}
+.fork-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);padding:1.5rem;cursor:pointer;text-align:center;transition:all 0.15s}
+.fork-card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.fork-card h3{font-family:var(--font-ui);font-size:1.1rem;font-weight:700;margin-bottom:0.3rem}
+.fork-card p{font-size:0.85rem;color:var(--muted)}
+.template-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.75rem}
+.template-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:1rem;cursor:pointer;transition:all 0.15s}
+.template-card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.template-card .name{font-family:var(--font-ui);font-size:0.95rem;font-weight:600;margin-bottom:0.2rem}
+.template-card .desc{font-size:0.8rem;color:var(--muted);line-height:1.4;margin-bottom:0.5rem}
+.template-card .tags{display:flex;flex-wrap:wrap;gap:0.25rem}
+.template-card .tag{font-family:var(--font-ui);font-size:0.62rem;padding:0.12rem 0.45rem;border-radius:1rem;background:var(--accent-light);color:var(--accent-dark)}
+.template-banner{font-family:var(--font-ui);font-size:0.82rem;background:var(--accent-light);color:var(--accent-dark);padding:0.5rem 1rem;border-radius:var(--radius);margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center}
+.template-banner button{font-family:var(--font-ui);font-size:0.72rem;background:none;border:1px solid var(--accent);color:var(--accent);padding:0.2rem 0.6rem;border-radius:var(--radius);cursor:pointer}
+.template-banner button:hover{background:var(--accent);color:#fff}
+
+/* Heat method tags */
+.heat-list{list-style:none;margin:1rem 0}
+.heat-list li{display:flex;align-items:flex-start;gap:0.6rem;padding:0.6rem 0;border-bottom:1px solid var(--border);font-size:0.9rem}
+.heat-tag{font-family:var(--font-ui);font-size:0.65rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:0.15rem 0.5rem;border-radius:1rem;flex-shrink:0;margin-top:0.15rem}
+.heat-cold{background:#e3eef7;color:#3a6fa0}
+.heat-toast{background:#f0ebe3;color:#7a6a55}
+.heat-warm{background:#fce8d5;color:#b0623a}
+.heat-hot{background:#f5d5d0;color:#a03a3a}
+.heat-dip{background:#e5e0f0;color:#5a4a7a}
+
+/* Summary card */
+.summary-card{background:var(--surface);border:2px solid var(--accent);border-radius:var(--radius);padding:2rem;margin-top:1rem}
+.summary-card h3{font-family:var(--font-ui);font-size:1.1rem;font-weight:700;margin-bottom:0.15rem}
+.summary-card .summary-sub{color:var(--muted);font-size:0.85rem;font-style:italic;margin-bottom:1.25rem}
+.summary-section{margin-bottom:1rem}
+.summary-section .ss-label{font-family:var(--font-ui);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:0.3rem}
+.summary-section ul{list-style:none;font-size:0.88rem;line-height:1.6}
+.summary-section li::before{content:'· ';color:var(--accent);font-weight:700}
+.assembly-tips{background:var(--warm-light);border:1px solid var(--warm-border);border-radius:var(--radius);padding:1rem;margin-top:1rem}
+.assembly-tips h4{font-family:var(--font-ui);font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--warm);margin-bottom:0.4rem}
+.assembly-tips ol{font-size:0.85rem;margin-left:1.2rem;color:var(--text)}
+.assembly-tips li{margin-bottom:0.3rem}
+
+/* Buttons */
+.nav-buttons{display:flex;justify-content:space-between;margin-top:2rem;gap:1rem}
+.btn{font-family:var(--font-ui);font-size:0.88rem;font-weight:600;padding:0.65rem 1.5rem;border-radius:var(--radius);border:none;cursor:pointer;transition:all 0.15s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-dark)}
+.btn-secondary{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn:disabled{opacity:0.4;cursor:default}
+
+/* Reset button */
+.btn-reset{display:inline-block;margin-top:1.5rem;font-family:var(--font-ui);font-size:0.8rem;color:var(--muted);cursor:pointer;background:none;border:none;text-decoration:underline}
+.btn-reset:hover{color:var(--terra)}
+
+/* Selection count hint */
+.pick-hint{font-family:var(--font-ui);font-size:0.75rem;color:var(--muted);margin-bottom:1rem}
+
+/* Dress section */
+.dress-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:1rem}
+.dress-section h4{font-family:var(--font-ui);font-size:0.85rem;font-weight:600;margin-bottom:0.5rem}
+
+/* Footer */
+.footer{text-align:center;padding:1.5rem;font-family:var(--font-ui);font-size:0.8rem;color:var(--muted);border-top:1px solid var(--border)}
+.footer a{color:var(--accent);text-decoration:none}
+.footer a:hover{text-decoration:underline}
+
+@media(max-width:900px){
+  .sel-sidebar{display:none}
+  .layout{display:block}
+}
+@media(max-width:500px){
+  .card-grid{grid-template-columns:1fr 1fr}
+  .balance-grid{grid-template-columns:1fr}
+  .summary-card{padding:1.25rem}
+  .start-fork{grid-template-columns:1fr}
+  .template-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+</head>
+<body>
+
+<style>
+.fb-topnav{position:sticky;top:0;z-index:9999;display:flex;align-items:center;justify-content:space-between;padding:0.6rem 1.2rem;background:#1a1a1a;color:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;border-bottom:1px solid #333}
+.fb-topnav__brand{color:#f5f5f5;text-decoration:none;font-weight:600;font-size:0.95rem;letter-spacing:-0.01em}
+.fb-topnav__brand:hover{color:#fff}
+.fb-topnav__links{display:flex;gap:0.25rem}
+.fb-topnav__link{color:#bbb;text-decoration:none;font-size:0.85rem;font-weight:500;padding:0.45rem 0.9rem;border-radius:6px;transition:background 0.15s,color 0.15s}
+.fb-topnav__link:hover{color:#fff;background:#2a2a2a}
+.fb-topnav__link--active{color:#fff;background:#2a2a2a}
+</style>
+<nav class="fb-topnav" aria-label="Food Builder navigation">
+  <a href="../" class="fb-topnav__brand">Food Builder</a>
+  <div class="fb-topnav__links">
+    <a href="../salad/" class="fb-topnav__link">Salads</a>
+    <a href="../sandwich/" class="fb-topnav__link fb-topnav__link--active">Sandwiches</a>
+  </div>
+</nav>
+
+<header class="header">
+  <h1>Sandwich Builder</h1>
+  <p>Compose a restaurant-level sandwich step by step. Each choice shapes what comes next.</p>
+  <p id="savedLink" style="margin-top:0.6rem"></p>
+</header>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="layout">
+<aside class="sel-sidebar" id="selSidebar"></aside>
+<div class="main">
+  <div id="stageContainer"></div>
+</div>
+</div>
+
+<footer class="footer">
+  <a href="index.html">Back to the reference guide</a>
+</footer>
+
+<script>
+// ============================================================
+//  DATA
+// ============================================================
+
+const BREADS = [
+  {cat:'Hearty / Rustic', items:[
+    {id:'sourdough',name:'Sourdough',desc:'Open crumb absorbs spreads without going soggy; chewy crust holds up to pressing.',tags:['tangy','sturdy'],sturdy:true,sweet:false},
+    {id:'ciabatta',name:'Ciabatta',desc:'Airy, crisp crust, open interior. Handles juicy fillings well.',tags:['mild','sturdy'],sturdy:true,sweet:false},
+    {id:'baguette',name:'Baguette',desc:'Shattering crust, tight crumb. Classic for banh mi and French dip.',tags:['mild','sturdy'],sturdy:true,sweet:false},
+    {id:'rye',name:'Rye',desc:'Dense, slightly sour, earthy. The Reuben standard.',tags:['earthy','tangy','sturdy'],sturdy:true,sweet:false},
+    {id:'pumpernickel',name:'Pumpernickel',desc:'Dark, dense, malty-sweet. Pairs with smoked fish and strong cheeses.',tags:['earthy','sweet','sturdy'],sturdy:true,sweet:true},
+  ]},
+  {cat:'Soft / Enriched', items:[
+    {id:'brioche',name:'Brioche',desc:'Buttery, tender, slightly sweet. Yields to the filling — lets protein shine.',tags:['rich','sweet'],sturdy:false,sweet:true},
+    {id:'milk-bread',name:'Milk Bread',desc:'Pillowy soft, barely sweet. The Japanese-style bun for fried chicken.',tags:['mild','sweet'],sturdy:false,sweet:true},
+    {id:'potato-roll',name:'Potato Roll',desc:'Soft, slightly dense, sturdy enough for a smashburger. The diner classic.',tags:['mild','sweet'],sturdy:false,sweet:true},
+    {id:'hawaiian-roll',name:'Hawaiian Roll',desc:'Sweet, fluffy, golden. Works for sliders and pulled pork.',tags:['sweet'],sturdy:false,sweet:true},
+  ]},
+  {cat:'Flatbreads / Wraps', items:[
+    {id:'pita',name:'Pita',desc:'Pocket for falafel, shawarma, kebabs. Sturdy when fresh, brittle when stale.',tags:['mild'],sturdy:false,sweet:false},
+    {id:'tortilla',name:'Tortilla (Flour)',desc:'Thin, flexible, neutral. Wrap anything — the most portable option.',tags:['mild'],sturdy:false,sweet:false},
+    {id:'lavash',name:'Lavash',desc:'Paper-thin flatbread. Roll tight with spreads and thin fillings.',tags:['mild'],sturdy:false,sweet:false},
+    {id:'naan',name:'Naan',desc:'Soft, charred, slightly chewy. Works for Indian-inspired or kebab wraps.',tags:['rich','mild'],sturdy:false,sweet:false},
+  ]},
+  {cat:'Specialty', items:[
+    {id:'english-muffin',name:'English Muffin',desc:'Nooks and crannies hold butter and runny egg. The breakfast sandwich bread.',tags:['mild','sturdy'],sturdy:true,sweet:false},
+    {id:'bagel',name:'Bagel',desc:'Dense, chewy, boiled crust. Stands up to thick schmear and lox.',tags:['sturdy'],sturdy:true,sweet:false},
+    {id:'pretzel-roll',name:'Pretzel Roll',desc:'Dark, malty crust, soft interior. Salty-savory flavor pairs with sausage and mustard.',tags:['savory','sturdy'],sturdy:true,sweet:false},
+    {id:'focaccia',name:'Focaccia',desc:'Olive oil-rich, dimpled, herby. Slice horizontally for a sturdy, flavorful base.',tags:['rich','herbaceous','sturdy'],sturdy:true,sweet:false},
+  ]},
+  {cat:'Rolls', items:[
+    {id:'kaiser',name:'Kaiser Roll',desc:'Round, firm crust, airy crumb. The deli standard for cold cuts.',tags:['mild','sturdy'],sturdy:true,sweet:false},
+    {id:'hoagie',name:'Hoagie / Sub Roll',desc:'Long, soft interior, light crust. Built for Italian subs and cheesesteaks.',tags:['mild'],sturdy:false,sweet:false},
+    {id:'french-roll',name:'French Roll',desc:'Crisp crust, tender crumb. French dip, po\'boy, banh mi territory.',tags:['mild','sturdy'],sturdy:true,sweet:false},
+  ]},
+];
+
+const SPREADS = [
+  {cat:'Mustards', items:[
+    {id:'yellow-mustard',name:'Yellow Mustard',desc:'Sharp, clean, one-dimensional. The hot dog and smashburger standard.',tags:['tangy','sharp'],profile:{acid:1,salt:0,fat:0,heat:0.5}},
+    {id:'dijon',name:'Dijon Mustard',desc:'Hot, creamy, emulsifying. The all-purpose kitchen mustard.',tags:['tangy','sharp','spicy'],profile:{acid:1.5,salt:0.5,fat:0,heat:0.5}},
+    {id:'whole-grain',name:'Whole Grain Mustard',desc:'Textured, milder bite. Seeds pop with flavor.',tags:['tangy','mild'],profile:{acid:1,salt:0,fat:0,heat:0.3}},
+    {id:'hot-english',name:'Hot English Mustard',desc:'Nasal-clearing heat. Use sparingly with roast beef.',tags:['spicy','sharp'],profile:{acid:0.5,salt:0,fat:0,heat:2}},
+    {id:'honey-mustard',name:'Honey Mustard',desc:'Sweet-sharp bridge. Works on chicken and turkey.',tags:['sweet','tangy'],profile:{acid:1,salt:0,fat:0,heat:0.2}},
+  ]},
+  {cat:'Mayo-Based', items:[
+    {id:'mayo',name:'Mayonnaise',desc:'The moisture barrier. Rich, neutral, essential.',tags:['rich','mild'],profile:{acid:0.3,salt:0,fat:2,heat:0}},
+    {id:'kewpie',name:'Kewpie Mayo',desc:'Japanese mayo — richer, tangier, creamier. Try it once.',tags:['rich','tangy'],profile:{acid:0.5,salt:0,fat:2,heat:0}},
+    {id:'garlic-aioli',name:'Garlic Aioli',desc:'Mayo with punch. Garlic, lemon, olive oil.',tags:['savory','rich'],profile:{acid:0.5,salt:0,fat:2,heat:0}},
+    {id:'chipotle-mayo',name:'Chipotle Mayo',desc:'Smoky, spicy, creamy. The fried chicken sandwich spread.',tags:['smoky','spicy','rich'],profile:{acid:0.3,salt:0,fat:1.5,heat:1.5}},
+    {id:'herb-mayo',name:'Herb Mayo',desc:'Fold in fresh herbs and lemon zest. Instantly custom.',tags:['herbaceous','rich'],profile:{acid:0.5,salt:0,fat:1.5,heat:0}},
+    {id:'sriracha-mayo',name:'Sriracha Mayo',desc:'Sweet heat meets creamy fat. Quick and effective.',tags:['spicy','sweet','rich'],profile:{acid:0.3,salt:0,fat:1.5,heat:1.5}},
+  ]},
+  {cat:'Butters', items:[
+    {id:'plain-butter',name:'Plain Butter',desc:'Melts into warm bread. Simple, rich, essential for grilled sandwiches.',tags:['rich'],profile:{acid:0,salt:0.3,fat:2.5,heat:0}},
+    {id:'herb-butter',name:'Herb Compound Butter',desc:'Butter with chopped herbs, garlic, lemon zest. Melts and perfumes.',tags:['rich','herbaceous'],profile:{acid:0.2,salt:0.3,fat:2.5,heat:0}},
+    {id:'garlic-butter',name:'Garlic Butter',desc:'Roasted or raw garlic mashed into softened butter.',tags:['savory','rich'],profile:{acid:0,salt:0.3,fat:2.5,heat:0}},
+  ]},
+  {cat:'Savory', items:[
+    {id:'pesto',name:'Pesto',desc:'Basil, pine nuts, Parmesan, garlic, olive oil. Herbal punch.',tags:['herbaceous','savory','rich'],profile:{acid:0.3,salt:1,fat:1.5,heat:0}},
+    {id:'tapenade',name:'Tapenade',desc:'Olive paste. Briny, salty depth for Mediterranean sandwiches.',tags:['savory','tangy'],profile:{acid:0.5,salt:1.5,fat:1,heat:0}},
+    {id:'romesco',name:'Romesco',desc:'Roasted pepper and nut sauce. Smoky, nutty, deeply savory.',tags:['smoky','savory','rich'],profile:{acid:0.5,salt:0.5,fat:1,heat:0.5}},
+    {id:'hummus',name:'Hummus',desc:'Chickpea spread. Creamy, mild, moisture barrier and flavor.',tags:['mild','savory'],profile:{acid:0.5,salt:0.5,fat:1,heat:0}},
+    {id:'baba-ganoush',name:'Baba Ganoush',desc:'Smoky roasted eggplant spread. Earthy and rich.',tags:['smoky','earthy','rich'],profile:{acid:0.5,salt:0.3,fat:1,heat:0}},
+  ]},
+  {cat:'Bold / Spicy', items:[
+    {id:'harissa',name:'Harissa',desc:'North African chili paste. Complex heat with smoky depth.',tags:['spicy','smoky'],profile:{acid:0.5,salt:0.3,fat:0.5,heat:2}},
+    {id:'gochujang',name:'Gochujang',desc:'Korean fermented chili paste. Sweet, funky, hot.',tags:['spicy','sweet','savory'],profile:{acid:0.5,salt:0.5,fat:0,heat:2}},
+    {id:'hot-sauce',name:'Hot Sauce',desc:'Vinegar-based heat. Tabasco, Crystal, Frank\'s — pick your poison.',tags:['spicy','tangy'],profile:{acid:1.5,salt:0.5,fat:0,heat:2}},
+    {id:'chili-crisp',name:'Chili Crisp',desc:'Crunchy chili flakes in oil. Heat, texture, umami.',tags:['spicy','savory','rich'],profile:{acid:0,salt:0.5,fat:1,heat:2}},
+  ]},
+  {cat:'Sweet / Tangy', items:[
+    {id:'cranberry',name:'Cranberry Sauce',desc:'Sweet-tart. The Thanksgiving turkey sandwich essential.',tags:['sweet','tangy'],profile:{acid:1,salt:0,fat:0,heat:0}},
+    {id:'fig-jam',name:'Fig Jam',desc:'Rich, sweet, earthy. Pairs with prosciutto and brie.',tags:['sweet'],profile:{acid:0.3,salt:0,fat:0,heat:0}},
+    {id:'apple-butter',name:'Apple Butter',desc:'Concentrated apple sweetness. Pairs with pork and sharp cheese.',tags:['sweet','earthy'],profile:{acid:0.5,salt:0,fat:0,heat:0}},
+    {id:'hot-honey',name:'Hot Honey',desc:'Honey infused with chili. Sweet heat for fried chicken.',tags:['sweet','spicy'],profile:{acid:0,salt:0,fat:0,heat:1.5}},
+  ]},
+];
+
+const PROTEINS = [
+  {cat:'Deli / Cured', items:[
+    {id:'turkey',name:'Turkey',desc:'Lean, mild, versatile. Needs good seasoning and companions.',tags:['mild','savory'],preps:['sliced thin','roasted & sliced','smoked'],profile:{acid:0,salt:0.5,fat:0.5,heat:0}},
+    {id:'roast-beef',name:'Roast Beef',desc:'Rich, beefy, elegant when sliced paper-thin against the grain.',tags:['savory','rich'],preps:['sliced thin','warm & sliced','rare'],profile:{acid:0,salt:0.5,fat:1.5,heat:0}},
+    {id:'ham',name:'Ham',desc:'Sweet, salty, versatile. From deli sliced to glazed thick-cut.',tags:['sweet','savory'],preps:['sliced thin','glazed','warm'],profile:{acid:0,salt:1.5,fat:1,heat:0}},
+    {id:'pastrami',name:'Pastrami',desc:'Brined, smoked, spiced. Must be served warm — cold pastrami is a crime.',tags:['savory','smoky','spicy','rich'],preps:['steamed','griddled'],profile:{acid:0,salt:1.5,fat:2,heat:0.5}},
+    {id:'mortadella',name:'Mortadella',desc:'Bologna\'s elegant Italian cousin. Studded with fat and pistachios.',tags:['mild','rich'],preps:['sliced thin','fried'],profile:{acid:0,salt:1,fat:2,heat:0}},
+    {id:'prosciutto',name:'Prosciutto',desc:'Paper-thin, no cooking needed. Salt, sweetness, silky texture.',tags:['savory','sweet','rich'],preps:['draped','crisped'],profile:{acid:0,salt:2,fat:1.5,heat:0}},
+    {id:'salami',name:'Salami',desc:'Garlicky, fatty, cured. The backbone of Italian subs.',tags:['savory','spicy','rich'],preps:['sliced thin'],profile:{acid:0,salt:1.5,fat:2,heat:0.5}},
+    {id:'capicola',name:'Capicola',desc:'Spiced, cured pork shoulder. Sweet and peppery.',tags:['savory','spicy','rich'],preps:['sliced thin'],profile:{acid:0,salt:1.5,fat:1.5,heat:0.5}},
+  ]},
+  {cat:'Hot Proteins', items:[
+    {id:'fried-chicken',name:'Fried Chicken',desc:'Brined, dredged, fried. The crust is everything.',tags:['savory','rich'],preps:['fried cutlet','fried thigh'],profile:{acid:0,salt:0.5,fat:2,heat:0}},
+    {id:'grilled-chicken',name:'Grilled Chicken',desc:'Marinated, charred. Slice or serve whole breast/thigh.',tags:['savory','mild'],preps:['grilled & sliced','grilled whole'],profile:{acid:0,salt:0.5,fat:1,heat:0}},
+    {id:'pulled-pork',name:'Pulled Pork',desc:'Low and slow, hand-pulled, lightly sauced. Smoky and tender.',tags:['smoky','sweet','rich'],preps:['smoked & pulled','braised & pulled'],profile:{acid:0,salt:0.5,fat:2,heat:0}},
+    {id:'brisket',name:'Brisket',desc:'Smoked or braised, sliced against the grain. Deeply beefy.',tags:['smoky','savory','rich'],preps:['smoked & sliced','braised & sliced'],profile:{acid:0,salt:0.5,fat:2,heat:0}},
+    {id:'meatballs',name:'Meatballs',desc:'Sauced, messy, indulgent. The sub that needs a fork.',tags:['savory','rich','wet'],preps:['in marinara','in gravy'],profile:{acid:0.5,salt:1,fat:2,heat:0}},
+    {id:'smashburger',name:'Smashburger Patty',desc:'Thin, crispy-edged, lacy crust. The diner standard.',tags:['savory','rich'],preps:['smashed','double smashed'],profile:{acid:0,salt:0.5,fat:2.5,heat:0}},
+    {id:'classic-burger',name:'Classic Burger Patty',desc:'Thicker, juicier, cooked to temp. The backyard standard.',tags:['savory','rich'],preps:['medium-rare','medium','well-done'],profile:{acid:0,salt:0.5,fat:2,heat:0}},
+  ]},
+  {cat:'Seafood', items:[
+    {id:'smoked-salmon',name:'Smoked Salmon',desc:'Silky, salty, cold. The bagel\'s best friend.',tags:['savory','rich','smoky'],preps:['cold-smoked','hot-smoked'],profile:{acid:0,salt:1.5,fat:2,heat:0}},
+    {id:'tuna-salad',name:'Tuna Salad',desc:'Mixed with mayo, celery, lemon. A comfort classic.',tags:['savory','mild'],preps:['classic','spicy'],profile:{acid:0.5,salt:0.5,fat:1.5,heat:0}},
+    {id:'fried-fish',name:'Fried Fish',desc:'Battered or breaded white fish. Po\'boy and fish finger territory.',tags:['mild','savory','rich'],preps:['battered','breaded'],profile:{acid:0,salt:0.5,fat:2,heat:0}},
+  ]},
+  {cat:'Vegetarian', items:[
+    {id:'halloumi',name:'Halloumi',desc:'Salty, squeaky, sears without melting. Golden crust on both sides.',tags:['savory','rich'],preps:['seared','grilled'],profile:{acid:0,salt:1.5,fat:1.5,heat:0}},
+    {id:'tofu',name:'Tofu',desc:'Press dry, get crispy. Absorbs marinades beautifully.',tags:['mild'],preps:['crispy-fried','grilled','marinated'],profile:{acid:0,salt:0,fat:0.5,heat:0}},
+    {id:'falafel',name:'Falafel',desc:'Crispy chickpea fritters. Herby, earthy, crunchy.',tags:['herbaceous','earthy','savory'],preps:['fried','baked'],profile:{acid:0,salt:0.5,fat:1,heat:0}},
+    {id:'portobello',name:'Portobello Mushroom',desc:'Meaty, earthy, substantial. Marinate and grill.',tags:['earthy','savory'],preps:['grilled','roasted'],profile:{acid:0,salt:0,fat:0.5,heat:0}},
+    {id:'eggplant',name:'Eggplant',desc:'Silky when roasted, meaty when fried. Absorbs flavor.',tags:['earthy','mild'],preps:['roasted','fried','grilled'],profile:{acid:0,salt:0,fat:0.5,heat:0}},
+    {id:'fried-egg',name:'Fried Egg',desc:'Runny yolk = built-in sauce. Crispy edges optional.',tags:['rich','savory'],preps:['over-easy','over-medium','crispy'],profile:{acid:0,salt:0.3,fat:1.5,heat:0}},
+    {id:'hard-boiled-egg',name:'Hard-Boiled Egg',desc:'Sliced for egg salad or layered in a Niçoise-style sandwich.',tags:['mild','rich'],preps:['sliced','egg salad'],profile:{acid:0,salt:0.3,fat:1,heat:0}},
+  ]},
+];
+
+const CHEESES = [
+  {cat:'Melting Cheeses', items:[
+    {id:'american',name:'American',desc:'Engineered to melt. Gooey, smooth, the smashburger standard.',tags:['mild'],melt:true,profile:{salt:0.5,fat:1.5}},
+    {id:'sharp-cheddar',name:'Sharp Cheddar',desc:'Bold, tangy. Melts well but can go oily at high heat.',tags:['tangy','savory'],melt:true,profile:{salt:1,fat:1.5}},
+    {id:'gruyere',name:'Gruyère',desc:'Nutty, complex, melts beautifully. The croque monsieur cheese.',tags:['nutty','savory'],melt:true,profile:{salt:1,fat:1.5}},
+    {id:'fontina',name:'Fontina',desc:'Creamy, mild, exceptional melt. Italian elegance.',tags:['mild','rich'],melt:true,profile:{salt:0.5,fat:1.5}},
+    {id:'provolone',name:'Provolone',desc:'Mild, smooth, the Italian sub standard. Sharp provolone is bolder.',tags:['mild'],melt:true,profile:{salt:0.5,fat:1}},
+    {id:'monterey-jack',name:'Monterey Jack',desc:'Mild, buttery, melts smoothly. Blends well with other cheeses.',tags:['mild'],melt:true,profile:{salt:0.3,fat:1.5}},
+    {id:'mozzarella',name:'Mozzarella (Low-Moisture)',desc:'Stretchy, mild, the pizza and panini cheese.',tags:['mild'],melt:true,profile:{salt:0.5,fat:1}},
+    {id:'pepper-jack',name:'Pepper Jack',desc:'Monterey Jack with jalapeño. Mild heat that builds.',tags:['spicy','mild'],melt:true,profile:{salt:0.5,fat:1.5}},
+    {id:'swiss',name:'Swiss',desc:'Mild, nutty, slightly sweet. The Reuben and French dip standard.',tags:['nutty','mild'],melt:true,profile:{salt:0.5,fat:1}},
+    {id:'raclette',name:'Raclette',desc:'Designed to melt. Scraped over anything — funky and decadent.',tags:['savory','rich'],melt:true,profile:{salt:1,fat:2}},
+  ]},
+  {cat:'Structural Cheeses', items:[
+    {id:'feta',name:'Feta',desc:'Briny, crumbly. Pops of salt and tang in every bite.',tags:['tangy','savory'],melt:false,profile:{salt:2,fat:1}},
+    {id:'fresh-mozz',name:'Fresh Mozzarella',desc:'Milky, soft, mild. Tear by hand. Best at room temperature.',tags:['mild','rich'],melt:false,profile:{salt:0.3,fat:1}},
+    {id:'halloumi-cheese',name:'Halloumi',desc:'Sears without melting. Salty and squeaky.',tags:['savory'],melt:false,profile:{salt:1.5,fat:1}},
+    {id:'goat-cheese',name:'Goat Cheese',desc:'Tangy, creamy. Spread or crumble.',tags:['tangy','rich'],melt:false,profile:{salt:0.5,fat:1.5}},
+    {id:'ricotta',name:'Ricotta',desc:'Light, milky, spreadable. A base layer more than a topping.',tags:['mild','rich'],melt:false,profile:{salt:0.2,fat:1}},
+    {id:'blue-cheese',name:'Blue Cheese',desc:'Funky, bold, polarizing. Crumble sparingly.',tags:['savory','rich'],melt:false,profile:{salt:1.5,fat:1.5}},
+    {id:'brie',name:'Brie',desc:'Creamy, buttery, mushroomy. Spreads at room temperature.',tags:['rich','mild'],melt:false,profile:{salt:0.3,fat:2}},
+    {id:'camembert',name:'Camembert',desc:'Brie\'s earthier, more pungent cousin.',tags:['rich','earthy'],melt:false,profile:{salt:0.5,fat:2}},
+  ]},
+];
+
+const VEGETABLES = [
+  {cat:'Leafy Greens', items:[
+    {id:'iceberg',name:'Iceberg Lettuce',desc:'Shattering crunch, neutral flavor. The diner standard.',tags:['mild','crunchy'],role:'crunch',profile:{acid:0,salt:0,fat:0,heat:0}},
+    {id:'romaine',name:'Romaine',desc:'Crisp backbone, mild flavor. Sturdier than iceberg.',tags:['mild','crunchy'],role:'crunch',profile:{acid:0,salt:0,fat:0,heat:0}},
+    {id:'butter-lettuce',name:'Butter Lettuce',desc:'Soft, tender cups. Delicate — for elegant sandwiches.',tags:['mild'],role:'crunch',profile:{acid:0,salt:0,fat:0,heat:0}},
+    {id:'arugula',name:'Arugula',desc:'Peppery, bold. Stands up to rich meats and strong cheese.',tags:['peppery'],role:'crunch',profile:{acid:0,salt:0,fat:0,heat:0.3}},
+    {id:'spinach',name:'Spinach',desc:'Mild, earthy. Works in wraps and lighter sandwiches.',tags:['mild','earthy'],role:'crunch',profile:{acid:0,salt:0,fat:0,heat:0}},
+  ]},
+  {cat:'Juicy Raw', items:[
+    {id:'tomato',name:'Tomato',desc:'Peak-season only. Slice thick, seed, and drain.',tags:['sweet','tangy','wet'],role:'juicy',profile:{acid:0.5,salt:0,fat:0,heat:0}},
+    {id:'cucumber',name:'Cucumber',desc:'Cool, crisp, hydrating. Thin slices or spears.',tags:['mild','crunchy'],role:'crunch',profile:{acid:0,salt:0,fat:0,heat:0}},
+    {id:'bell-pepper',name:'Bell Pepper',desc:'Sweet, crunchy. Thin rings or strips.',tags:['sweet','crunchy'],role:'crunch',profile:{acid:0,salt:0,fat:0,heat:0}},
+  ]},
+  {cat:'Structural Raw', items:[
+    {id:'red-onion',name:'Red Onion',desc:'Sharp, crunchy. Paper-thin rings — a little goes far.',tags:['sharp'],role:'crunch',profile:{acid:0.3,salt:0,fat:0,heat:0.3}},
+    {id:'fennel',name:'Fennel',desc:'Anise-flavored, crisp. Shave thin for elegant sandwiches.',tags:['sweet','herbaceous'],role:'crunch',profile:{acid:0,salt:0,fat:0,heat:0}},
+    {id:'radish',name:'Radish',desc:'Peppery snap. Thin rounds for color and bite.',tags:['peppery','crunchy'],role:'crunch',profile:{acid:0,salt:0,fat:0,heat:0.5}},
+    {id:'sprouts',name:'Sprouts / Microgreens',desc:'Light crunch and freshness. Alfalfa, radish, or pea shoots.',tags:['mild','fresh'],role:'crunch',profile:{acid:0,salt:0,fat:0,heat:0}},
+    {id:'coleslaw',name:'Coleslaw',desc:'Cabbage-based crunch with creamy or vinegar dressing.',tags:['tangy','crunchy','wet'],role:'crunch',profile:{acid:1,salt:0.3,fat:0.5,heat:0}},
+    {id:'fennel-slaw',name:'Fennel Slaw',desc:'Light, anise-tinged slaw. Bright and crunchy.',tags:['herbaceous','crunchy','wet'],role:'crunch',profile:{acid:0.5,salt:0,fat:0.3,heat:0}},
+  ]},
+  {cat:'Grilled / Roasted', items:[
+    {id:'grilled-peppers',name:'Roasted Peppers',desc:'Smoky-sweet, silky. Drain well — they\'re wet.',tags:['sweet','smoky','wet'],role:'cooked',profile:{acid:0.3,salt:0,fat:0.3,heat:0}},
+    {id:'grilled-onions',name:'Caramelized Onions',desc:'Slow-cooked to jammy sweetness. The patty melt essential.',tags:['sweet','savory','wet'],role:'cooked',profile:{acid:0,salt:0.3,fat:0.5,heat:0}},
+    {id:'grilled-mushrooms',name:'Sautéed Mushrooms',desc:'Earthy, meaty, umami-rich. Cook until deeply golden.',tags:['savory','earthy','wet'],role:'cooked',profile:{acid:0,salt:0.3,fat:0.5,heat:0}},
+    {id:'grilled-eggplant',name:'Grilled Eggplant',desc:'Silky, smoky. Season well — eggplant absorbs everything.',tags:['earthy','smoky','wet'],role:'cooked',profile:{acid:0,salt:0,fat:0.5,heat:0}},
+    {id:'grilled-zucchini',name:'Grilled Zucchini',desc:'Light, mild, slightly charred. Best thin-sliced lengthwise.',tags:['mild','wet'],role:'cooked',profile:{acid:0,salt:0,fat:0.3,heat:0}},
+  ]},
+  {cat:'Pickled / Fermented', items:[
+    {id:'dill-pickles',name:'Dill Pickles',desc:'The classic companion. Crunchy, sour, clean.',tags:['tangy','crunchy','wet'],role:'pickle',profile:{acid:2,salt:1,fat:0,heat:0}},
+    {id:'bread-butter-pickles',name:'Bread & Butter Pickles',desc:'Sweet-tangy. Pairs with burgers and fried chicken.',tags:['sweet','tangy','wet'],role:'pickle',profile:{acid:1.5,salt:0.5,fat:0,heat:0}},
+    {id:'giardiniera',name:'Giardiniera',desc:'Italian pickled vegetable mix. The Chicago beef secret.',tags:['tangy','spicy','wet'],role:'pickle',profile:{acid:1.5,salt:1,fat:0.5,heat:1}},
+    {id:'kimchi',name:'Kimchi',desc:'Fermented, funky, spicy. Korean acid-heat bomb.',tags:['spicy','tangy','savory','wet'],role:'pickle',profile:{acid:1.5,salt:1,fat:0,heat:1.5}},
+    {id:'sauerkraut',name:'Sauerkraut',desc:'Fermented cabbage. Sour, crunchy, the Reuben essential.',tags:['tangy','wet'],role:'pickle',profile:{acid:2,salt:1,fat:0,heat:0}},
+    {id:'pickled-onions',name:'Pickled Red Onions',desc:'Quick-pickled in vinegar. Bright pink, sweet-sour.',tags:['tangy','sweet','wet'],role:'pickle',profile:{acid:1.5,salt:0.3,fat:0,heat:0}},
+    {id:'pickled-jalapenos',name:'Pickled Jalapeños',desc:'Tangy heat in every ring. The nacho and sub standard.',tags:['spicy','tangy','wet'],role:'pickle',profile:{acid:1,salt:0.5,fat:0,heat:1.5}},
+    {id:'pepperoncini',name:'Pepperoncini',desc:'Mild, tangy Italian pepper. Crunchy and bright.',tags:['tangy','mild','wet'],role:'pickle',profile:{acid:1,salt:0.5,fat:0,heat:0.5}},
+  ]},
+];
+
+const DRESSINGS = [
+  {id:'oil-vinegar',name:'Oil & Vinegar',desc:'Olive oil + red wine vinegar + oregano. The Italian sub standard.',
+    howto:'<ul><li>Drizzle olive oil generously on both bread halves</li><li>Splash red wine vinegar on one side</li><li>Sprinkle dried oregano, salt, and pepper</li></ul>',
+    profile:{acid:2,salt:0.3,fat:2,heat:0}},
+  {id:'russian-dressing',name:'Russian Dressing',desc:'Creamy, tangy, slightly sweet. The Reuben standard.',
+    howto:'<ul><li>Mix 1/2 cup mayo with 2 tbsp ketchup</li><li>Add 1 tbsp horseradish, 1 tsp Worcestershire</li><li>Stir in 1 tbsp sweet pickle relish</li><li>Season with salt and paprika</li></ul>',
+    profile:{acid:1,salt:0.5,fat:2,heat:0.5}},
+  {id:'special-sauce',name:'Special Sauce',desc:'The burger sauce. Mayo + ketchup + relish + secret tweaks.',
+    howto:'<ul><li>Mix 1/4 cup mayo, 2 tbsp ketchup, 1 tbsp yellow mustard</li><li>Add 1 tbsp sweet pickle relish, 1 tsp white vinegar</li><li>Pinch of garlic powder, onion powder, paprika</li><li>Let sit 30 min to meld</li></ul>',
+    profile:{acid:1,salt:0.5,fat:1.5,heat:0.3}},
+  {id:'au-jus',name:'Au Jus',desc:'Thin beef broth for dipping. The French dip essential.',
+    howto:'<ul><li>Simmer beef drippings or stock with a splash of Worcestershire</li><li>Season with salt, pepper, and a bay leaf</li><li>Strain and serve hot in a ramekin</li></ul>',
+    profile:{acid:0.5,salt:1.5,fat:0.5,heat:0}},
+  {id:'comeback-sauce',name:'Comeback Sauce',desc:'Mississippi\'s answer to remoulade. Tangy, spicy, addictive.',
+    howto:'<ul><li>Mix 1/2 cup mayo, 2 tbsp ketchup, 1 tbsp chili sauce</li><li>Add 1 tsp Worcestershire, 1 tsp hot sauce, 1 tbsp lemon juice</li><li>Stir in 1 tsp garlic powder, 1 tsp onion powder</li></ul>',
+    profile:{acid:1,salt:0.5,fat:1.5,heat:1}},
+  {id:'tzatziki',name:'Tzatziki',desc:'Cool yogurt, cucumber, garlic, dill. Perfect for falafel and gyro.',
+    howto:'<ul><li>Grate 1/2 cucumber, squeeze dry in a towel</li><li>Mix with 1 cup Greek yogurt, 1 grated garlic clove</li><li>Add 1 tbsp lemon juice, 2 tbsp chopped dill</li><li>Season with salt and a drizzle of olive oil</li></ul>',
+    profile:{acid:1,salt:0.3,fat:1,heat:0}},
+  {id:'remoulade',name:'Remoulade',desc:'Creamy, tangy, Cajun-spiced. The po\'boy spread.',
+    howto:'<ul><li>Mix 1/2 cup mayo with 1 tbsp Creole mustard</li><li>Add 1 tsp hot sauce, 1 tsp lemon juice, 1 tsp capers</li><li>Stir in minced celery, parsley, and a pinch of cayenne</li></ul>',
+    profile:{acid:1,salt:0.5,fat:1.5,heat:1}},
+  {id:'cream-cheese',name:'Cream Cheese Schmear',desc:'Dense, tangy, rich. The bagel base layer.',
+    howto:'<ul><li>Soften 8 oz cream cheese to room temperature</li><li>Whip until smooth and spreadable</li><li>Optional: fold in chives, everything seasoning, or lox bits</li></ul>',
+    profile:{acid:0.3,salt:0.3,fat:2.5,heat:0}},
+  {id:'bbq-sauce',name:'BBQ Sauce',desc:'Sweet, smoky, tangy. For pulled pork and brisket sandwiches.',
+    howto:'<ul><li>Combine 1 cup ketchup, 2 tbsp brown sugar, 2 tbsp apple cider vinegar</li><li>Add 1 tbsp Worcestershire, 1 tsp smoked paprika, 1/2 tsp each garlic and onion powder</li><li>Simmer 15 min until thickened</li></ul>',
+    profile:{acid:1,salt:0.5,fat:0,heat:0.5}},
+  {id:'pate',name:'Pâté',desc:'Rich liver spread. The banh mi base — adds umami depth.',
+    howto:'<ul><li>Spread chicken liver pâté or mousse thinly on one side of bread</li><li>It acts as both spread and protein layer</li><li>Store-bought is fine — look for smooth, mild versions</li></ul>',
+    profile:{acid:0,salt:1,fat:2,heat:0}},
+  {id:'vinegar-slaw-dress',name:'Vinegar Slaw Dressing',desc:'Sharp, clean, no mayo. For slaw inside the sandwich.',
+    howto:'<ul><li>Whisk 3 tbsp apple cider vinegar with 1 tbsp sugar and 1/2 tsp salt</li><li>Add 1 tbsp olive oil and a pinch of celery seed</li><li>Toss with shredded cabbage and let sit 15 min</li></ul>',
+    profile:{acid:2,salt:0.5,fat:0.5,heat:0}},
+  {id:'thousand-island',name:'Thousand Island',desc:'Creamy, tangy, a little sweet. The classic burger-and-wedge dressing.',
+    howto:'<ul><li>Mix 1/2 cup mayo with 2 tbsp ketchup</li><li>Add 1 tbsp red wine vinegar, 1 tsp lemon juice</li><li>Stir in 2 tbsp sweet pickle relish, 1 tsp Worcestershire, pinch of garlic powder</li><li>Season with salt and pepper</li><li>Let sit 30 min for flavors to meld</li></ul>',
+    profile:{acid:1,salt:0.5,fat:2,heat:0}},
+];
+
+const FINISHING = {
+  herbs: {label:'Fresh Herbs', items:[
+    {id:'f-basil',name:'Basil',desc:'Sweet, aromatic. Tear, don\'t chop. Add last.',tags:['herbaceous'],profile:{acid:0,salt:0,fat:0,heat:0}},
+    {id:'f-cilantro',name:'Cilantro',desc:'Bright, citrusy. Essential in banh mi and Mexican-inspired.',tags:['herbaceous'],profile:{acid:0,salt:0,fat:0,heat:0}},
+    {id:'f-dill',name:'Dill',desc:'Grassy, fresh. Pairs with smoked fish and egg.',tags:['herbaceous'],profile:{acid:0,salt:0,fat:0,heat:0}},
+    {id:'f-parsley',name:'Parsley',desc:'Clean, green, universal. More than a garnish.',tags:['herbaceous'],profile:{acid:0,salt:0,fat:0,heat:0}},
+    {id:'f-mint',name:'Mint',desc:'Cool, bright. Vietnamese and Middle Eastern sandwiches.',tags:['herbaceous'],profile:{acid:0,salt:0,fat:0,heat:0}},
+    {id:'f-tarragon',name:'Tarragon',desc:'Subtle licorice. Elegant with chicken and egg salad.',tags:['herbaceous'],profile:{acid:0,salt:0,fat:0,heat:0}},
+  ]},
+  heat: {label:'Heat Elements', items:[
+    {id:'f-fresh-chiles',name:'Fresh Chiles',desc:'Jalapeño, serrano, Fresno. Raw heat and crunch.',tags:['spicy'],profile:{acid:0,salt:0,fat:0,heat:2}},
+    {id:'f-pepper-flakes',name:'Red Pepper Flakes',desc:'Scattered heat. Quick, easy, adjustable.',tags:['spicy'],profile:{acid:0,salt:0,fat:0,heat:1}},
+    {id:'f-hot-sauce-drizzle',name:'Hot Sauce Drizzle',desc:'A final hit of vinegar heat after assembly.',tags:['spicy','tangy'],profile:{acid:0.5,salt:0.3,fat:0,heat:1.5}},
+    {id:'f-chili-crisp',name:'Chili Crisp',desc:'Crunchy, oily, deeply flavorful heat.',tags:['spicy','savory'],profile:{acid:0,salt:0.3,fat:0.5,heat:1.5}},
+  ]},
+  seasoning: {label:'Salt & Seasoning', items:[
+    {id:'f-flaky-salt',name:'Flaky Salt',desc:'Maldon or fleur de sel. Finishing crunch.',tags:['savory'],profile:{acid:0,salt:1.5,fat:0,heat:0}},
+    {id:'f-black-pepper',name:'Black Pepper',desc:'Freshly cracked. On protein, on tomato, on egg.',tags:['spicy'],profile:{acid:0,salt:0,fat:0,heat:0.5}},
+    {id:'f-sumac',name:'Sumac',desc:'Citrusy, tart, Middle Eastern. Bright without liquid acid.',tags:['tangy'],profile:{acid:1,salt:0,fat:0,heat:0}},
+    {id:'f-zaatar',name:'Za\'atar',desc:'Thyme, sesame, sumac blend. Herbal and nutty.',tags:['herbaceous','tangy'],profile:{acid:0.5,salt:0.3,fat:0.3,heat:0}},
+    {id:'f-everything',name:'Everything Bagel Seasoning',desc:'Sesame, poppy, garlic, onion, salt. Not just for bagels.',tags:['savory'],profile:{acid:0,salt:1,fat:0.3,heat:0}},
+  ]},
+  aromatic: {label:'Aromatic Finishes', items:[
+    {id:'f-lemon-zest',name:'Lemon Zest',desc:'Bright aromatics at the last second.',tags:['bright'],profile:{acid:0.5,salt:0,fat:0,heat:0}},
+    {id:'f-olive-oil',name:'Olive Oil Drizzle',desc:'Grassy, peppery. A thin drizzle — not a pour.',tags:['rich'],profile:{acid:0,salt:0,fat:1,heat:0}},
+    {id:'f-balsamic-glaze',name:'Balsamic Glaze',desc:'Sweet, tangy, viscous. For caprese-style sandwiches.',tags:['sweet','tangy'],profile:{acid:1,salt:0,fat:0,heat:0}},
+  ]},
+};
+
+const HEAT_METHODS = [
+  {id:'cold',name:'Cold (No Heat)',desc:'No heat applied. Clean, fresh, portable. Relies on ingredient quality.',compatible:['all'],conflicts:[]},
+  {id:'toasted',name:'Toasted Bread Only',desc:'Toast the bread; fill cold. Best upgrade for any cold sandwich.',compatible:['all'],conflicts:[]},
+  {id:'warm-assembled',name:'Warm Assembled',desc:'Cold filling, warm toasted bread. The BLT / club method.',compatible:['all'],conflicts:[]},
+  {id:'grilled-pressed',name:'Grilled / Pressed',desc:'Panini, cubano, patty melt. Heat + pressure fuses everything.',compatible:['melt-cheeses','sturdy-bread'],conflicts:['f-basil','f-cilantro','f-mint','f-dill','arugula','sprouts','tomato']},
+  {id:'broiled',name:'Broiled (Open-Faced)',desc:'Top heat only. Melts cheese, chars edges. Watch it carefully.',compatible:['melt-cheeses'],conflicts:['f-basil','f-cilantro','sprouts']},
+  {id:'dipped',name:'Dipped (French Dip / Jus)',desc:'Served with a side for dipping. Adds saucy dimension without pre-sogging.',compatible:['sturdy-bread'],conflicts:[]},
+];
+
+// Classic pairings
+const CLASSIC_PAIRS = [
+  ['pastrami','swiss','sauerkraut','rye','russian-dressing'],
+  ['ham','gruyere','dijon','sourdough'],
+  ['smashburger','american','dill-pickles','potato-roll'],
+  ['salami','capicola','mortadella','provolone','hoagie','pepperoncini'],
+  ['prosciutto','fresh-mozz','f-basil','ciabatta','f-olive-oil'],
+  ['turkey','brie','cranberry'],
+  ['roast-beef','sharp-cheddar','hot-english'],
+  ['fried-chicken','dill-pickles','coleslaw'],
+  ['smoked-salmon','cream-cheese','bagel','f-dill','red-onion'],
+  ['pulled-pork','coleslaw','bbq-sauce'],
+  ['falafel','hummus','pita','pickled-onions','f-cilantro'],
+  ['brisket','dill-pickles','grilled-onions'],
+  ['grilled-chicken','arugula','pesto','fresh-mozz'],
+  ['tuna-salad','sharp-cheddar','tomato','sourdough'],
+  ['fried-egg','sharp-cheddar','english-muffin'],
+  ['meatballs','mozzarella','hoagie'],
+  ['classic-burger','iceberg','tomato','red-onion','dill-pickles'],
+  ['roast-beef','swiss','au-jus','french-roll'],
+];
+
+// ============================================================
+//  CLASSIC TEMPLATES
+// ============================================================
+const allBreadFlat = BREADS.flatMap(c => c.items);
+const allSpreadFlat = SPREADS.flatMap(c => c.items);
+const allProteinFlat = PROTEINS.flatMap(c => c.items);
+const allCheeseFlat = CHEESES.flatMap(c => c.items);
+const allVegFlat = VEGETABLES.flatMap(c => c.items);
+const allFinishFlat = Object.values(FINISHING).flatMap(c => c.items);
+
+function breadLookup(id) { const b = allBreadFlat.find(i=>i.id===id); return b ? {id:b.id,name:b.name,tags:b.tags,sturdy:b.sturdy,sweet:b.sweet} : null; }
+function spreadLookup(id) { const s = allSpreadFlat.find(i=>i.id===id); return s ? {id:s.id,name:s.name,tags:s.tags,profile:s.profile} : null; }
+function protLookup(id,prep) { const p = allProteinFlat.find(i=>i.id===id); return p ? {id:p.id,name:p.name,tags:p.tags,prep,profile:p.profile} : null; }
+function cheeseLookup(id,treatment) { const c = allCheeseFlat.find(i=>i.id===id); return c ? {id:c.id,name:c.name,tags:c.tags,melt:c.melt,treatment,profile:c.profile} : null; }
+function vegLookup(id) { const v = allVegFlat.find(i=>i.id===id); return v ? {id:v.id,name:v.name,tags:v.tags,role:v.role,profile:v.profile} : null; }
+function finLookup(id) { for(const[k,c]of Object.entries(FINISHING)){const i=c.items.find(x=>x.id===id);if(i)return{id:i.id,name:i.name,tags:i.tags,cat:k,profile:i.profile};} return null; }
+
+const CLASSIC_TEMPLATES = [
+  {
+    id:'tpl-reuben', name:'Classic Reuben',
+    desc:'Pastrami on rye, Swiss, sauerkraut, Russian dressing, grilled.',
+    tags:['Rye','Pastrami','Swiss','Sauerkraut'],
+    bread:'rye', spreads:['russian-dressing'],
+    protein:[{id:'pastrami',prep:'steamed'}], cheese:[{id:'swiss',t:'melted'}],
+    vegs:['sauerkraut'], dressing:null, finishing:[], heatMethod:'grilled-pressed',
+  },
+  {
+    id:'tpl-italian-sub', name:'Italian Sub',
+    desc:'Sub roll, salami, capicola, mortadella, provolone, pepperoncini, oil & vinegar.',
+    tags:['Sub Roll','Salami','Provolone','Pepperoncini'],
+    bread:'hoagie', spreads:[],
+    protein:[{id:'salami',prep:'sliced thin'},{id:'capicola',prep:'sliced thin'},{id:'mortadella',prep:'sliced thin'}],
+    cheese:[{id:'provolone',t:'unmelted'}],
+    vegs:['romaine','tomato','red-onion','pepperoncini'], dressing:'oil-vinegar', finishing:[], heatMethod:'cold',
+  },
+  {
+    id:'tpl-banh-mi', name:'Banh Mi',
+    desc:'French baguette, pâté, roasted pork, pickled veg, cilantro, jalapeño, Kewpie.',
+    tags:['Baguette','Pork','Pickles','Cilantro'],
+    bread:'baguette', spreads:['kewpie'],
+    protein:[{id:'pulled-pork',prep:'braised & pulled'}],
+    cheese:[],
+    vegs:['cucumber','pickled-onions','pickled-jalapenos'], dressing:'pate', finishing:['f-cilantro','f-fresh-chiles'], heatMethod:'toasted',
+  },
+  {
+    id:'tpl-cubano', name:'Cubano',
+    desc:'Cuban bread, roast pork, ham, Swiss, pickles, yellow mustard, pressed.',
+    tags:['French Roll','Pork','Ham','Swiss'],
+    bread:'french-roll', spreads:['yellow-mustard'],
+    protein:[{id:'pulled-pork',prep:'braised & pulled'},{id:'ham',prep:'sliced thin'}],
+    cheese:[{id:'swiss',t:'melted'}],
+    vegs:['dill-pickles'], dressing:null, finishing:[], heatMethod:'grilled-pressed',
+  },
+  {
+    id:'tpl-blt', name:'Classic BLT',
+    desc:'Toasted sourdough, bacon, lettuce, tomato, mayo, flaky salt.',
+    tags:['Sourdough','Bacon','Lettuce','Tomato'],
+    bread:'sourdough', spreads:['mayo'],
+    protein:[],
+    cheese:[],
+    vegs:['iceberg','tomato'], dressing:null, finishing:['f-flaky-salt','f-black-pepper'], heatMethod:'toasted',
+  },
+  {
+    id:'tpl-smashburger', name:'Smashburger',
+    desc:'Potato roll, smashed beef, American cheese, pickles, diced onion, special sauce.',
+    tags:['Potato Roll','Beef','American','Pickles'],
+    bread:'potato-roll', spreads:[],
+    protein:[{id:'smashburger',prep:'double smashed'}],
+    cheese:[{id:'american',t:'melted'}],
+    vegs:['dill-pickles','red-onion'], dressing:'special-sauce', finishing:[], heatMethod:'warm-assembled',
+  },
+  {
+    id:'tpl-caprese-panini', name:'Caprese Panini',
+    desc:'Ciabatta, fresh mozz, tomato, basil, balsamic glaze, olive oil, pressed.',
+    tags:['Ciabatta','Fresh Mozz','Tomato','Basil'],
+    bread:'ciabatta', spreads:[],
+    protein:[],
+    cheese:[{id:'fresh-mozz',t:'melted'}],
+    vegs:['tomato'], dressing:null, finishing:['f-basil','f-olive-oil','f-balsamic-glaze'], heatMethod:'grilled-pressed',
+  },
+  {
+    id:'tpl-grilled-cheese', name:'Classic Grilled Cheese',
+    desc:'Sourdough, sharp cheddar + gruyère, butter-griddled.',
+    tags:['Sourdough','Cheddar','Gruyère','Butter'],
+    bread:'sourdough', spreads:['plain-butter'],
+    protein:[],
+    cheese:[{id:'sharp-cheddar',t:'melted'},{id:'gruyere',t:'melted'}],
+    vegs:[], dressing:null, finishing:[], heatMethod:'grilled-pressed',
+  },
+  {
+    id:'tpl-french-dip', name:'French Dip',
+    desc:'French roll, thin-sliced roast beef, provolone, au jus on the side.',
+    tags:['French Roll','Roast Beef','Provolone','Au Jus'],
+    bread:'french-roll', spreads:[],
+    protein:[{id:'roast-beef',prep:'sliced thin'}],
+    cheese:[{id:'provolone',t:'melted'}],
+    vegs:[], dressing:'au-jus', finishing:[], heatMethod:'dipped',
+  },
+  {
+    id:'tpl-turkey-club', name:'Turkey Club',
+    desc:'Toasted white bread, turkey, bacon, lettuce, tomato, mayo.',
+    tags:['Toast','Turkey','Bacon','Mayo'],
+    bread:'sourdough', spreads:['mayo'],
+    protein:[{id:'turkey',prep:'sliced thin'}],
+    cheese:[],
+    vegs:['romaine','tomato'], dressing:null, finishing:[], heatMethod:'toasted',
+  },
+  {
+    id:'tpl-patty-melt', name:'Patty Melt',
+    desc:'Rye bread, beef patty, caramelized onions, Swiss + American, butter-griddled.',
+    tags:['Rye','Beef','Swiss','Onions'],
+    bread:'rye', spreads:['plain-butter'],
+    protein:[{id:'smashburger',prep:'smashed'}],
+    cheese:[{id:'swiss',t:'melted'},{id:'american',t:'melted'}],
+    vegs:['grilled-onions'], dressing:null, finishing:[], heatMethod:'grilled-pressed',
+  },
+  {
+    id:'tpl-egg-salad', name:'Egg Salad on Brioche',
+    desc:'Soft brioche, egg salad, butter lettuce, dill, flaky salt.',
+    tags:['Brioche','Egg Salad','Dill','Butter Lettuce'],
+    bread:'brioche', spreads:[],
+    protein:[{id:'hard-boiled-egg',prep:'egg salad'}],
+    cheese:[],
+    vegs:['butter-lettuce'], dressing:null, finishing:['f-dill','f-flaky-salt'], heatMethod:'cold',
+  },
+  {
+    id:'tpl-lox-bagel', name:'Smoked Salmon Bagel',
+    desc:'Everything bagel, cream cheese, smoked salmon, red onion, capers, dill, lemon.',
+    tags:['Bagel','Smoked Salmon','Cream Cheese','Capers'],
+    bread:'bagel', spreads:[],
+    protein:[{id:'smoked-salmon',prep:'cold-smoked'}],
+    cheese:[],
+    vegs:['red-onion'], dressing:'cream-cheese', finishing:['f-dill','f-lemon-zest'], heatMethod:'cold',
+  },
+];
+
+// ============================================================
+//  STATE
+// ============================================================
+const state = {
+  showStartScreen: true,
+  showSavedPage: false,
+  templateName: null,
+  bread: null,        // {id, name, tags, sturdy, sweet}
+  spreads: [],        // [{id, name, tags, profile}]
+  protein: [],        // [{id, name, tags, prep, profile}]
+  cheese: [],         // [{id, name, tags, melt, treatment, profile}]
+  vegs: [],           // [{id, name, tags, role, profile}]
+  dressing: null,     // dressing id or null
+  finishing: [],      // [{id, name, tags, cat, profile}]
+  heatMethod: null,   // heat method id
+  currentStage: 0,
+};
+
+const STAGES = [
+  {id:'bread',title:'Choose Your Bread',sub:'Pick 1 bread. This constrains everything downstream.'},
+  {id:'spreads',title:'Build the Spread Layer',sub:'Pick 1–3 spreads. Both sides of the bread, edge to edge.'},
+  {id:'protein',title:'Protein',sub:'Pick 1–2 proteins and preparation method.'},
+  {id:'cheese',title:'Cheese',sub:'Pick 0–2 cheeses. Melted or unmelted.'},
+  {id:'vegs',title:'Vegetables & Crunch',sub:'Pick 2–5 elements. Every sandwich needs crunch.'},
+  {id:'balance',title:'Balance Check',sub:'Acid, salt, fat, and heat — see where your sandwich stands.'},
+  {id:'finishing',title:'Finishing Touches',sub:'Pick 0–3 finishing elements.'},
+  {id:'heat',title:'Heat Application & Assembly',sub:'Choose how heat is applied. Some choices flag conflicts.'},
+  {id:'summary',title:'Your Sandwich',sub:'The complete composition with assembly instructions.'},
+];
+
+// ============================================================
+//  PAIRING ENGINE
+// ============================================================
+function getAllSelectedIds() {
+  const ids = new Set();
+  if (state.bread) ids.add(state.bread.id);
+  state.spreads.forEach(s => ids.add(s.id));
+  state.protein.forEach(p => ids.add(p.id));
+  state.cheese.forEach(c => ids.add(c.id));
+  state.vegs.forEach(v => ids.add(v.id));
+  if (state.dressing) ids.add(state.dressing);
+  state.finishing.forEach(f => ids.add(f.id));
+  return ids;
+}
+
+function getAllTags() {
+  const tags = {};
+  const add = (t) => { tags[t] = (tags[t]||0) + 1; };
+  if (state.bread) state.bread.tags.forEach(add);
+  state.spreads.forEach(s => s.tags.forEach(add));
+  state.protein.forEach(p => p.tags.forEach(add));
+  state.cheese.forEach(c => c.tags.forEach(add));
+  state.vegs.forEach(v => v.tags.forEach(add));
+  state.finishing.forEach(f => f.tags.forEach(add));
+  return tags;
+}
+
+function getAffinityScore(itemId, itemTags) {
+  const selected = getAllSelectedIds();
+  const tagProfile = getAllTags();
+  let score = 0;
+
+  // --- Fix 5: Starter recommendations when state is empty ---
+  if (selected.size === 0) {
+    const starters = ['sourdough','ciabatta','hoagie','dijon','mayo'];
+    if (starters.includes(itemId)) score += 2;
+    return score;
+  }
+
+  // --- Contrast pairings ---
+  if (tagProfile.rich && itemTags.some(t => ['tangy','sharp'].includes(t))) score += 2;
+  if (tagProfile.savory && itemTags.some(t => ['tangy','sweet'].includes(t))) score += 1;
+  if (tagProfile.smoky && itemTags.some(t => ['tangy','sweet','crunchy'].includes(t))) score += 1;
+  if (tagProfile.spicy && itemTags.some(t => ['mild','sweet','rich'].includes(t))) score += 1;
+
+  // --- Fix 6: Expanded complement pairings ---
+  if (tagProfile.earthy && itemTags.includes('earthy')) score += 1;
+  if (tagProfile.herbaceous && itemTags.includes('herbaceous')) score += 1;
+  if (tagProfile.nutty && itemTags.includes('nutty')) score += 1;
+  if (tagProfile.smoky && itemTags.includes('sweet')) score += 1;
+  if (tagProfile.savory && itemTags.includes('tangy')) score += 1;
+  if (tagProfile.spicy && itemTags.includes('rich')) score += 1;
+
+  // --- Classic pair bonus (unchanged) ---
+  for (const combo of CLASSIC_PAIRS) {
+    if (combo.includes(itemId)) {
+      const others = combo.filter(c => c !== itemId);
+      const matched = others.filter(c => selected.has(c)).length;
+      if (matched >= 1) score += matched * 2;
+    }
+  }
+
+  // --- Fix 1: Bread-aware pairing (tag + role based) ---
+  if (state.bread) {
+    const isWet = itemTags.includes('wet');
+    const isDry = !isWet && (itemTags.includes('crunchy') || itemTags.includes('fresh') || itemTags.includes('mild'));
+    if (!state.bread.sturdy && isWet) score -= 2;   // strong suppression: wet on soft bread
+    if (state.bread.sturdy && isWet) score += 1;     // sturdy bread handles wet fine
+    if (!state.bread.sturdy && isDry) score += 1;    // soft bread + dry/structural = good
+    if (state.bread.sturdy && itemTags.includes('crunchy')) score += 1;
+  }
+
+  // --- Fix 2 already done in data: rich tag added to fatty proteins ---
+  // --- Protein-aware pairing ---
+  if (state.protein.some(p => p.tags.includes('rich'))) {
+    if (itemTags.some(t => ['tangy','sharp'].includes(t))) score += 1;
+  }
+  if (state.protein.some(p => p.tags.includes('mild') && !p.tags.includes('rich'))) {
+    if (itemTags.some(t => ['rich','savory'].includes(t))) score += 1;
+  }
+
+  // --- Fix 3: Heat-aware pairing ---
+  if (state.heatMethod) {
+    const hot = ['grilled-pressed','broiled','warm-assembled'].includes(state.heatMethod);
+    const pressed = ['grilled-pressed','broiled'].includes(state.heatMethod);
+    // Melting cheeses get a boost with hot methods
+    if (hot) {
+      const cheeseData = allCheeseFlat.find(c => c.id === itemId);
+      if (cheeseData && cheeseData.melt) score += 2;
+    }
+    // Fresh herbs and delicate items get suppressed with pressed/broiled
+    if (pressed) {
+      const delicate = ['f-basil','f-cilantro','f-mint','f-dill','f-tarragon','arugula','sprouts','tomato'];
+      if (delicate.includes(itemId)) score -= 2;
+    }
+    // Cold method: structural cheeses get a small boost
+    if (state.heatMethod === 'cold') {
+      const cheeseData = allCheeseFlat.find(c => c.id === itemId);
+      if (cheeseData && !cheeseData.melt) score += 1;
+    }
+  }
+
+  // --- Fix 4: Balance-aware pairing ---
+  const bal = calcBalance();
+  let balBonus = 0;
+  if (bal.acid < 2 && itemTags.some(t => ['tangy','bright'].includes(t))) balBonus += 1;
+  if (bal.fat < 2 && itemTags.includes('rich')) balBonus += 1;
+  if (bal.heat < 1 && itemTags.includes('spicy')) balBonus += 1;
+  if (bal.salt < 2 && itemTags.includes('savory')) balBonus += 1;
+  score += Math.min(balBonus, 2); // cap at +2
+
+  return score;
+}
+
+function isRecommended(itemId, itemTags) {
+  return getAffinityScore(itemId, itemTags || []) >= 2;
+}
+
+// ============================================================
+//  BALANCE CALCULATOR
+// ============================================================
+function calcBalance() {
+  const b = {acid:0, salt:0, fat:0, heat:0, acidSrc:[], saltSrc:[], fatSrc:[], heatSrc:[]};
+
+  // Bread
+  if (state.bread) {
+    if (state.bread.tags.includes('rich')) { b.fat += 0.5; b.fatSrc.push(state.bread.name); }
+    if (state.bread.tags.includes('tangy')) { b.acid += 0.3; }
+  }
+
+  // Spreads
+  state.spreads.forEach(s => {
+    if (s.profile) {
+      if (s.profile.acid) { b.acid += s.profile.acid; b.acidSrc.push(s.name); }
+      if (s.profile.salt) { b.salt += s.profile.salt; b.saltSrc.push(s.name); }
+      if (s.profile.fat) { b.fat += s.profile.fat; b.fatSrc.push(s.name); }
+      if (s.profile.heat) { b.heat += s.profile.heat; b.heatSrc.push(s.name); }
+    }
+  });
+
+  // Protein
+  state.protein.forEach(p => {
+    if (p.profile) {
+      if (p.profile.acid) { b.acid += p.profile.acid; }
+      if (p.profile.salt) { b.salt += p.profile.salt; b.saltSrc.push(p.name); }
+      if (p.profile.fat) { b.fat += p.profile.fat; b.fatSrc.push(p.name); }
+      if (p.profile.heat) { b.heat += p.profile.heat; }
+    }
+  });
+
+  // Cheese
+  state.cheese.forEach(c => {
+    if (c.profile) {
+      if (c.profile.salt) { b.salt += c.profile.salt; b.saltSrc.push(c.name); }
+      if (c.profile.fat) { b.fat += c.profile.fat; b.fatSrc.push(c.name); }
+    }
+  });
+
+  // Vegs
+  state.vegs.forEach(v => {
+    if (v.profile) {
+      if (v.profile.acid) { b.acid += v.profile.acid; b.acidSrc.push(v.name); }
+      if (v.profile.salt) { b.salt += v.profile.salt; b.saltSrc.push(v.name); }
+      if (v.profile.fat) { b.fat += v.profile.fat; }
+      if (v.profile.heat) { b.heat += v.profile.heat; b.heatSrc.push(v.name); }
+    }
+  });
+
+  // Dressing
+  if (state.dressing) {
+    const d = DRESSINGS.find(dr => dr.id === state.dressing);
+    if (d && d.profile) {
+      if (d.profile.acid) { b.acid += d.profile.acid; b.acidSrc.push(d.name); }
+      if (d.profile.salt) { b.salt += d.profile.salt; b.saltSrc.push(d.name); }
+      if (d.profile.fat) { b.fat += d.profile.fat; b.fatSrc.push(d.name); }
+      if (d.profile.heat) { b.heat += d.profile.heat; b.heatSrc.push(d.name); }
+    }
+  }
+
+  // Finishing
+  state.finishing.forEach(f => {
+    if (f.profile) {
+      if (f.profile.acid) { b.acid += f.profile.acid; b.acidSrc.push(f.name); }
+      if (f.profile.salt) { b.salt += f.profile.salt; b.saltSrc.push(f.name); }
+      if (f.profile.fat) { b.fat += f.profile.fat; b.fatSrc.push(f.name); }
+      if (f.profile.heat) { b.heat += f.profile.heat; b.heatSrc.push(f.name); }
+    }
+  });
+
+  // Normalize
+  const max = 5;
+  b.acid = Math.min(b.acid, max);
+  b.salt = Math.min(b.salt, max);
+  b.fat = Math.min(b.fat, max);
+  b.heat = Math.min(b.heat, max);
+  return b;
+}
+
+// ============================================================
+//  RENDERERS
+// ============================================================
+const $container = document.getElementById('stageContainer');
+const $progress = document.getElementById('progressBar');
+
+function renderProgress() {
+  if (state.showStartScreen || state.showSavedPage) { $progress.style.display = 'none'; return; }
+  $progress.style.display = 'flex';
+  $progress.innerHTML = STAGES.map((s,i) => {
+    let cls = 'progress-step';
+    if (i === state.currentStage) cls += ' active';
+    else if (i < state.currentStage) cls += ' done';
+    return `<div class="${cls}" data-idx="${i}">${s.title}</div>`;
+  }).join('');
+  $progress.querySelectorAll('.progress-step').forEach(el => {
+    el.addEventListener('click', () => goTo(+el.dataset.idx));
+  });
+}
+
+function goTo(idx) {
+  state.currentStage = idx;
+  renderProgress();
+  renderStage(true);
+}
+
+function navButtons() {
+  const isFirst = state.currentStage === 0;
+  const isLast = state.currentStage === STAGES.length - 1;
+  return `<div class="nav-buttons">
+    <button class="btn btn-secondary" ${isFirst?'disabled':''} onclick="goTo(${state.currentStage-1})">Back</button>
+    ${isLast ? '' : `<button class="btn btn-primary" onclick="goTo(${state.currentStage+1})">Next</button>`}
+  </div>`;
+}
+
+function cardHTML(item, selected, extra='', badge=false) {
+  return `<div class="card ${selected?'selected':''}" data-id="${item.id}">
+    ${badge?'<span class="badge">Pairs well</span>':''}
+    <div class="name">${item.name}</div>
+    ${item.desc?`<div class="desc">${item.desc}</div>`:''}
+    ${extra}
+  </div>`;
+}
+
+function stageWrap(idx, inner) {
+  const s = STAGES[idx];
+  const banner = state.templateName
+    ? `<div class="template-banner"><span>Starting from: <strong>${state.templateName}</strong> — modify anything</span><button onclick="resetBuilder()">Clear all</button></div>`
+    : '';
+  return `<div class="stage active">
+    ${banner}
+    <div class="stage-title">${s.title}</div>
+    <div class="stage-sub">${s.sub}</div>
+    ${inner}
+    ${navButtons()}
+  </div>`;
+}
+
+// ---- STAGE RENDERERS ----
+
+function renderStartScreen() {
+  let html = `<div class="start-screen">
+    <div class="start-fork">
+      <div class="fork-card" onclick="startFromScratch()">
+        <h3>Build from scratch</h3>
+        <p>Start with a blank canvas and choose every element.</p>
+      </div>
+      <div class="fork-card" onclick="document.getElementById('templateSection').scrollIntoView({behavior:'smooth'})">
+        <h3>Start from a classic</h3>
+        <p>Pick a proven sandwich and customize it.</p>
+      </div>
+    </div>
+    <div id="templateSection" class="cat-group">
+      <div class="cat-label">Classic Sandwiches</div>
+      <div class="template-grid">`;
+  CLASSIC_TEMPLATES.forEach(t => {
+    html += `<div class="template-card" data-id="${t.id}">
+      <div class="name">${t.name}</div>
+      <div class="desc">${t.desc}</div>
+      <div class="tags">${t.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>
+    </div>`;
+  });
+  html += '</div></div>';
+
+  const savedCount = getSavedSandwiches().length;
+  if (savedCount > 0) {
+    html += `<div style="text-align:center;margin-top:2rem"><button class="saved-link-btn" onclick="showSavedPage()">View Saved Sandwiches (${savedCount})</button></div>`;
+  }
+  html += '</div>';
+  $container.innerHTML = html;
+  $container.querySelectorAll('.template-card').forEach(el => {
+    el.addEventListener('click', () => applyTemplate(el.dataset.id));
+  });
+}
+
+function applyTemplate(templateId) {
+  const t = CLASSIC_TEMPLATES.find(c => c.id === templateId);
+  if (!t) return;
+
+  state.bread = breadLookup(t.bread);
+  state.spreads = t.spreads.map(id => spreadLookup(id)).filter(Boolean);
+  state.protein = t.protein.map(p => protLookup(p.id, p.prep)).filter(Boolean);
+  state.cheese = t.cheese.map(c => cheeseLookup(c.id, c.t)).filter(Boolean);
+  state.vegs = t.vegs.map(id => vegLookup(id)).filter(Boolean);
+  state.dressing = t.dressing || null;
+  state.finishing = (t.finishing||[]).map(id => finLookup(id)).filter(Boolean);
+  state.heatMethod = t.heatMethod || null;
+
+  state.templateName = t.name;
+  state.showStartScreen = false;
+  state.currentStage = 0;
+  renderProgress();
+  renderStage(true);
+}
+
+function startFromScratch() {
+  state.showStartScreen = false;
+  state.templateName = null;
+  state.currentStage = 0;
+  renderProgress();
+  renderStage(true);
+}
+
+function renderBread() {
+  let html = '';
+  BREADS.forEach(cat => {
+    html += `<div class="cat-group"><div class="cat-label">${cat.cat}</div><div class="card-grid">`;
+    cat.items.forEach(item => {
+      const sel = state.bread && state.bread.id === item.id;
+      html += cardHTML(item, sel);
+    });
+    html += '</div></div>';
+  });
+  $container.innerHTML = stageWrap(0, html);
+  $container.querySelectorAll('.card').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+      if (state.bread && state.bread.id === id) { state.bread = null; }
+      else { state.bread = breadLookup(id); }
+      renderStage();
+    });
+  });
+}
+
+function renderSpreads() {
+  let html = '';
+  SPREADS.forEach(cat => {
+    html += `<div class="cat-group"><div class="cat-label">${cat.cat}</div><div class="card-grid">`;
+    cat.items.forEach(item => {
+      const sel = state.spreads.some(s => s.id === item.id);
+      const rec = !sel && isRecommended(item.id, item.tags);
+      html += cardHTML(item, sel, '', rec);
+    });
+    html += '</div></div>';
+  });
+  html += `<div class="pick-hint">${state.spreads.length} selected</div>`;
+  $container.innerHTML = stageWrap(1, html);
+  $container.querySelectorAll('.card').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+      const idx = state.spreads.findIndex(s => s.id === id);
+      if (idx > -1) { state.spreads.splice(idx, 1); }
+      else if (state.spreads.length < 3) {
+        const s = spreadLookup(id);
+        if (s) state.spreads.push(s);
+      }
+      renderStage();
+    });
+  });
+}
+
+function renderProtein() {
+  let html = '';
+  PROTEINS.forEach(cat => {
+    html += `<div class="cat-group"><div class="cat-label">${cat.cat}</div><div class="card-grid">`;
+    cat.items.forEach(item => {
+      const sel = state.protein.find(p => p.id === item.id);
+      const rec = !sel && isRecommended(item.id, item.tags);
+      const preps = item.preps.map(pr =>
+        `<button class="prep-btn ${sel && sel.prep===pr?'active':''}" data-pid="${item.id}" data-prep="${pr}">${pr}</button>`
+      ).join('');
+      html += `<div class="card prep-card ${sel?'selected':''}" data-id="${item.id}">
+        ${rec?'<span class="badge">Pairs well</span>':''}
+        <div class="name">${item.name}</div>
+        <div class="desc">${item.desc}</div>
+        ${sel ? `<div class="prep-row">${preps}</div>` : ''}
+      </div>`;
+    });
+    html += '</div></div>';
+  });
+  html += `<div class="pick-hint">${state.protein.length} selected</div>`;
+  $container.innerHTML = stageWrap(2, html);
+  $container.querySelectorAll('.prep-card').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.classList.contains('prep-btn')) return;
+      const id = el.dataset.id;
+      const idx = state.protein.findIndex(p => p.id === id);
+      if (idx > -1) { state.protein.splice(idx, 1); }
+      else {
+        const p = allProteinFlat.find(x => x.id === id);
+        if (p && state.protein.length < 2) state.protein.push(protLookup(id, p.preps[0]));
+      }
+      renderStage();
+    });
+  });
+  $container.querySelectorAll('.prep-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = state.protein.find(p => p.id === btn.dataset.pid);
+      if (p) p.prep = btn.dataset.prep;
+      renderStage();
+    });
+  });
+}
+
+function renderCheese() {
+  let html = '';
+  CHEESES.forEach(cat => {
+    html += `<div class="cat-group"><div class="cat-label">${cat.cat}</div><div class="card-grid">`;
+    cat.items.forEach(item => {
+      const sel = state.cheese.find(c => c.id === item.id);
+      const rec = !sel && isRecommended(item.id, item.tags);
+      let extra = '';
+      if (sel && item.melt) {
+        extra = `<div class="prep-row">
+          <button class="prep-btn ${sel.treatment==='melted'?'active':''}" data-cid="${item.id}" data-treat="melted">melted</button>
+          <button class="prep-btn ${sel.treatment==='unmelted'?'active':''}" data-cid="${item.id}" data-treat="unmelted">unmelted</button>
+        </div>`;
+      }
+      html += `<div class="card prep-card ${sel?'selected':''}" data-id="${item.id}">
+        ${rec?'<span class="badge">Pairs well</span>':''}
+        <div class="name">${item.name}</div>
+        <div class="desc">${item.desc}</div>
+        ${extra}
+      </div>`;
+    });
+    html += '</div></div>';
+  });
+  html += `<div class="pick-hint">${state.cheese.length} selected — skip for a cheeseless sandwich</div>`;
+  $container.innerHTML = stageWrap(3, html);
+  $container.querySelectorAll('.prep-card').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.classList.contains('prep-btn')) return;
+      const id = el.dataset.id;
+      const idx = state.cheese.findIndex(c => c.id === id);
+      if (idx > -1) { state.cheese.splice(idx, 1); }
+      else if (state.cheese.length < 2) {
+        const c = allCheeseFlat.find(x => x.id === id);
+        if (c) state.cheese.push(cheeseLookup(id, c.melt ? 'melted' : 'unmelted'));
+      }
+      renderStage();
+    });
+  });
+  $container.querySelectorAll('.prep-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const c = state.cheese.find(c => c.id === btn.dataset.cid);
+      if (c) c.treatment = btn.dataset.treat;
+      renderStage();
+    });
+  });
+}
+
+function renderVegs() {
+  let html = '';
+  VEGETABLES.forEach(cat => {
+    html += `<div class="cat-group"><div class="cat-label">${cat.cat}</div><div class="card-grid">`;
+    cat.items.forEach(item => {
+      const sel = state.vegs.some(v => v.id === item.id);
+      const rec = !sel && isRecommended(item.id, item.tags);
+      html += cardHTML(item, sel, '', rec);
+    });
+    html += '</div></div>';
+  });
+
+  // Dressing picker inline
+  html += `<div class="cat-group" style="margin-top:2rem"><div class="cat-label">Dressing / Sauce (optional)</div>`;
+  html += '<div class="premade-grid">';
+  DRESSINGS.forEach(d => {
+    const sel = state.dressing === d.id;
+    const dTags = (d.profile ? Object.entries(d.profile).filter(([k,v])=>v>=1).map(([k])=>k==='acid'?'tangy':k==='heat'?'spicy':k==='fat'?'rich':k==='salt'?'savory':k) : []);
+    const rec = !sel && isRecommended(d.id, dTags);
+    html += `<div class="premade-card ${sel?'selected':''}" data-id="${d.id}" data-role="dressing">
+      ${rec?'<span class="badge">Pairs well</span>':''}
+      <div class="name">${d.name}</div>
+      <div class="desc">${d.desc}</div>
+    </div>`;
+  });
+  html += '</div></div>';
+
+  if (state.dressing) {
+    const d = DRESSINGS.find(dr => dr.id === state.dressing);
+    if (d) {
+      html += `<div class="howto-box"><h4>${d.name} — How to Make It</h4>${d.howto}</div>`;
+    }
+  }
+
+  // Crunch check
+  const hasCrunch = state.vegs.some(v => v.role === 'crunch' || v.role === 'pickle');
+  if (state.vegs.length > 0 && !hasCrunch) {
+    html += `<div class="warn-box">No crunch source selected yet. Every sandwich needs at least one — consider adding lettuce, slaw, pickles, or raw onion.</div>`;
+  }
+
+  html += `<div class="pick-hint">${state.vegs.length} selected</div>`;
+  $container.innerHTML = stageWrap(4, html);
+  $container.querySelectorAll('.card').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+      const idx = state.vegs.findIndex(v => v.id === id);
+      if (idx > -1) { state.vegs.splice(idx, 1); }
+      else if (state.vegs.length < 5) {
+        const v = vegLookup(id);
+        if (v) state.vegs.push(v);
+      }
+      renderStage();
+    });
+  });
+  $container.querySelectorAll('[data-role="dressing"]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.dressing = state.dressing === el.dataset.id ? null : el.dataset.id;
+      renderStage();
+    });
+  });
+}
+
+function renderBalance() {
+  const b = calcBalance();
+  const pct = v => Math.round((v / 5) * 100);
+  const pillars = [
+    {key:'acid',label:'Acid',cls:'acid',val:b.acid,src:b.acidSrc,low:'Needs more brightness — add a pickle, mustard, or vinegar element.',fixes:[
+      {text:'Add pickled vegetables',stage:4},
+      {text:'Add a mustard spread',stage:1},
+      {text:'Add lemon zest as finishing',stage:6},
+    ]},
+    {key:'salt',label:'Salt / Umami',cls:'salt',val:b.salt,src:b.saltSrc,low:'Low on savory depth.',fixes:[
+      {text:'Add a salty cheese',stage:3},
+      {text:'Add cured meat',stage:2},
+      {text:'Add flaky salt as finishing',stage:6},
+    ]},
+    {key:'fat',label:'Fat',cls:'fat',val:b.fat,src:b.fatSrc,low:'Could use more richness.',fixes:[
+      {text:'Add a creamy spread (mayo, aioli)',stage:1},
+      {text:'Add cheese',stage:3},
+      {text:'Add avocado or olive oil drizzle',stage:6},
+    ]},
+    {key:'heat',label:'Heat (Spice)',cls:'heat',val:b.heat,src:b.heatSrc,low:'Missing heat — the pillar most home cooks forget.',fixes:[
+      {text:'Add a spicy spread (harissa, chipotle mayo)',stage:1},
+      {text:'Add pickled jalapeños or kimchi',stage:4},
+      {text:'Add fresh chiles or hot sauce drizzle',stage:6},
+    ]},
+  ];
+
+  let html = '<div class="balance-grid">';
+  pillars.forEach(p => {
+    const weak = p.val < 1.5;
+    let fixHtml = '';
+    if (weak) {
+      fixHtml = `<div class="suggestion">${p.low}</div><div class="fix-links">`;
+      p.fixes.forEach(f => {
+        fixHtml += `<button class="fix-btn" onclick="goTo(${f.stage})">${f.text} &rarr;</button>`;
+      });
+      fixHtml += '</div>';
+    }
+    html += `<div class="balance-item">
+      <div class="pillar-name">${p.label}</div>
+      <div class="meter-track"><div class="meter-fill ${p.cls}" style="width:${pct(p.val)}%"></div></div>
+      <div class="sources">${p.src.length ? p.src.join(', ') : 'No sources yet'}</div>
+      ${fixHtml}
+    </div>`;
+  });
+  html += '</div>';
+
+  const allWeak = pillars.filter(p => p.val < 1.5);
+  if (allWeak.length === 0) html += '<p style="color:var(--accent);font-family:var(--font-ui);font-size:0.9rem;margin-top:0.5rem">Looking well-balanced. Trust your palate for final adjustments.</p>';
+
+  $container.innerHTML = stageWrap(5, html);
+}
+
+function renderFinishing() {
+  let html = '';
+  for (const [catKey, cat] of Object.entries(FINISHING)) {
+    html += `<div class="cat-group"><div class="cat-label">${cat.label}</div><div class="card-grid">`;
+    cat.items.forEach(item => {
+      const sel = state.finishing.some(f => f.id === item.id);
+      const rec = !sel && isRecommended(item.id, item.tags);
+      html += cardHTML(item, sel, '', rec);
+    });
+    html += '</div></div>';
+  }
+  html += `<div class="pick-hint">${state.finishing.length} selected</div>`;
+  $container.innerHTML = stageWrap(6, html);
+  $container.querySelectorAll('.card').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+      const idx = state.finishing.findIndex(f => f.id === id);
+      if (idx > -1) { state.finishing.splice(idx, 1); }
+      else if (state.finishing.length < 3) {
+        const f = finLookup(id);
+        if (f) state.finishing.push(f);
+      }
+      renderStage();
+    });
+  });
+}
+
+function renderHeat() {
+  let html = '<div class="card-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">';
+  HEAT_METHODS.forEach(m => {
+    const sel = state.heatMethod === m.id;
+    html += `<div class="card ${sel?'selected':''}" data-id="${m.id}">
+      <div class="name">${m.name}</div>
+      <div class="desc">${m.desc}</div>
+    </div>`;
+  });
+  html += '</div>';
+
+  // Conflict warnings
+  if (state.heatMethod) {
+    const method = HEAT_METHODS.find(m => m.id === state.heatMethod);
+    if (method && method.conflicts.length) {
+      const conflicting = [];
+      state.vegs.forEach(v => { if (method.conflicts.includes(v.id)) conflicting.push(v.name); });
+      state.finishing.forEach(f => { if (method.conflicts.includes(f.id)) conflicting.push(f.name); });
+      if (conflicting.length) {
+        html += `<div class="warn-box">Warning: ${method.name} may wilt or damage: <strong>${conflicting.join(', ')}</strong>. Consider adding these after heating, or choosing a different method.</div>`;
+      }
+    }
+  }
+
+  $container.innerHTML = stageWrap(7, html);
+  $container.querySelectorAll('.card').forEach(el => {
+    el.addEventListener('click', () => {
+      state.heatMethod = state.heatMethod === el.dataset.id ? null : el.dataset.id;
+      renderStage();
+    });
+  });
+}
+
+function generateSandwichName() {
+  const parts = [];
+  // Protein
+  if (state.protein.length) {
+    const p = state.protein[0];
+    parts.push(p.name);
+  }
+  // Bread
+  if (state.bread) {
+    parts.push('on ' + state.bread.name);
+  }
+  // Standout element
+  let standout = '';
+  if (state.cheese.length) standout = state.cheese[0].name;
+  else if (state.vegs.length) {
+    const pickle = state.vegs.find(v => v.role === 'pickle');
+    if (pickle) standout = pickle.name;
+  }
+  if (standout) parts.push('with ' + standout);
+
+  if (parts.length === 0) return 'Custom Sandwich';
+  return parts.join(' ');
+}
+
+function renderSummary() {
+  const name = generateSandwichName();
+
+  let html = '<div id="summaryCapture">';
+  html += '<div class="summary-card">';
+  html += `<h3>${name}</h3>`;
+  html += '<div class="summary-sub">Your composed sandwich.</div>';
+
+  if (state.bread) html += summarySection('Bread', [state.bread.name]);
+  if (state.spreads.length) html += summarySection('Spreads', state.spreads.map(s => s.name));
+  if (state.protein.length) html += summarySection('Protein', state.protein.map(p => `${p.name} — ${p.prep}`));
+  if (state.cheese.length) html += summarySection('Cheese', state.cheese.map(c => `${c.name} (${c.treatment})`));
+  if (state.vegs.length) html += summarySection('Vegetables & Crunch', state.vegs.map(v => v.name));
+  if (state.dressing) {
+    const d = DRESSINGS.find(dr => dr.id === state.dressing);
+    if (d) {
+      html += summarySection('Dressing / Sauce', [d.name]);
+      html += `<button class="recipe-toggle" onclick="toggleRecipe()">How to make it &#9656;</button>`;
+      html += `<div class="recipe-expand" id="recipeExpand"><h5>${d.name}</h5>${d.howto}</div>`;
+    }
+  }
+  if (state.finishing.length) html += summarySection('Finishing Touches', state.finishing.map(f => f.name));
+  if (state.heatMethod) {
+    const m = HEAT_METHODS.find(h => h.id === state.heatMethod);
+    if (m) html += summarySection('Heat Application', [m.name]);
+  }
+
+  html += '</div>';
+
+  // Assembly instructions
+  const assembly = generateAssembly();
+  if (assembly.length) {
+    html += `<div class="assembly-tips"><h4>Assembly Order</h4><ol>${assembly.map(s=>`<li>${s}</li>`).join('')}</ol></div>`;
+  }
+
+  html += '</div>'; // close #summaryCapture
+
+  // Actions
+  html += `<div style="margin-top:1.5rem;display:flex;align-items:center;flex-wrap:wrap;gap:0.5rem">
+    <button class="save-btn" onclick="saveSandwich()">Save this sandwich</button>
+    <span id="saveConfirm" class="save-confirm">Saved!</span>
+    <button class="btn-reset" onclick="resetBuilder()" style="margin-top:0">Start over</button>
+  </div>`;
+
+  html += `<div class="export-row">
+    <button class="export-btn" onclick="exportText()">Copy Text</button>
+    <button class="export-btn" onclick="exportImage()">Save Image</button>
+    <button class="export-btn" onclick="exportPDF()">Download PDF</button>
+    <span id="exportToast" class="export-toast"></span>
+  </div>`;
+
+  $container.innerHTML = stageWrap(8, html);
+}
+
+function summarySection(label, items) {
+  return `<div class="summary-section"><div class="ss-label">${label}</div><ul>${items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
+}
+
+function generateAssembly() {
+  const steps = [];
+  const breadName = state.bread ? state.bread.name.toLowerCase() : 'bread';
+
+  // Toast step
+  if (state.heatMethod === 'toasted' || state.heatMethod === 'warm-assembled') {
+    steps.push(`Toast the ${breadName}.`);
+  }
+  if (state.heatMethod === 'grilled-pressed') {
+    const butterSpread = state.spreads.find(s => s.id === 'plain-butter' || s.id === 'garlic-butter' || s.id === 'herb-butter');
+    if (butterSpread) {
+      steps.push(`Spread ${butterSpread.name.toLowerCase()} on the outside of both ${breadName} slices.`);
+    }
+  }
+
+  // Spreads
+  const nonButterSpreads = state.spreads.filter(s => !s.id.includes('butter'));
+  if (nonButterSpreads.length) {
+    steps.push(`Spread ${nonButterSpreads.map(s=>s.name.toLowerCase()).join(' and ')} on the inside of both bread slices, edge to edge.`);
+  }
+
+  // Cheese against bread (moisture barrier)
+  if (state.cheese.length) {
+    steps.push(`Layer ${state.cheese.map(c=>c.name.toLowerCase()).join(' and ')} directly against the bottom bread as a moisture barrier.`);
+  }
+
+  // Protein
+  if (state.protein.length) {
+    state.protein.forEach(p => {
+      if (p.prep.includes('sliced')) {
+        steps.push(`Shingle ${p.name.toLowerCase()} (${p.prep}) in overlapping layers.`);
+      } else {
+        steps.push(`Add ${p.name.toLowerCase()} (${p.prep}).`);
+      }
+    });
+  }
+
+  // Cooked vegs
+  const cookedVegs = state.vegs.filter(v => v.role === 'cooked');
+  if (cookedVegs.length) {
+    steps.push(`Add ${cookedVegs.map(v=>v.name.toLowerCase()).join(', ')}.`);
+  }
+
+  // Raw/crunch vegs
+  const crunchVegs = state.vegs.filter(v => v.role === 'crunch');
+  if (crunchVegs.length) {
+    steps.push(`Layer ${crunchVegs.map(v=>v.name.toLowerCase()).join(', ')} on top.`);
+  }
+
+  // Juicy
+  const juicy = state.vegs.filter(v => v.role === 'juicy');
+  if (juicy.length) {
+    steps.push(`Add ${juicy.map(v=>v.name.toLowerCase()).join(', ')} — place on top of lettuce, never directly on bread.`);
+  }
+
+  // Pickles
+  const pickles = state.vegs.filter(v => v.role === 'pickle');
+  if (pickles.length) {
+    steps.push(`Add ${pickles.map(v=>v.name.toLowerCase()).join(', ')} as the acid layer.`);
+  }
+
+  // Dressing
+  if (state.dressing) {
+    const d = DRESSINGS.find(dr => dr.id === state.dressing);
+    if (d) {
+      if (state.dressing === 'au-jus') {
+        steps.push(`Serve ${d.name} on the side in a ramekin for dipping.`);
+      } else {
+        steps.push(`Drizzle or spread ${d.name.toLowerCase()}.`);
+      }
+    }
+  }
+
+  // Finishing - add after heat for delicate items
+  const heatSafe = state.finishing.filter(f => f.cat === 'seasoning' || f.cat === 'aromatic');
+  const heatSensitive = state.finishing.filter(f => f.cat === 'herbs' || f.cat === 'heat');
+
+  if (state.heatMethod === 'grilled-pressed' || state.heatMethod === 'broiled') {
+    steps.push('Close the sandwich and apply heat.');
+    if (heatSensitive.length) {
+      steps.push(`After heating, open and add ${heatSensitive.map(f=>f.name.toLowerCase()).join(', ')}.`);
+    }
+    if (heatSafe.length) {
+      steps.push(`Finish with ${heatSafe.map(f=>f.name.toLowerCase()).join(', ')}.`);
+    }
+  } else {
+    if (state.finishing.length) {
+      steps.push(`Add finishing touches: ${state.finishing.map(f=>f.name.toLowerCase()).join(', ')}.`);
+    }
+    steps.push('Close the sandwich.');
+  }
+
+  // Cut
+  steps.push('Cut diagonally with a serrated knife. Serve cut-side up.');
+
+  return steps;
+}
+
+// ---- Master render ----
+function renderSidebar() {
+  const $sb = document.getElementById('selSidebar');
+  if (!$sb) return;
+  if (state.showStartScreen || state.showSavedPage) { $sb.innerHTML = ''; return; }
+
+  let html = '<div class="sel-title">Your Sandwich</div>';
+  const groups = [];
+
+  if (state.bread) {
+    groups.push({label:'Bread', items:[state.bread.name]});
+  }
+  if (state.spreads.length) {
+    groups.push({label:'Spreads', items:state.spreads.map(s=>s.name)});
+  }
+  if (state.protein.length) {
+    groups.push({label:'Protein', items:state.protein.map(p=>`${p.name} <span class="sel-detail">${p.prep}</span>`)});
+  }
+  if (state.cheese.length) {
+    groups.push({label:'Cheese', items:state.cheese.map(c=>`${c.name} <span class="sel-detail">${c.treatment}</span>`)});
+  }
+  if (state.vegs.length) {
+    groups.push({label:'Vegetables', items:state.vegs.map(v=>v.name)});
+  }
+  if (state.dressing) {
+    const d = DRESSINGS.find(dr=>dr.id===state.dressing);
+    if (d) groups.push({label:'Dressing', items:[d.name]});
+  }
+  if (state.finishing.length) {
+    groups.push({label:'Finishing', items:state.finishing.map(f=>f.name)});
+  }
+  if (state.heatMethod) {
+    const m = HEAT_METHODS.find(h=>h.id===state.heatMethod);
+    if (m) groups.push({label:'Heat', items:[m.name]});
+  }
+
+  if (groups.length === 0) {
+    html += '<div class="sel-empty">Nothing selected yet</div>';
+  } else {
+    groups.forEach(g => {
+      html += `<div class="sel-group"><div class="sel-label">${g.label}</div>`;
+      g.items.forEach(i => { html += `<div class="sel-item">${i}</div>`; });
+      html += '</div>';
+    });
+  }
+
+  $sb.innerHTML = html;
+}
+
+function renderStage(scrollTop) {
+  if (state.showSavedPage) { showSavedPage(); renderSidebar(); return; }
+  if (state.showStartScreen) { renderStartScreen(); renderSidebar(); if (scrollTop) window.scrollTo({top:0,behavior:'smooth'}); return; }
+  const renderers = [renderBread, renderSpreads, renderProtein, renderCheese, renderVegs, renderBalance, renderFinishing, renderHeat, renderSummary];
+  renderers[state.currentStage]();
+  renderSidebar();
+  if (scrollTop) window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function resetBuilder() {
+  state.showStartScreen = true;
+  state.showSavedPage = false;
+  state.templateName = null;
+  state.bread = null;
+  state.spreads = [];
+  state.protein = [];
+  state.cheese = [];
+  state.vegs = [];
+  state.dressing = null;
+  state.finishing = [];
+  state.heatMethod = null;
+  state.currentStage = 0;
+  renderProgress();
+  renderStage();
+}
+
+// ============================================================
+//  SAVED SANDWICHES
+// ============================================================
+function getSavedSandwiches() {
+  try { return JSON.parse(localStorage.getItem('savedSandwiches') || '[]'); }
+  catch { return []; }
+}
+
+function buildPreview(s) {
+  const parts = [];
+  if (s.bread) parts.push(s.bread.name);
+  if (s.protein && s.protein.length) parts.push(s.protein.map(p=>`${p.name} (${p.prep})`).join(', '));
+  if (s.cheese && s.cheese.length) parts.push(s.cheese.map(c=>c.name).join(', '));
+  if (s.spreads && s.spreads.length) parts.push(s.spreads.map(sp=>sp.name).join(', '));
+  if (s.vegs && s.vegs.length) parts.push(s.vegs.map(v=>v.name).join(', '));
+  if (s.dressing) { const d = DRESSINGS.find(dr=>dr.id===s.dressing); if(d) parts.push(d.name); }
+  if (s.finishing && s.finishing.length) parts.push(s.finishing.map(f=>f.name).join(', '));
+  return parts.join(' · ');
+}
+
+function saveSandwich() {
+  const sandwiches = getSavedSandwiches();
+  const stateSnap = JSON.parse(JSON.stringify({
+    bread:state.bread, spreads:state.spreads, protein:state.protein,
+    cheese:state.cheese, vegs:state.vegs, dressing:state.dressing,
+    finishing:state.finishing, heatMethod:state.heatMethod,
+  }));
+  const entry = {
+    id: Date.now(),
+    name: generateSandwichName(),
+    date: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+    preview: buildPreview(stateSnap),
+    state: stateSnap,
+  };
+  sandwiches.unshift(entry);
+  localStorage.setItem('savedSandwiches', JSON.stringify(sandwiches));
+  updateSavedLink();
+  const confirm = document.getElementById('saveConfirm');
+  if (confirm) { confirm.classList.add('show'); setTimeout(() => confirm.classList.remove('show'), 2000); }
+}
+
+function loadSandwich(id) {
+  const sandwiches = getSavedSandwiches();
+  const entry = sandwiches.find(s => s.id === id);
+  if (!entry) return;
+  Object.assign(state, entry.state);
+  state.showStartScreen = false;
+  state.showSavedPage = false;
+  state.templateName = null;
+  state.currentStage = 8;
+  renderProgress();
+  renderStage(true);
+}
+
+function confirmDelete(btn, id) {
+  const wrap = btn.parentElement;
+  btn.style.display = 'none';
+  const confirm = document.createElement('span');
+  confirm.className = 'confirm-del';
+  confirm.innerHTML = `<span>Delete?</span><button class="yes-btn" style="font-family:var(--font-ui);font-size:0.72rem;padding:0.25rem 0.6rem;border-radius:var(--radius);border:1px solid var(--terra);background:var(--surface);color:var(--terra);cursor:pointer">Yes</button><button class="no-btn" style="font-family:var(--font-ui);font-size:0.72rem;padding:0.25rem 0.6rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer">Cancel</button>`;
+  wrap.appendChild(confirm);
+  confirm.querySelector('.yes-btn').addEventListener('click', () => deleteSandwich(id));
+  confirm.querySelector('.no-btn').addEventListener('click', () => { confirm.remove(); btn.style.display = ''; });
+}
+
+function deleteSandwich(id) {
+  let sandwiches = getSavedSandwiches();
+  sandwiches = sandwiches.filter(s => s.id !== id);
+  localStorage.setItem('savedSandwiches', JSON.stringify(sandwiches));
+  updateSavedLink();
+  showSavedPage();
+}
+
+function renameSandwich(id, newName) {
+  const sandwiches = getSavedSandwiches();
+  const entry = sandwiches.find(s => s.id === id);
+  if (entry) { entry.name = newName; localStorage.setItem('savedSandwiches', JSON.stringify(sandwiches)); }
+}
+
+function showSavedPage() {
+  state.showSavedPage = true;
+  $progress.style.display = 'none';
+  const sandwiches = getSavedSandwiches();
+
+  let html = '<div class="saved-page">';
+  html += '<button class="back-link" onclick="closeSavedPage()">&larr; Back to builder</button>';
+  html += '<h2>Saved Sandwiches</h2>';
+  html += `<div class="saved-sub">${sandwiches.length} sandwich${sandwiches.length===1?'':'es'} saved</div>`;
+
+  if (!sandwiches.length) {
+    html += '<p class="no-saved">No saved sandwiches yet. Build one and save it from the summary page.</p>';
+  } else {
+    html += '<div class="saved-grid">';
+    sandwiches.forEach(s => {
+      const displayName = s.name || 'Untitled Sandwich';
+      html += `<div class="saved-card" data-id="${s.id}">
+        <div class="saved-name-row">
+          <div class="saved-name" id="sname-${s.id}">${displayName}</div>
+          <button class="rename-btn" data-id="${s.id}">rename</button>
+        </div>
+        <div class="saved-date">${s.date}</div>
+        <div class="saved-preview">${s.preview || 'No details'}</div>
+        <div class="saved-actions">
+          <button class="load-btn" onclick="loadSandwich(${s.id})">Load</button>
+          <button class="del-btn" onclick="confirmDelete(this,${s.id})">Delete</button>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  $container.innerHTML = html;
+
+  $container.querySelectorAll('.rename-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = +btn.dataset.id;
+      const $name = document.getElementById('sname-'+id);
+      const sandwiches = getSavedSandwiches();
+      const entry = sandwiches.find(s => s.id === id);
+      const curName = (entry && entry.name) || '';
+      $name.innerHTML = `<input type="text" value="${curName}" placeholder="Name this sandwich..." autofocus>`;
+      const $input = $name.querySelector('input');
+      $input.focus();
+      $input.select();
+      const save = () => { renameSandwich(id, $input.value.trim()); showSavedPage(); };
+      $input.addEventListener('blur', save);
+      $input.addEventListener('keydown', (e) => { if (e.key === 'Enter') save(); });
+    });
+  });
+}
+
+function closeSavedPage() {
+  state.showSavedPage = false;
+  renderProgress();
+  renderStage(true);
+}
+
+function updateSavedLink() {
+  const count = getSavedSandwiches().length;
+  const $link = document.getElementById('savedLink');
+  if (count > 0) {
+    $link.innerHTML = `<button class="saved-link-btn" onclick="showSavedPage()">Saved Sandwiches (${count})</button>`;
+  } else {
+    $link.innerHTML = '';
+  }
+}
+
+// ============================================================
+//  EXPORT & HELPERS
+// ============================================================
+function toggleRecipe() {
+  const el = document.getElementById('recipeExpand');
+  const btn = document.querySelector('.recipe-toggle');
+  if (el) {
+    el.classList.toggle('open');
+    btn.innerHTML = el.classList.contains('open') ? 'How to make it &#9662;' : 'How to make it &#9656;';
+  }
+}
+
+function slugify(str) {
+  return str.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+}
+
+function showExportToast(msg) {
+  const el = document.getElementById('exportToast');
+  if (el) { el.textContent = msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2000); }
+}
+
+function exportText() {
+  const name = generateSandwichName();
+  let lines = [name, ''];
+  if (state.bread) lines.push('BREAD: ' + state.bread.name);
+  if (state.spreads.length) lines.push('SPREADS: ' + state.spreads.map(s=>s.name).join(', '));
+  if (state.protein.length) lines.push('PROTEIN: ' + state.protein.map(p=>`${p.name} — ${p.prep}`).join(', '));
+  if (state.cheese.length) lines.push('CHEESE: ' + state.cheese.map(c=>`${c.name} (${c.treatment})`).join(', '));
+  if (state.vegs.length) lines.push('VEGETABLES: ' + state.vegs.map(v=>v.name).join(', '));
+  if (state.dressing) {
+    const d = DRESSINGS.find(dr=>dr.id===state.dressing);
+    if (d) {
+      lines.push('DRESSING: ' + d.name);
+      lines.push('');
+      lines.push('HOW TO MAKE ' + d.name.toUpperCase() + ':');
+      const temp = document.createElement('div');
+      temp.innerHTML = d.howto;
+      temp.querySelectorAll('li').forEach(li => lines.push('  * ' + li.textContent));
+    }
+  }
+  if (state.finishing.length) lines.push('FINISHING: ' + state.finishing.map(f=>f.name).join(', '));
+  if (state.heatMethod) { const m = HEAT_METHODS.find(h=>h.id===state.heatMethod); if(m) lines.push('HEAT: ' + m.name); }
+  const assembly = generateAssembly();
+  if (assembly.length) {
+    lines.push('');
+    lines.push('ASSEMBLY:');
+    assembly.forEach((s,i) => lines.push(`${i+1}. ${s}`));
+  }
+  navigator.clipboard.writeText(lines.join('\n')).then(() => showExportToast('Copied!'));
+}
+
+async function exportImage() {
+  const el = document.getElementById('summaryCapture');
+  if (!el || typeof html2canvas === 'undefined') { showExportToast('Loading...'); return; }
+  const recipe = document.getElementById('recipeExpand');
+  const wasOpen = recipe && recipe.classList.contains('open');
+  if (recipe && !wasOpen) recipe.classList.add('open');
+  try {
+    const canvas = await html2canvas(el, { backgroundColor: '#faf7f2', scale: 2, useCORS: true });
+    if (recipe && !wasOpen) recipe.classList.remove('open');
+    const link = document.createElement('a');
+    link.download = slugify(generateSandwichName()) + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showExportToast('Image saved!');
+  } catch(e) {
+    if (recipe && !wasOpen) recipe.classList.remove('open');
+    showExportToast('Error saving image');
+  }
+}
+
+async function exportPDF() {
+  const el = document.getElementById('summaryCapture');
+  if (!el || typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') { showExportToast('Loading...'); return; }
+  const recipe = document.getElementById('recipeExpand');
+  const wasOpen = recipe && recipe.classList.contains('open');
+  if (recipe && !wasOpen) recipe.classList.add('open');
+  try {
+    const canvas = await html2canvas(el, { backgroundColor: '#faf7f2', scale: 2, useCORS: true });
+    if (recipe && !wasOpen) recipe.classList.remove('open');
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [canvas.width, canvas.height] });
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+    pdf.save(slugify(generateSandwichName()) + '.pdf');
+    showExportToast('PDF downloaded!');
+  } catch(e) {
+    if (recipe && !wasOpen) recipe.classList.remove('open');
+    showExportToast('Error creating PDF');
+  }
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+updateSavedLink();
+renderProgress();
+renderStage();
+</script>
+
+</body>
+</html>

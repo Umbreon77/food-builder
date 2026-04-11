@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salad Builder — Compose a Restaurant-Level Salad</title>
+<style>
+:root {
+  --bg: #faf8f5;
+  --surface: #ffffff;
+  --text: #2c2c2c;
+  --muted: #6b6560;
+  --accent: #5a7247;
+  --accent-light: #e8efe3;
+  --accent-dark: #3e5232;
+  --border: #e4dfd8;
+  --warm: #c4854c;
+  --warm-light: #fdf6ee;
+  --warm-border: #e0c9a6;
+  --terra: #b0623a;
+  --font-body: 'Georgia','Times New Roman',serif;
+  --font-ui: -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.65;font-size:1rem}
+
+/* Header */
+.header{text-align:center;padding:2.5rem 1.5rem 2rem;border-bottom:1px solid var(--border);background:var(--surface)}
+.header h1{font-family:var(--font-ui);font-size:clamp(1.5rem,3.5vw,2.2rem);font-weight:700;letter-spacing:-0.02em;margin-bottom:0.3rem}
+.header p{color:var(--muted);font-size:0.95rem;max-width:32rem;margin:0 auto;font-style:italic}
+
+/* Progress */
+.progress-bar{display:flex;gap:0;background:var(--surface);border-bottom:1px solid var(--border);padding:0.5rem 1rem;overflow-x:auto;-webkit-overflow-scrolling:touch;position:sticky;top:0;z-index:50}
+.progress-step{flex:1;min-width:0;text-align:center;font-family:var(--font-ui);font-size:0.7rem;letter-spacing:0.03em;padding:0.5rem 0.25rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.progress-step.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.progress-step.done{color:var(--accent-dark);border-bottom-color:var(--accent-light)}
+.progress-step:hover{color:var(--accent)}
+
+/* Main */
+.main{max-width:46rem;margin:0 auto;padding:1.5rem 1rem 4rem}
+
+/* Stage */
+.stage{display:none;animation:fadeIn 0.3s ease}
+.stage.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.stage-title{font-family:var(--font-ui);font-size:1.4rem;font-weight:700;margin-bottom:0.2rem}
+.stage-sub{color:var(--muted);font-size:0.92rem;margin-bottom:1.5rem;font-style:italic}
+
+/* Category groups */
+.cat-group{margin-bottom:1.5rem}
+.cat-label{font-family:var(--font-ui);font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem}
+
+/* Cards */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.6rem}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:0.7rem 0.85rem;cursor:pointer;transition:all 0.15s}
+.card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.card.selected{border-color:var(--accent);background:var(--accent-light)}
+.card .name{font-family:var(--font-ui);font-size:0.88rem;font-weight:600;margin-bottom:0.15rem}
+.card .desc{font-size:0.78rem;color:var(--muted);line-height:1.4}
+.card .badge{display:inline-block;font-family:var(--font-ui);font-size:0.6rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--warm);background:var(--warm-light);border:1px solid var(--warm-border);padding:0.1rem 0.4rem;border-radius:1rem;margin-bottom:0.3rem}
+
+/* Veg prep selector */
+.veg-card{padding:0.7rem 0.85rem}
+.veg-card .prep-row{display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.4rem}
+.prep-btn{font-family:var(--font-ui);font-size:0.68rem;padding:0.2rem 0.55rem;border-radius:1rem;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--muted);transition:all 0.15s}
+.prep-btn:hover{border-color:var(--accent);color:var(--accent)}
+.prep-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* Dressing builder */
+.dress-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:1rem}
+.dress-section h4{font-family:var(--font-ui);font-size:0.85rem;font-weight:600;margin-bottom:0.5rem}
+.chip-row{display:flex;flex-wrap:wrap;gap:0.35rem}
+.chip{font-family:var(--font-ui);font-size:0.78rem;padding:0.3rem 0.7rem;border-radius:1rem;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--text);transition:all 0.15s}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
+.chip .rec{color:var(--warm);margin-left:0.2rem;font-size:0.65rem}
+
+/* Balance meters */
+.balance-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0}
+.balance-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem}
+.balance-item .pillar-name{font-family:var(--font-ui);font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.4rem}
+.meter-track{height:8px;background:#eee;border-radius:4px;overflow:hidden;margin-bottom:0.4rem}
+.meter-fill{height:100%;border-radius:4px;transition:width 0.4s ease}
+.meter-fill.acid{background:#c9a52c}
+.meter-fill.salt{background:#8b7355}
+.meter-fill.fat{background:var(--warm)}
+.meter-fill.sweet{background:var(--terra)}
+.balance-item .sources{font-size:0.75rem;color:var(--muted);line-height:1.4}
+.balance-item .suggestion{font-size:0.8rem;color:var(--terra);margin-top:0.35rem;font-style:italic}
+.fix-links{display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.4rem}
+.fix-btn{font-family:var(--font-ui);font-size:0.72rem;padding:0.25rem 0.6rem;border-radius:1rem;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent-dark);cursor:pointer;transition:all 0.15s;text-align:left;line-height:1.3}
+.fix-btn:hover{background:var(--accent);color:#fff}
+
+/* Premade dressing */
+.premade-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.6rem;margin-bottom:1.5rem}
+.premade-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:0.7rem 0.85rem;cursor:pointer;transition:all 0.15s}
+.premade-card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.premade-card.selected{border-color:var(--accent);background:var(--accent-light)}
+.premade-card .name{font-family:var(--font-ui);font-size:0.88rem;font-weight:600;margin-bottom:0.15rem}
+.premade-card .desc{font-size:0.78rem;color:var(--muted);line-height:1.4}
+.howto-box{background:var(--warm-light);border:1px solid var(--warm-border);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:1.5rem}
+.howto-box h4{font-family:var(--font-ui);font-size:0.85rem;font-weight:700;margin-bottom:0.4rem;color:var(--warm)}
+.howto-box ul{margin:0.3rem 0 0 1.2rem;font-size:0.88rem;line-height:1.7}
+.howto-box li{margin-bottom:0.2rem}
+.or-divider{font-family:var(--font-ui);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);text-align:center;margin:1.25rem 0;position:relative}
+.or-divider::before,.or-divider::after{content:'';position:absolute;top:50%;width:calc(50% - 1.5rem);height:1px;background:var(--border)}
+.or-divider::before{left:0}
+.or-divider::after{right:0}
+
+/* Saved salads */
+.save-btn{font-family:var(--font-ui);font-size:0.88rem;font-weight:600;padding:0.65rem 1.5rem;border-radius:var(--radius);border:1.5px solid var(--accent);background:var(--accent-light);color:var(--accent-dark);cursor:pointer;transition:all 0.15s;margin-right:0.5rem}
+.save-btn:hover{background:var(--accent);color:#fff}
+.save-confirm{font-family:var(--font-ui);font-size:0.82rem;color:var(--accent);margin-left:0.5rem;opacity:0;transition:opacity 0.3s}
+.save-confirm.show{opacity:1}
+.saved-link-btn{font-family:var(--font-ui);font-size:0.82rem;color:var(--accent);cursor:pointer;background:none;border:1px solid var(--accent);padding:0.35rem 0.9rem;border-radius:var(--radius);transition:all 0.15s;text-decoration:none}
+.saved-link-btn:hover{background:var(--accent);color:#fff}
+.saved-page{max-width:46rem;margin:0 auto;padding:2rem 1rem 4rem}
+.saved-page h2{font-family:var(--font-ui);font-size:1.4rem;font-weight:700;margin-bottom:0.3rem}
+.saved-page .saved-sub{color:var(--muted);font-size:0.92rem;font-style:italic;margin-bottom:1.5rem}
+.saved-page .back-link{font-family:var(--font-ui);font-size:0.82rem;color:var(--accent);cursor:pointer;background:none;border:none;text-decoration:underline;margin-bottom:1.5rem;display:inline-block}
+.saved-page .back-link:hover{color:var(--accent-dark)}
+.saved-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.saved-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;transition:all 0.15s}
+.saved-card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.saved-card .saved-name-row{display:flex;align-items:center;gap:0.4rem;margin-bottom:0.15rem}
+.saved-card .saved-name{font-family:var(--font-ui);font-size:0.95rem;font-weight:600;flex:1;min-width:0}
+.saved-card .saved-name input{font-family:var(--font-ui);font-size:0.95rem;font-weight:600;border:1px solid var(--border);border-radius:4px;padding:0.15rem 0.4rem;width:100%;background:var(--bg)}
+.saved-card .saved-name input:focus{outline:none;border-color:var(--accent)}
+.saved-card .rename-btn{font-family:var(--font-ui);font-size:0.65rem;color:var(--muted);cursor:pointer;background:none;border:none;text-decoration:underline;flex-shrink:0}
+.saved-card .rename-btn:hover{color:var(--accent)}
+.saved-card .saved-date{font-family:var(--font-ui);font-size:0.7rem;color:var(--muted);margin-bottom:0.5rem}
+.saved-card .saved-preview{font-size:0.82rem;color:var(--text);line-height:1.5;margin-bottom:0.75rem}
+.saved-card .saved-actions{display:flex;gap:0.5rem}
+.saved-card .saved-actions button{font-family:var(--font-ui);font-size:0.78rem;padding:0.35rem 0.8rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:all 0.15s}
+.saved-card .load-btn{color:var(--accent);border-color:var(--accent)}
+.saved-card .load-btn:hover{background:var(--accent);color:#fff}
+.saved-card .del-btn{color:var(--muted)}
+.saved-card .del-btn:hover{border-color:var(--terra);color:var(--terra)}
+.saved-card .confirm-del{display:inline-flex;gap:0.3rem;align-items:center}
+.saved-card .confirm-del span{font-family:var(--font-ui);font-size:0.72rem;color:var(--terra)}
+.saved-card .confirm-del .yes-btn{color:var(--terra);border-color:var(--terra)}
+.saved-card .confirm-del .yes-btn:hover{background:var(--terra);color:#fff}
+.saved-card .confirm-del .no-btn{color:var(--muted)}
+.no-saved{font-family:var(--font-ui);font-size:0.92rem;color:var(--muted);font-style:italic;text-align:center;padding:3rem 1rem}
+
+/* Export buttons */
+.export-row{display:flex;gap:0.4rem;margin-top:0.75rem;flex-wrap:wrap}
+.export-btn{font-family:var(--font-ui);font-size:0.75rem;padding:0.35rem 0.7rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:all 0.15s}
+.export-btn:hover{border-color:var(--accent);color:var(--accent)}
+.export-toast{font-family:var(--font-ui);font-size:0.75rem;color:var(--accent);margin-left:0.3rem;opacity:0;transition:opacity 0.3s}
+.export-toast.show{opacity:1}
+
+/* Collapsible recipe */
+.recipe-toggle{font-family:var(--font-ui);font-size:0.8rem;color:var(--warm);cursor:pointer;background:none;border:none;padding:0.3rem 0;margin-top:0.3rem;transition:color 0.15s}
+.recipe-toggle:hover{color:var(--terra)}
+.recipe-expand{display:none;background:var(--warm-light);border:1px solid var(--warm-border);border-radius:var(--radius);padding:0.75rem 1rem;margin-top:0.4rem}
+.recipe-expand.open{display:block}
+.recipe-expand h5{font-family:var(--font-ui);font-size:0.78rem;font-weight:700;color:var(--warm);margin-bottom:0.3rem}
+.recipe-expand ul{margin:0.2rem 0 0 1.2rem;font-size:0.82rem;line-height:1.6}
+.recipe-expand li{margin-bottom:0.15rem}
+
+/* Start screen */
+.start-screen{max-width:46rem;margin:0 auto;padding:2rem 1rem 4rem}
+.start-fork{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem}
+.fork-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);padding:1.5rem;cursor:pointer;text-align:center;transition:all 0.15s}
+.fork-card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.fork-card h3{font-family:var(--font-ui);font-size:1.1rem;font-weight:700;margin-bottom:0.3rem}
+.fork-card p{font-size:0.85rem;color:var(--muted)}
+.template-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.75rem}
+.template-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:1rem;cursor:pointer;transition:all 0.15s}
+.template-card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.template-card .name{font-family:var(--font-ui);font-size:0.95rem;font-weight:600;margin-bottom:0.2rem}
+.template-card .desc{font-size:0.8rem;color:var(--muted);line-height:1.4;margin-bottom:0.5rem}
+.template-card .tags{display:flex;flex-wrap:wrap;gap:0.25rem}
+.template-card .tag{font-family:var(--font-ui);font-size:0.62rem;padding:0.12rem 0.45rem;border-radius:1rem;background:var(--accent-light);color:var(--accent-dark)}
+.template-banner{font-family:var(--font-ui);font-size:0.82rem;background:var(--accent-light);color:var(--accent-dark);padding:0.5rem 1rem;border-radius:var(--radius);margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center}
+.template-banner button{font-family:var(--font-ui);font-size:0.72rem;background:none;border:1px solid var(--accent);color:var(--accent);padding:0.2rem 0.6rem;border-radius:var(--radius);cursor:pointer}
+.template-banner button:hover{background:var(--accent);color:#fff}
+@media(max-width:500px){
+  .start-fork{grid-template-columns:1fr}
+  .template-grid{grid-template-columns:1fr 1fr}
+}
+
+/* Temperature tags */
+.temp-list{list-style:none;margin:1rem 0}
+.temp-list li{display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0;border-bottom:1px solid var(--border);font-size:0.9rem}
+.temp-tag{font-family:var(--font-ui);font-size:0.65rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:0.15rem 0.5rem;border-radius:1rem;flex-shrink:0}
+.temp-cold{background:#e3eef7;color:#3a6fa0}
+.temp-room{background:#f0ebe3;color:#7a6a55}
+.temp-warm{background:#fce8d5;color:#b0623a}
+.temp-hot{background:#f5d5d0;color:#a03a3a}
+.temp-note{margin-top:1rem;font-size:0.88rem;color:var(--muted);font-style:italic}
+
+/* Summary card */
+.summary-card{background:var(--surface);border:2px solid var(--accent);border-radius:var(--radius);padding:2rem;margin-top:1rem}
+.summary-card h3{font-family:var(--font-ui);font-size:1.1rem;font-weight:700;margin-bottom:0.15rem}
+.summary-card .summary-sub{color:var(--muted);font-size:0.85rem;font-style:italic;margin-bottom:1.25rem}
+.summary-section{margin-bottom:1rem}
+.summary-section .ss-label{font-family:var(--font-ui);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:0.3rem}
+.summary-section ul{list-style:none;font-size:0.88rem;line-height:1.6}
+.summary-section li::before{content:'· ';color:var(--accent);font-weight:700}
+.plating-tips{background:var(--warm-light);border:1px solid var(--warm-border);border-radius:var(--radius);padding:1rem;margin-top:1rem}
+.plating-tips h4{font-family:var(--font-ui);font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--warm);margin-bottom:0.4rem}
+.plating-tips ul{font-size:0.85rem;margin-left:1.2rem;color:var(--text)}
+.plating-tips li{margin-bottom:0.3rem}
+
+/* Buttons */
+.nav-buttons{display:flex;justify-content:space-between;margin-top:2rem;gap:1rem}
+.btn{font-family:var(--font-ui);font-size:0.88rem;font-weight:600;padding:0.65rem 1.5rem;border-radius:var(--radius);border:none;cursor:pointer;transition:all 0.15s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-dark)}
+.btn-secondary{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn:disabled{opacity:0.4;cursor:default}
+
+/* Reset button */
+.btn-reset{display:inline-block;margin-top:1.5rem;font-family:var(--font-ui);font-size:0.8rem;color:var(--muted);cursor:pointer;background:none;border:none;text-decoration:underline}
+.btn-reset:hover{color:var(--terra)}
+
+/* Selection count hint */
+.pick-hint{font-family:var(--font-ui);font-size:0.75rem;color:var(--muted);margin-bottom:1rem}
+
+/* Footer */
+.footer{text-align:center;padding:1.5rem;font-family:var(--font-ui);font-size:0.8rem;color:var(--muted);border-top:1px solid var(--border)}
+.footer a{color:var(--accent);text-decoration:none}
+.footer a:hover{text-decoration:underline}
+
+@media(max-width:500px){
+  .card-grid{grid-template-columns:1fr 1fr}
+  .balance-grid{grid-template-columns:1fr}
+  .summary-card{padding:1.25rem}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+</head>
+<body>
+
+<style>
+.fb-topnav{position:sticky;top:0;z-index:9999;display:flex;align-items:center;justify-content:space-between;padding:0.6rem 1.2rem;background:#1a1a1a;color:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;border-bottom:1px solid #333}
+.fb-topnav__brand{color:#f5f5f5;text-decoration:none;font-weight:600;font-size:0.95rem;letter-spacing:-0.01em}
+.fb-topnav__brand:hover{color:#fff}
+.fb-topnav__links{display:flex;gap:0.25rem}
+.fb-topnav__link{color:#bbb;text-decoration:none;font-size:0.85rem;font-weight:500;padding:0.45rem 0.9rem;border-radius:6px;transition:background 0.15s,color 0.15s}
+.fb-topnav__link:hover{color:#fff;background:#2a2a2a}
+.fb-topnav__link--active{color:#fff;background:#2a2a2a}
+</style>
+<nav class="fb-topnav" aria-label="Food Builder navigation">
+  <a href="../" class="fb-topnav__brand">Food Builder</a>
+  <div class="fb-topnav__links">
+    <a href="../salad/" class="fb-topnav__link fb-topnav__link--active">Salads</a>
+    <a href="../sandwich/" class="fb-topnav__link">Sandwiches</a>
+  </div>
+</nav>
+
+<header class="header">
+  <h1>Salad Builder</h1>
+  <p>Compose a restaurant-level salad step by step. Each choice shapes what comes next.</p>
+  <p id="savedLink" style="margin-top:0.6rem"></p>
+</header>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="main">
+  <div id="stageContainer"></div>
+</div>
+
+<footer class="footer">
+  <a href="index.html">Back to the reference guide</a>
+</footer>
+
+<script>
+// ============================================================
+//  DATA
+// ============================================================
+const TAGS = {
+  bitter:'bitter',sweet:'sweet',peppery:'peppery',earthy:'earthy',nutty:'nutty',
+  tangy:'tangy',rich:'rich',mild:'mild',herbaceous:'herbaceous',smoky:'smoky',
+  umami:'umami',bright:'bright',creamy:'creamy',spicy:'spicy',floral:'floral',
+  savory:'savory',fresh:'fresh',robust:'robust'
+};
+
+const GREENS = [
+  {cat:'Tender & Mild', items:[
+    {id:'butter-lettuce',name:'Butter Lettuce',desc:'Silky, delicate cups — the luxury base. Tears easily, dresses lightly.',tags:['mild','fresh'],sturdy:false},
+    {id:'mache',name:'Mâche',desc:'Impossibly tender, faint nutty sweetness. Rosette clusters add visual charm.',tags:['mild','nutty','fresh'],sturdy:false},
+    {id:'bibb',name:'Bibb Lettuce',desc:'Soft and sweet with just enough body to hold a light vinaigrette.',tags:['mild','sweet','fresh'],sturdy:false},
+  ]},
+  {cat:'Crisp & Sweet', items:[
+    {id:'little-gem',name:'Little Gem',desc:'The perfect lettuce. Crisp, sweet, compact — holds any dressing, stays crunchy.',tags:['sweet','fresh','mild'],sturdy:true},
+    {id:'romaine',name:'Romaine Hearts',desc:'Classic crunch. Sturdy rib, mild flavor. The workhorse of Caesar salads.',tags:['mild','fresh'],sturdy:true},
+  ]},
+  {cat:'Peppery & Bold', items:[
+    {id:'arugula',name:'Arugula',desc:'Mustard heat and grassiness. Stands up to strong cheese and warm dressings.',tags:['peppery','bright'],sturdy:false},
+    {id:'watercress',name:'Watercress',desc:'Clean peppery bite, almost wasabi-like. Elegant, pairs with rich elements.',tags:['peppery','bright','fresh'],sturdy:false},
+  ]},
+  {cat:'Bitter & Structural', items:[
+    {id:'frisee',name:'Frisée',desc:'Wiry structure holds heavy dressings. Subtle bitterness cuts through rich elements.',tags:['bitter'],sturdy:true},
+    {id:'radicchio',name:'Radicchio',desc:'Bold bitterness, dramatic purple. Stands up to grilling and warm vinaigrettes.',tags:['bitter','robust'],sturdy:true},
+    {id:'endive',name:'Endive',desc:'Crisp, elegant spears. Mild bitterness — perfect scoops for composed bites.',tags:['bitter','mild'],sturdy:true},
+    {id:'escarole',name:'Escarole',desc:'Broad leaves, moderate bitterness. Holds up to warm dressings and hearty pairings.',tags:['bitter','earthy'],sturdy:true},
+  ]},
+  {cat:'Earthy & Hearty', items:[
+    {id:'baby-kale',name:'Baby Kale',desc:'Earthy, mineral, sturdy. Benefits from massaging with oil and acid to tenderize.',tags:['earthy','robust'],sturdy:true},
+    {id:'spinach',name:'Spinach',desc:'Iron-rich, mildly earthy. Classic with warm bacon dressings and eggs.',tags:['earthy','mild'],sturdy:false},
+  ]},
+];
+
+const VEGETABLES = [
+  {id:'carrot',name:'Carrots',desc:'Sharp raw, caramelized-sweet roasted. High sugar content makes them versatile.',tags:['sweet','earthy'],preps:['roasted','confit','quick-pickled','raw/shaved']},
+  {id:'beet',name:'Beets',desc:'Earthy, mineral-sweet intensity. Dramatic color bleeds — use strategically.',tags:['sweet','earthy'],preps:['roasted','quick-pickled','fermented','raw/shaved']},
+  {id:'fennel',name:'Fennel',desc:'Anise when raw, mellow sweetness when cooked. Paper-thin shaves are elegant.',tags:['sweet','herbaceous','fresh'],preps:['roasted','confit','quick-pickled','raw/shaved']},
+  {id:'radish',name:'Radishes',desc:'Peppery snap raw, mellow and buttery roasted. Color pops on any plate.',tags:['peppery','bright'],preps:['roasted','quick-pickled','fermented','raw/shaved']},
+  {id:'squash',name:'Delicata Squash',desc:'Caramelized sweetness, edible skin. Roasted half-moons are a fall staple.',tags:['sweet','nutty','earthy'],preps:['roasted','charred']},
+  {id:'broccoli',name:'Broccolini / Broccoli',desc:'Nutty, charred edges are addictive. Needs high heat and space on the pan.',tags:['earthy','nutty'],preps:['roasted','charred','raw/shaved']},
+  {id:'cauliflower',name:'Cauliflower',desc:'Blank canvas that transforms with heat. Charred florets are meaty and nutty.',tags:['nutty','mild'],preps:['roasted','charred','quick-pickled','raw/shaved']},
+  {id:'tomato',name:'Tomatoes',desc:'Peak-season only. Confit cherry tomatoes are a year-round cheat code.',tags:['bright','sweet','tangy'],preps:['confit','raw/shaved']},
+  {id:'shallot',name:'Shallots',desc:'Mild onion sweetness. Confit whole, pickle thinly sliced, or fry into crispy rings.',tags:['sweet','savory'],preps:['confit','quick-pickled','raw/shaved']},
+  {id:'mushroom',name:'Mushrooms',desc:'Umami powerhouse. Roasted until deeply golden for meaty, concentrated flavor.',tags:['umami','earthy','savory'],preps:['roasted','charred','confit']},
+  {id:'corn',name:'Corn',desc:'Sweet, starchy pops of summer. Charred kernels add smoky sweetness.',tags:['sweet'],preps:['charred','raw/shaved']},
+  {id:'zucchini',name:'Zucchini',desc:'Mild and watery raw — charred or shaved with lemon, it shines.',tags:['mild','fresh'],preps:['charred','quick-pickled','raw/shaved']},
+  {id:'cucumber',name:'Cucumber',desc:'Cool, crisp, hydrating. Smash for texture or shave thin. Seeds out for less water.',tags:['fresh','mild'],preps:['raw/shaved','quick-pickled']},
+  {id:'bell-pepper',name:'Bell Pepper',desc:'Sweet and snappy raw, smoky-sweet roasted. Red and yellow have the most sugar.',tags:['sweet','bright'],preps:['roasted','charred','quick-pickled','raw/shaved']},
+];
+
+const TEXTURES = {
+  crispy: {label:'Crispy', items:[
+    {id:'fried-shallots',name:'Fried Shallots',desc:'Sweet, shattering crunch. The king of salad garnishes.',tags:['sweet','savory']},
+    {id:'pangrattato',name:'Pangrattato',desc:'Herbed toasted breadcrumbs — crouton flavor without the bulk.',tags:['savory','herbaceous']},
+    {id:'toasted-nuts',name:'Toasted Nuts',desc:'Almonds, walnuts, pecans, pistachios, hazelnuts — pick to pair.',tags:['nutty','rich']},
+    {id:'crispy-quinoa',name:'Crispy Quinoa',desc:'Light, poppy crunch. Toast in oil until golden and nutty.',tags:['nutty']},
+    {id:'fried-capers',name:'Fried Capers',desc:'Salty, crispy flavor bombs. 30 seconds in hot oil.',tags:['tangy','savory','umami']},
+    {id:'croutons',name:'Brown Butter Croutons',desc:'Torn bread, seared in brown butter. Irregular edges catch dressing.',tags:['rich','nutty','savory']},
+    {id:'puffed-rice',name:'Puffed Rice',desc:'Airy, neutral crunch. Texture without competing flavor.',tags:['mild']},
+    {id:'bacon',name:'Crispy Bacon',desc:'Smoky, salty, shattering. Cook until fully crisp, crumble or leave in shards.',tags:['smoky','savory','umami','rich']},
+    {id:'fried-chickpeas',name:'Crispy Chickpeas',desc:'Spiced, crunchy, hearty. Roast at high heat until they rattle.',tags:['earthy','savory']},
+  ]},
+  creamy: {label:'Creamy', items:[
+    {id:'burrata',name:'Burrata',desc:'The showpiece. Creamy center spills out — place just before serving.',tags:['rich','creamy','mild']},
+    {id:'whipped-ricotta',name:'Whipped Ricotta',desc:'Swooshed on the plate as a base. Light, milky richness.',tags:['creamy','mild']},
+    {id:'avocado',name:'Avocado',desc:'Buttery fat in whole-food form. Slice or smash — season well.',tags:['rich','creamy']},
+    {id:'labneh',name:'Labneh',desc:'Tangy strained yogurt. Thicker than Greek — dollop or swoosh.',tags:['tangy','creamy']},
+    {id:'soft-egg',name:'Soft-Boiled Egg',desc:'Jammy 6.5-minute yolk. Place halved, yolk-up. Season the egg.',tags:['rich','umami','creamy']},
+    {id:'goat-cheese',name:'Goat Cheese',desc:'Tangy, crumbly. Crumble over or whip with herbs for a spread.',tags:['tangy','creamy']},
+    {id:'feta',name:'Feta',desc:'Briny, sharp, crumbly. Cuts through rich and sweet elements. Block feta, not pre-crumbled.',tags:['tangy','savory']},
+    {id:'blue-cheese',name:'Blue Cheese',desc:'Funky, bold, polarizing. A little goes far — crumble sparingly over sturdy greens.',tags:['umami','savory','rich']},
+    {id:'pecorino',name:'Pecorino',desc:'Sharper and saltier than Parmesan. Shave with a peeler for thin curls.',tags:['savory','umami']},
+    {id:'fresh-mozz',name:'Fresh Mozzarella',desc:'Mild, milky, soft. Tear by hand into irregular pieces. Best at room temp.',tags:['mild','creamy']},
+  ]},
+  hearty: {label:'Chewy & Hearty', items:[
+    {id:'farro',name:'Farro',desc:'Nutty, chewy grain. Dress while warm to absorb vinaigrette.',tags:['nutty','earthy']},
+    {id:'lentils',name:'Lentils',desc:'French green or black beluga — hold their shape, earthy and hearty.',tags:['earthy','savory']},
+    {id:'dried-fruit',name:'Dried Fruit',desc:'Cranberries, apricots, cherries, figs — concentrated sweet-tart pops.',tags:['sweet','tangy']},
+    {id:'white-beans',name:'White Beans',desc:'Creamy, mild, substantial. Toss with olive oil and herbs.',tags:['mild','creamy']},
+    {id:'freekeh',name:'Freekeh',desc:'Smoky roasted wheat. Chewy and distinctive — earthy, not neutral.',tags:['smoky','earthy','nutty']},
+  ]},
+};
+
+const PROTEINS = [
+  {id:'chicken',name:'Chicken',desc:'Versatile and neutral — takes on whatever flavor you give it. Thigh over breast for salads.',tags:['savory','mild'],preps:['grilled','poached','roasted','crispy-fried']},
+  {id:'salmon',name:'Salmon',desc:'Rich, fatty, substantial. Hot-smoked or seared skin-side down.',tags:['rich','savory','umami'],preps:['seared','hot-smoked','poached','cured']},
+  {id:'shrimp',name:'Shrimp',desc:'Sweet, quick-cooking, elegant. Sear hard for color or poach for tenderness.',tags:['sweet','mild','savory'],preps:['seared','grilled','poached']},
+  {id:'steak',name:'Steak',desc:'Sliced rare over greens — the steakhouse salad move. Flank or skirt, rested and sliced thin.',tags:['rich','savory','umami'],preps:['seared','grilled']},
+  {id:'tuna',name:'Tuna (Seared)',desc:'Rare in the center, crusted outside. Sesame or pepper crust.',tags:['umami','rich','savory'],preps:['seared','raw/crudo']},
+  {id:'tofu',name:'Tofu',desc:'Press it dry, then get it crispy. Absorbs marinades and dressings beautifully.',tags:['mild'],preps:['crispy-fried','grilled','marinated']},
+  {id:'halloumi',name:'Halloumi',desc:'Salty, squeaky, sears without melting. Golden crust on both sides.',tags:['savory','rich'],preps:['seared','grilled']},
+  {id:'prosciutto',name:'Prosciutto / Cured Meat',desc:'Paper-thin, no cooking needed. Salty richness and silky texture.',tags:['savory','umami','rich'],preps:['raw/draped','crisped']},
+  {id:'white-beans-p',name:'White Beans (Protein)',desc:'Already in textures, but hearty enough to anchor a meatless salad.',tags:['mild','earthy'],preps:['warm-tossed','marinated']},
+  {id:'chickpeas',name:'Chickpeas',desc:'Roasted until crunchy or marinated and tender. The veg protein workhorse.',tags:['earthy','nutty'],preps:['crispy-roasted','marinated']},
+];
+
+const DRESS_STYLES = [
+  {id:'vinaigrette',name:'Classic Vinaigrette',desc:'Clean, bright, versatile. The foundation of salad dressing.', sturdyReq:false},
+  {id:'creamy',name:'Creamy / Emulsified',desc:'Rich, coating, indulgent. Ranch territory — but done right.', sturdyReq:false},
+  {id:'warm',name:'Warm / Rendered Fat',desc:'Brown butter, bacon, chorizo oil. Wilts greens gently.', sturdyReq:true},
+  {id:'asian',name:'Asian-Inspired',desc:'Sesame, soy, rice vinegar, ginger. Bright and savory.', sturdyReq:false},
+  {id:'tahini',name:'Tahini-Based',desc:'Nutty, creamy, rich. Thins with lemon and water to drizzle.', sturdyReq:false},
+];
+
+const PREMADE_DRESSINGS = [
+  {id:'pm-caesar',name:'Classic Caesar',desc:'Rich, garlicky, umami-packed. The gold standard.',
+    style:'creamy',fat:['evoo'],acid:['lemon'],emulsifier:['egg-yolk','garlic'],umami:['anchovy','parm'],
+    howto:'<ul><li>Mash 2 anchovy fillets with 1 grated garlic clove into a paste</li><li>Whisk in 1 egg yolk, 2 tbsp lemon juice, and 1 tsp Dijon</li><li>Slowly stream in ⅓ cup olive oil while whisking</li><li>Fold in ¼ cup finely grated Parmesan</li><li>Season with black pepper</li></ul>'},
+  {id:'pm-classic-vin',name:'French Vinaigrette',desc:'The one every cook should know by heart. Clean and bright.',
+    style:'vinaigrette',fat:['evoo'],acid:['red-wine-vin'],emulsifier:['dijon'],umami:[],
+    howto:'<ul><li>Whisk 1 tbsp Dijon mustard with 2 tbsp red wine vinegar, pinch of salt, and pepper</li><li>Slowly drizzle in 5 tbsp extra-virgin olive oil while whisking constantly until emulsified</li><li>Taste and adjust acid/salt</li></ul>'},
+  {id:'pm-ranch',name:'Buttermilk Ranch',desc:'Creamy, herby, universally loved. Made from scratch changes everything.',
+    style:'creamy',fat:['neutral-oil'],acid:['lemon'],emulsifier:['garlic'],umami:[],
+    howto:'<ul><li>Whisk ½ cup buttermilk, ¼ cup mayo, 1 minced garlic clove, 1 tbsp lemon juice</li><li>Stir in 2 tbsp each chopped chives, dill, and parsley</li><li>Season with salt, pepper, pinch of onion powder</li><li>Thin with more buttermilk if needed</li></ul>'},
+  {id:'pm-tahini',name:'Lemon Tahini',desc:'Nutty, creamy, vegan. Thins beautifully — drizzle or pour.',
+    style:'tahini',fat:['tahini-fat'],acid:['lemon'],emulsifier:['garlic'],umami:[],
+    howto:'<ul><li>Whisk ¼ cup tahini with 3 tbsp lemon juice and 1 small grated garlic clove</li><li>It will seize — add ice water 1 tbsp at a time, whisking, until smooth and pourable (usually 3–4 tbsp)</li><li>Season with salt and a pinch of cumin</li></ul>'},
+  {id:'pm-sesame-ginger',name:'Sesame Ginger',desc:'Bright, savory, aromatic. Works on any crunchy Asian-inspired salad.',
+    style:'asian',fat:['sesame-oil','neutral-oil'],acid:['rice-vin','lime'],emulsifier:['honey'],umami:['soy'],
+    howto:'<ul><li>Whisk 1 tbsp toasted sesame oil, 2 tbsp neutral oil, 2 tbsp rice vinegar, 1 tbsp lime juice</li><li>Add 1 tbsp soy sauce, 1 tbsp honey, and 1 tsp grated fresh ginger</li><li>Add a pinch of chili flake if you want heat</li></ul>'},
+  {id:'pm-brown-butter',name:'Brown Butter Vinaigrette',desc:'Nutty, warm, luxurious. A restaurant secret weapon.',
+    style:'warm',fat:['brown-butter'],acid:['sherry-vin'],emulsifier:['dijon'],umami:[],
+    howto:'<ul><li>Brown 3 tbsp butter in a pan until nutty and golden — watch carefully</li><li>Off heat, whisk in 2 tbsp sherry vinegar and 1 tsp Dijon</li><li>Season with salt and pepper</li><li>Use immediately while warm on sturdy greens</li></ul>'},
+  {id:'pm-honey-mustard',name:'Honey Mustard',desc:'Sweet-tangy balance. Kid-friendly but legit when made fresh.',
+    style:'vinaigrette',fat:['evoo'],acid:['apple-cider'],emulsifier:['honey','dijon'],umami:[],
+    howto:'<ul><li>Whisk 2 tbsp Dijon, 1 tbsp whole grain mustard, 2 tbsp honey, and 2 tbsp apple cider vinegar</li><li>Slowly stream in ¼ cup olive oil</li><li>Season with salt and pepper</li><li>Adjust honey/vinegar ratio to taste</li></ul>'},
+  {id:'pm-balsamic',name:'Balsamic Vinaigrette',desc:'Sweet, tangy depth. Use good balsamic — cheap stuff tastes harsh.',
+    style:'vinaigrette',fat:['evoo'],acid:['balsamic'],emulsifier:['dijon'],umami:[],
+    howto:'<ul><li>Whisk 1 tsp Dijon with 2 tbsp balsamic vinegar, salt, and pepper</li><li>Slowly stream in ¼ cup extra-virgin olive oil</li><li>For richer flavor, add ½ tsp honey</li><li>Taste — if the balsamic is too sharp, add a touch more oil</li></ul>'},
+  {id:'pm-green-goddess',name:'Green Goddess',desc:'Herby, tangy, vibrant green. A whole salad\'s worth of flavor in a dressing.',
+    style:'creamy',fat:['evoo'],acid:['lemon','red-wine-vin'],emulsifier:['garlic'],umami:['anchovy'],
+    howto:'<ul><li>Blend ½ cup each fresh basil, parsley, and chives</li><li>Add 1 anchovy, 1 garlic clove, 2 tbsp lemon juice, 1 tbsp red wine vinegar</li><li>Add ¼ cup olive oil and 3 tbsp mayo or sour cream</li><li>Season with salt — should be thick but pourable</li></ul>'},
+  {id:'pm-miso',name:'Miso Vinaigrette',desc:'Savory, complex, unexpected. Umami from every angle.',
+    style:'vinaigrette',fat:['sesame-oil','neutral-oil'],acid:['rice-vin'],emulsifier:['honey'],umami:['miso'],
+    howto:'<ul><li>Whisk 1 tbsp white miso with 2 tbsp rice vinegar and 1 tsp honey until smooth</li><li>Stream in 1 tbsp toasted sesame oil and 2 tbsp neutral oil</li><li>Add 1 tsp grated ginger if desired</li><li>Taste — miso is salty, so hold off on extra salt</li></ul>'},
+  {id:'pm-thousand',name:'Thousand Island',desc:'Creamy, tangy, a little sweet. The classic burger-and-wedge dressing.',
+    style:'creamy',fat:['neutral-oil'],acid:['lemon','red-wine-vin'],emulsifier:['garlic'],umami:[],
+    howto:'<ul><li>Mix ½ cup mayo with 2 tbsp ketchup</li><li>Add 1 tbsp red wine vinegar, 1 tsp lemon juice</li><li>Stir in 2 tbsp sweet pickle relish, 1 tsp Worcestershire, pinch of garlic powder</li><li>Season with salt and pepper</li><li>Let it sit 30 minutes for flavors to meld</li></ul>'},
+];
+
+const DRESS_COMPONENTS = {
+  fats: {label:'Base Fat',items:[
+    {id:'evoo',name:'Extra-Virgin Olive Oil',tags:['rich','herbaceous'],styles:['vinaigrette','creamy','warm']},
+    {id:'neutral-oil',name:'Grapeseed / Sunflower Oil',tags:['mild'],styles:['vinaigrette','creamy','asian']},
+    {id:'walnut-oil',name:'Walnut Oil',tags:['nutty','rich'],styles:['vinaigrette']},
+    {id:'sesame-oil',name:'Toasted Sesame Oil',tags:['nutty','smoky'],styles:['asian']},
+    {id:'brown-butter',name:'Brown Butter',tags:['nutty','rich'],styles:['warm']},
+    {id:'bacon-fat',name:'Bacon Fat',tags:['smoky','rich','savory'],styles:['warm']},
+    {id:'tahini-fat',name:'Tahini',tags:['nutty','creamy','rich'],styles:['tahini']},
+  ]},
+  acids: {label:'Acids (pick 1–2 for depth)',items:[
+    {id:'sherry-vin',name:'Sherry Vinegar',tags:['tangy','rich'],note:'Warm depth, nutty undertone'},
+    {id:'lemon',name:'Fresh Lemon Juice',tags:['bright','tangy'],note:'Immediate brightness, fades fast'},
+    {id:'red-wine-vin',name:'Red Wine Vinegar',tags:['tangy'],note:'Steady, sharp, classic'},
+    {id:'rice-vin',name:'Rice Vinegar',tags:['mild','sweet'],note:'Gentle, clean, rounds edges'},
+    {id:'balsamic',name:'Balsamic Vinegar',tags:['sweet','tangy'],note:'Lingering sweetness, use sparingly'},
+    {id:'lime',name:'Fresh Lime Juice',tags:['bright','tangy'],note:'Sharper than lemon, tropical lean'},
+    {id:'apple-cider',name:'Apple Cider Vinegar',tags:['tangy','sweet'],note:'Fruity sharpness, good with earthy greens'},
+  ]},
+  emulsifiers: {label:'Emulsifier',items:[
+    {id:'dijon',name:'Dijon Mustard',tags:['tangy','spicy']},
+    {id:'garlic',name:'Garlic Paste',tags:['savory','peppery']},
+    {id:'honey',name:'Honey',tags:['sweet']},
+    {id:'egg-yolk',name:'Egg Yolk',tags:['rich','creamy']},
+    {id:'miso-em',name:'White Miso',tags:['umami','savory']},
+  ]},
+  umami: {label:'Umami Booster',items:[
+    {id:'miso',name:'White Miso',tags:['umami','savory']},
+    {id:'anchovy',name:'Anchovy',tags:['umami','savory']},
+    {id:'parm',name:'Parmesan (grated)',tags:['umami','savory','nutty']},
+    {id:'fish-sauce',name:'Fish Sauce (dash)',tags:['umami','savory']},
+    {id:'soy',name:'Soy Sauce',tags:['umami','savory']},
+    {id:'nooch',name:'Nutritional Yeast',tags:['umami','nutty']},
+  ]},
+};
+
+const GARNISHES = {
+  herbs: {label:'Whole Herbs', items:[
+    {id:'basil',name:'Basil',desc:'Sweet, aromatic. Tear — don\'t chop.',tags:['herbaceous','sweet','fresh']},
+    {id:'mint',name:'Mint',desc:'Cool, bright lift. Especially good with grain and fruit salads.',tags:['fresh','bright','herbaceous']},
+    {id:'dill',name:'Dill',desc:'Grassy, anise-tinged. Pairs beautifully with beets and cucumber.',tags:['herbaceous','fresh']},
+    {id:'tarragon',name:'Tarragon',desc:'Subtle licorice. A little goes far — elegant in vinaigrettes.',tags:['herbaceous','sweet']},
+    {id:'cilantro',name:'Cilantro',desc:'Polarizing but powerful. Bright, citrusy, essential in Asian/Latin salads.',tags:['herbaceous','bright','fresh']},
+    {id:'chervil',name:'Chervil',desc:'Delicate, faintly anise. The fine-dining herb.',tags:['herbaceous','mild']},
+    {id:'parsley',name:'Flat-Leaf Parsley',desc:'Clean, grassy, universal. More than a garnish — use generously.',tags:['herbaceous','fresh']},
+  ]},
+  micro: {label:'Microgreens', items:[
+    {id:'pea-shoots',name:'Pea Shoots',desc:'Sweet, tender tendrils. Beautiful and actually taste like something.',tags:['sweet','fresh']},
+    {id:'radish-sprouts',name:'Radish Sprouts',desc:'Peppery kick in tiny form.',tags:['peppery','bright']},
+    {id:'micro-basil',name:'Micro Basil',desc:'Concentrated basil flavor, delicate appearance.',tags:['herbaceous','sweet']},
+    {id:'shiso',name:'Shiso',desc:'Aromatic, minty, unusual. A conversation starter.',tags:['herbaceous','fresh','floral']},
+  ]},
+  finishing: {label:'Finishing Oils & Zest', items:[
+    {id:'fin-evoo',name:'Grassy EVOO Drizzle',desc:'Peppery, fresh. Use the good stuff here.',tags:['rich','herbaceous']},
+    {id:'chili-oil',name:'Chili Oil',desc:'Heat and color. A thin drizzle — not a pour.',tags:['spicy']},
+    {id:'lemon-zest',name:'Lemon Zest',desc:'Bright volatile aromatics. Microplane at the last second.',tags:['bright']},
+    {id:'orange-zest',name:'Orange Zest',desc:'Warmer, sweeter citrus fragrance. Great with beets and fennel.',tags:['bright','sweet']},
+    {id:'sesame-fin',name:'Toasted Sesame Oil',desc:'A few drops for nutty aroma. Works beyond Asian salads.',tags:['nutty','smoky']},
+    {id:'walnut-fin',name:'Walnut Oil Finish',desc:'Fragile, nutty. Buy small bottles and use quickly.',tags:['nutty','rich']},
+  ]},
+  flowers: {label:'Edible Flowers', items:[
+    {id:'nasturtium',name:'Nasturtium',desc:'Peppery — actually tastes like something. Bright orange pops.',tags:['peppery']},
+    {id:'borage',name:'Borage',desc:'Cucumber flavor in a blue star. Cool and mild.',tags:['fresh','mild']},
+    {id:'chive-blossom',name:'Chive Blossom',desc:'Mild chive flavor, purple-pink clusters. Pull apart for petals.',tags:['herbaceous','mild']},
+    {id:'marigold',name:'Marigold Petals',desc:'Mildly bitter, visually striking gold. Use petals, not whole heads.',tags:['bitter']},
+  ]},
+};
+
+// Classic pairings (bonus affinity)
+const CLASSIC_PAIRS = [
+  ['arugula','toasted-nuts','goat-cheese','beet'],
+  ['arugula','parm','lemon','sherry-vin'],
+  ['spinach','bacon-fat','soft-egg','mushroom'],
+  ['baby-kale','tahini-fat','squash','lemon'],
+  ['radicchio','anchovy','lemon','parm'],
+  ['little-gem','avocado','croutons'],
+  ['frisee','soft-egg','bacon-fat','fried-shallots'],
+  ['romaine','parm','anchovy','croutons','lemon'],
+  ['endive','walnut-oil','goat-cheese','toasted-nuts'],
+  ['beet','goat-cheese','toasted-nuts','dill'],
+  ['fennel','lemon-zest','parm','arugula'],
+  ['tomato','burrata','basil','fin-evoo'],
+  ['corn','avocado','lime','cilantro'],
+  ['carrot','lentils','farro','dijon'],
+  ['watermelon','feta','mint','arugula'],
+  ['spinach','blue-cheese','toasted-nuts','dried-fruit'],
+  ['radicchio','blue-cheese','toasted-nuts','honey'],
+  ['tomato','fresh-mozz','basil','fin-evoo'],
+  ['feta','radish','dill','lemon'],
+  ['feta','cucumber','tomato','lemon'],
+  ['bacon','soft-egg','spinach','croutons'],
+  ['cucumber','shrimp','dill','lemon'],
+];
+
+// ============================================================
+//  CLASSIC TEMPLATES
+// ============================================================
+const allGreensFlat = GREENS.flatMap(c => c.items);
+const allTexFlat = Object.values(TEXTURES).flatMap(c => c.items);
+const allGarnFlat = Object.values(GARNISHES).flatMap(c => c.items);
+function grnLookup(id) { const g = allGreensFlat.find(i=>i.id===id); return g ? {id:g.id,name:g.name,tags:g.tags,sturdy:g.sturdy} : null; }
+function vegLookup(id,prep) { const v = VEGETABLES.find(i=>i.id===id); return v ? {id:v.id,name:v.name,tags:v.tags,prep} : null; }
+function texLookup(id) { for(const[k,c]of Object.entries(TEXTURES)){const i=c.items.find(x=>x.id===id);if(i)return{id:i.id,name:i.name,tags:i.tags,cat:k};} return null; }
+function proLookup(id,prep) { const p = PROTEINS.find(i=>i.id===id); return p ? {id:p.id,name:p.name,tags:p.tags,prep} : null; }
+function garLookup(id) { for(const[k,c]of Object.entries(GARNISHES)){const i=c.items.find(x=>x.id===id);if(i)return{id:i.id,name:i.name,tags:i.tags,cat:k};} return null; }
+
+const CLASSIC_TEMPLATES = [
+  {
+    id:'tpl-caesar', name:'Classic Caesar',
+    desc:'The benchmark: crisp romaine, salty-umami dressing, crunch from croutons.',
+    tags:['Romaine','Caesar Dressing','Parmesan','Croutons'],
+    greens:['romaine'],
+    vegs:[],
+    textures:['croutons','pecorino'],
+    protein:[{id:'chicken',prep:'grilled'}],
+    dressPreset:'pm-caesar',
+    garnishes:['lemon-zest','parsley'],
+  },
+  {
+    id:'tpl-nicoise', name:'Niçoise',
+    desc:'A composed French masterpiece — every element placed with intention.',
+    tags:['Little Gem','Tuna','Egg','French Vinaigrette'],
+    greens:['little-gem'],
+    vegs:[{id:'tomato',prep:'raw/shaved'}],
+    textures:['soft-egg','fried-capers'],
+    protein:[{id:'tuna',prep:'seared'}],
+    dressPreset:'pm-classic-vin',
+    garnishes:['tarragon','fin-evoo'],
+  },
+  {
+    id:'tpl-fattoush', name:'Fattoush',
+    desc:'Bright, crunchy, herby — the Middle Eastern salad that ruins all other salads for you.',
+    tags:['Romaine','Cucumber','Radish','Sumac'],
+    greens:['romaine','little-gem'],
+    vegs:[{id:'tomato',prep:'raw/shaved'},{id:'cucumber',prep:'raw/shaved'},{id:'radish',prep:'raw/shaved'}],
+    textures:['croutons'],
+    protein:[],
+    dress:{style:'vinaigrette',fat:['evoo'],acid:['lemon'],emulsifier:['garlic'],umami:[]},
+    garnishes:['mint','parsley'],
+  },
+  {
+    id:'tpl-cobb', name:'Cobb',
+    desc:'The American steakhouse salad — hearty, composed, every bite different.',
+    tags:['Romaine','Bacon','Blue Cheese','Egg'],
+    greens:['romaine','little-gem'],
+    vegs:[{id:'tomato',prep:'raw/shaved'}],
+    textures:['bacon','blue-cheese','avocado','soft-egg'],
+    protein:[{id:'chicken',prep:'grilled'}],
+    dressPreset:'pm-classic-vin',
+    garnishes:['parsley'],
+  },
+  {
+    id:'tpl-caprese', name:'Caprese (Deconstructed)',
+    desc:'When your tomatoes are perfect, get out of the way.',
+    tags:['Arugula','Tomato','Burrata','Basil'],
+    greens:['arugula'],
+    vegs:[{id:'tomato',prep:'raw/shaved'}],
+    textures:['burrata'],
+    protein:[],
+    dressPreset:'pm-balsamic',
+    garnishes:['basil','fin-evoo'],
+  },
+  {
+    id:'tpl-kale-caesar', name:'Kale Caesar',
+    desc:'The modern update: sturdy greens, tahini-miso richness, more texture.',
+    tags:['Kale','Tahini','Avocado','Chickpeas'],
+    greens:['baby-kale'],
+    vegs:[],
+    textures:['pangrattato','avocado','pecorino'],
+    protein:[{id:'chickpeas',prep:'crispy-roasted'}],
+    dressPreset:'pm-tahini',
+    garnishes:['lemon-zest'],
+  },
+  {
+    id:'tpl-beet-goat', name:'Roasted Beet & Goat Cheese',
+    desc:'Earthy-sweet-tangy — the combination that never gets old.',
+    tags:['Arugula','Beets','Goat Cheese','Walnuts'],
+    greens:['arugula','frisee'],
+    vegs:[{id:'beet',prep:'roasted'},{id:'shallot',prep:'quick-pickled'}],
+    textures:['toasted-nuts','goat-cheese'],
+    protein:[],
+    dress:{style:'vinaigrette',fat:['walnut-oil'],acid:['sherry-vin'],emulsifier:['dijon'],umami:[]},
+    garnishes:['dill','orange-zest'],
+  },
+  {
+    id:'tpl-thai', name:'Thai-Inspired Crunch',
+    desc:'Sweet, sour, salty, spicy, crunchy — all at once.',
+    tags:['Romaine','Shrimp','Peanuts','Lime'],
+    greens:['romaine'],
+    vegs:[{id:'carrot',prep:'raw/shaved'},{id:'cucumber',prep:'raw/shaved'}],
+    textures:['toasted-nuts','fried-shallots'],
+    protein:[{id:'shrimp',prep:'seared'}],
+    dressPreset:'pm-sesame-ginger',
+    garnishes:['cilantro','mint','chili-oil'],
+  },
+  {
+    id:'tpl-fall-harvest', name:'Fall Harvest',
+    desc:'Warm roasted squash on cold bitter greens with maple-apple sweetness.',
+    tags:['Kale','Squash','Cranberries','Pecans'],
+    greens:['baby-kale','radicchio'],
+    vegs:[{id:'squash',prep:'roasted'}],
+    textures:['dried-fruit','toasted-nuts','goat-cheese'],
+    protein:[],
+    dress:{style:'vinaigrette',fat:['evoo'],acid:['apple-cider'],emulsifier:['honey','dijon'],umami:[]},
+    garnishes:['fin-evoo'],
+  },
+  {
+    id:'tpl-greek', name:'Greek',
+    desc:'The one everyone knows, elevated with better ingredients and a real vinaigrette.',
+    tags:['Romaine','Feta','Cucumber','Tomato'],
+    greens:['romaine','little-gem'],
+    vegs:[{id:'tomato',prep:'raw/shaved'},{id:'cucumber',prep:'raw/shaved'},{id:'bell-pepper',prep:'raw/shaved'}],
+    textures:['feta'],
+    protein:[],
+    dress:{style:'vinaigrette',fat:['evoo'],acid:['red-wine-vin','lemon'],emulsifier:['dijon','garlic'],umami:[]},
+    garnishes:['parsley','fin-evoo'],
+  },
+  {
+    id:'tpl-wedge', name:'Wedge Salad',
+    desc:'The steakhouse icon — a cold iceberg wedge drowning in creamy dressing, bacon, and blue cheese.',
+    tags:['Iceberg','Blue Cheese','Bacon','Thousand Island'],
+    greens:['little-gem'],
+    vegs:[{id:'tomato',prep:'raw/shaved'}],
+    textures:['bacon','blue-cheese','fried-shallots'],
+    protein:[],
+    dressPreset:'pm-thousand',
+    garnishes:['parsley'],
+  },
+];
+
+// ============================================================
+//  STATE
+// ============================================================
+const state = {
+  showStartScreen: true,
+  showSavedPage: false,
+  templateName: null,
+  greens: [],       // [{id, name, tags, sturdy}]
+  vegs: [],         // [{id, name, tags, prep}]
+  textures: [],     // [{id, name, tags, cat}]
+  dressPreset: null,
+  dressStyle: null,
+  dressFat: [],
+  dressAcid: [],
+  dressEmulsifier: [],
+  dressUmami: [],
+  protein: [],      // [{id, name, tags, prep}]
+  garnishes: [],    // [{id, name, tags, cat}]
+  currentStage: 0,
+};
+
+const STAGES = [
+  {id:'greens',title:'Choose Your Greens',sub:'Pick 1–3 greens to build your base.'},
+  {id:'vegs',title:'Vegetable Treatments',sub:'Pick 2–4 vegetables and how to prepare each one.'},
+  {id:'textures',title:'Texture Elements',sub:'Pick 1–3 from each category to create contrast.'},
+  {id:'protein',title:'Protein (Optional)',sub:'Skip or pick 1–2 proteins and how to prepare them.'},
+  {id:'dressing',title:'Build Your Dressing',sub:'Pick a style, then customize the components.'},
+  {id:'balance',title:'Seasoning & Balance Check',sub:'See where your salad stands on acid, salt, fat, and sweet.'},
+  {id:'garnish',title:'Garnish & Finishing',sub:'The final flavor layer.'},
+  {id:'temperature',title:'Temperature Plan',sub:'Check your thermal contrast.'},
+  {id:'summary',title:'Your Salad',sub:'The complete composition with plating notes.'},
+];
+
+// ============================================================
+//  PAIRING ENGINE
+// ============================================================
+function getAllSelected() {
+  const ids = new Set();
+  state.greens.forEach(g => ids.add(g.id));
+  state.vegs.forEach(v => ids.add(v.id));
+  state.textures.forEach(t => ids.add(t.id));
+  state.protein.forEach(p => ids.add(p.id));
+  if (state.dressFat.length) state.dressFat.forEach(f => ids.add(f));
+  if (state.dressAcid.length) state.dressAcid.forEach(a => ids.add(a));
+  if (state.dressEmulsifier.length) state.dressEmulsifier.forEach(e => ids.add(e));
+  if (state.dressUmami.length) state.dressUmami.forEach(u => ids.add(u));
+  state.garnishes.forEach(g => ids.add(g.id));
+  return ids;
+}
+
+function getAllTags() {
+  const tags = {};
+  const add = (t) => { tags[t] = (tags[t]||0) + 1; };
+  state.greens.forEach(g => g.tags.forEach(add));
+  state.vegs.forEach(v => v.tags.forEach(add));
+  state.textures.forEach(t => t.tags.forEach(add));
+  state.protein.forEach(p => p.tags.forEach(add));
+  state.garnishes.forEach(g => g.tags.forEach(add));
+  return tags;
+}
+
+function getAffinityScore(itemId, itemTags) {
+  const selected = getAllSelected();
+  const tagProfile = getAllTags();
+  let score = 0;
+
+  // Contrast pairings
+  if (tagProfile.bitter && itemTags.some(t => ['sweet','creamy'].includes(t))) score += 2;
+  if (tagProfile.peppery && itemTags.some(t => ['rich','nutty','creamy'].includes(t))) score += 2;
+  if (tagProfile.earthy && itemTags.some(t => ['bright','tangy'].includes(t))) score += 1;
+  if (tagProfile.rich && itemTags.some(t => ['bright','tangy'].includes(t))) score += 1;
+
+  // Complement pairings
+  if (tagProfile.earthy && itemTags.includes('earthy')) score += 1;
+  if (tagProfile.bright && itemTags.includes('herbaceous')) score += 1;
+  if (tagProfile.nutty && itemTags.includes('nutty')) score += 1;
+
+  // Classic pair bonus
+  for (const combo of CLASSIC_PAIRS) {
+    if (combo.includes(itemId)) {
+      const others = combo.filter(c => c !== itemId);
+      const matched = others.filter(c => selected.has(c)).length;
+      if (matched >= 1) score += matched * 2;
+    }
+  }
+
+  // Sturdy greens boost for warm dressings
+  if (itemId === 'warm' && state.greens.some(g => g.sturdy)) score += 2;
+  if (itemId === 'warm' && state.greens.length && !state.greens.some(g => g.sturdy)) score -= 3;
+
+  return score;
+}
+
+function isRecommended(itemId, itemTags) {
+  return getAffinityScore(itemId, itemTags || []) >= 2;
+}
+
+// ============================================================
+//  BALANCE CALCULATOR
+// ============================================================
+function calcBalance() {
+  const b = {acid:0, salt:0, fat:0, sweet:0, acidSrc:[], saltSrc:[], fatSrc:[], sweetSrc:[]};
+  // Greens
+  state.greens.forEach(g => { if (g.tags.includes('bitter')) { b.acid += 0.5; b.acidSrc.push(g.name+' (bitter)'); }});
+  // Vegs
+  state.vegs.forEach(v => {
+    if (v.prep === 'quick-pickled' || v.prep === 'fermented') { b.acid += 1.5; b.acidSrc.push(v.name+' ('+v.prep+')'); }
+    if (v.prep === 'roasted' || v.prep === 'charred' || v.prep === 'confit') { b.sweet += 0.5; b.sweetSrc.push(v.name+' ('+v.prep+')'); b.fat += 0.3; }
+    if (v.tags.includes('sweet')) { b.sweet += 0.5; if (!b.sweetSrc.includes(v.name)) b.sweetSrc.push(v.name); }
+  });
+  // Textures
+  state.textures.forEach(t => {
+    if (t.tags.includes('rich') || t.tags.includes('creamy')) { b.fat += 1.5; b.fatSrc.push(t.name); }
+    if (t.tags.includes('nutty')) { b.fat += 0.5; }
+    if (t.tags.includes('tangy')) { b.acid += 1; b.acidSrc.push(t.name); }
+    if (t.tags.includes('umami') || t.tags.includes('savory')) { b.salt += 1; b.saltSrc.push(t.name); }
+    if (t.tags.includes('sweet')) { b.sweet += 1; b.sweetSrc.push(t.name); }
+  });
+  // Protein
+  state.protein.forEach(p => {
+    if (p.tags.includes('rich')) { b.fat += 1; b.fatSrc.push(p.name); }
+    if (p.tags.includes('umami') || p.tags.includes('savory')) { b.salt += 0.5; b.saltSrc.push(p.name); }
+    if (p.prep === 'cured' || p.prep === 'raw/draped') { b.salt += 0.5; }
+    if (p.prep === 'crispy-fried' || p.prep === 'crispy-roasted') { b.fat += 0.5; }
+  });
+  // Dressing
+  state.dressAcid.forEach(a => { b.acid += 2; const it = DRESS_COMPONENTS.acids.items.find(i=>i.id===a); if (it) b.acidSrc.push(it.name); });
+  state.dressFat.forEach(f => { b.fat += 2; const it = DRESS_COMPONENTS.fats.items.find(i=>i.id===f); if (it) b.fatSrc.push(it.name); });
+  state.dressEmulsifier.forEach(e => {
+    const it = DRESS_COMPONENTS.emulsifiers.items.find(i=>i.id===e);
+    if (it) {
+      if (it.tags.includes('sweet')) { b.sweet += 1; b.sweetSrc.push(it.name); }
+      if (it.tags.includes('umami')) { b.salt += 1; b.saltSrc.push(it.name); }
+    }
+  });
+  state.dressUmami.forEach(u => { b.salt += 1.5; const it = DRESS_COMPONENTS.umami.items.find(i=>i.id===u); if (it) b.saltSrc.push(it.name); });
+  // Garnishes
+  state.garnishes.forEach(g => {
+    if (g.tags.includes('bright')) { b.acid += 0.5; b.acidSrc.push(g.name); }
+    if (g.tags.includes('rich')) { b.fat += 0.5; b.fatSrc.push(g.name); }
+    if (g.tags.includes('sweet')) { b.sweet += 0.3; }
+  });
+  // Normalize
+  const max = 5;
+  b.acid = Math.min(b.acid, max);
+  b.salt = Math.min(b.salt, max);
+  b.fat = Math.min(b.fat, max);
+  b.sweet = Math.min(b.sweet, max);
+  return b;
+}
+
+// ============================================================
+//  RENDERERS
+// ============================================================
+const $container = document.getElementById('stageContainer');
+const $progress = document.getElementById('progressBar');
+
+function renderProgress() {
+  if (state.showStartScreen) { $progress.style.display = 'none'; return; }
+  $progress.style.display = 'flex';
+  $progress.innerHTML = STAGES.map((s,i) => {
+    let cls = 'progress-step';
+    if (i === state.currentStage) cls += ' active';
+    else if (i < state.currentStage) cls += ' done';
+    return `<div class="${cls}" data-idx="${i}">${s.title}</div>`;
+  }).join('');
+  $progress.querySelectorAll('.progress-step').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = +el.dataset.idx;
+      goTo(idx);
+    });
+  });
+}
+
+function goTo(idx) {
+  state.currentStage = idx;
+  renderProgress();
+  renderStage(true);
+}
+
+function navButtons() {
+  const isFirst = state.currentStage === 0;
+  const isLast = state.currentStage === STAGES.length - 1;
+  return `<div class="nav-buttons">
+    <button class="btn btn-secondary" ${isFirst?'disabled':''} onclick="goTo(${state.currentStage-1})">Back</button>
+    ${isLast
+      ? ''
+      : `<button class="btn btn-primary" onclick="goTo(${state.currentStage+1})">Next</button>`
+    }
+  </div>`;
+}
+
+// Card helper
+function cardHTML(item, selected, extra='', badge=false) {
+  return `<div class="card ${selected?'selected':''}" data-id="${item.id}">
+    ${badge?'<span class="badge">Pairs well</span>':''}
+    <div class="name">${item.name}</div>
+    ${item.desc?`<div class="desc">${item.desc}</div>`:''}
+    ${extra}
+  </div>`;
+}
+
+// ---- STAGE RENDERERS ----
+
+function renderStartScreen() {
+  let html = `<div class="start-screen">
+    <div class="start-fork">
+      <div class="fork-card" onclick="startFromScratch()">
+        <h3>Build from scratch</h3>
+        <p>Start with a blank canvas and choose every element yourself.</p>
+      </div>
+      <div class="fork-card" onclick="document.getElementById('templateSection').scrollIntoView({behavior:'smooth'})">
+        <h3>Start from a classic</h3>
+        <p>Pick a proven salad and customize it from there.</p>
+      </div>
+    </div>
+    <div id="templateSection" class="cat-group">
+      <div class="cat-label">Classic Salads</div>
+      <div class="template-grid">`;
+  CLASSIC_TEMPLATES.forEach(t => {
+    html += `<div class="template-card" data-id="${t.id}">
+      <div class="name">${t.name}</div>
+      <div class="desc">${t.desc}</div>
+      <div class="tags">${t.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>
+    </div>`;
+  });
+  html += `</div></div>`;
+
+  // Saved salads link
+  const savedCount = getSavedSalads().length;
+  if (savedCount > 0) {
+    html += `<div style="text-align:center;margin-top:2rem"><button class="saved-link-btn" onclick="showSavedPage()">View Saved Salads (${savedCount})</button></div>`;
+  }
+
+  html += `</div>`;
+  $container.innerHTML = html;
+
+  $container.querySelectorAll('.template-card').forEach(el => {
+    el.addEventListener('click', () => applyTemplate(el.dataset.id));
+  });
+}
+
+function applyTemplate(templateId) {
+  const t = CLASSIC_TEMPLATES.find(c => c.id === templateId);
+  if (!t) return;
+
+  // Reset
+  state.greens = t.greens.map(id => grnLookup(id)).filter(Boolean);
+  state.vegs = t.vegs.map(v => vegLookup(v.id, v.prep)).filter(Boolean);
+  state.textures = t.textures.map(id => texLookup(id)).filter(Boolean);
+  state.protein = t.protein.map(p => proLookup(p.id, p.prep)).filter(Boolean);
+  state.garnishes = (t.garnishes||[]).map(id => garLookup(id)).filter(Boolean);
+
+  // Dressing
+  if (t.dressPreset) {
+    const pm = PREMADE_DRESSINGS.find(p => p.id === t.dressPreset);
+    if (pm) {
+      state.dressPreset = pm.id;
+      state.dressStyle = pm.style;
+      state.dressFat = [...pm.fat];
+      state.dressAcid = [...pm.acid];
+      state.dressEmulsifier = [...pm.emulsifier];
+      state.dressUmami = [...pm.umami];
+    }
+  } else if (t.dress) {
+    state.dressPreset = null;
+    state.dressStyle = t.dress.style;
+    state.dressFat = [...t.dress.fat];
+    state.dressAcid = [...t.dress.acid];
+    state.dressEmulsifier = [...t.dress.emulsifier];
+    state.dressUmami = [...t.dress.umami];
+  }
+
+  state.templateName = t.name;
+  state.showStartScreen = false;
+  state.currentStage = 0;
+  renderProgress();
+  renderStage(true);
+}
+
+function startFromScratch() {
+  state.showStartScreen = false;
+  state.templateName = null;
+  state.currentStage = 0;
+  renderProgress();
+  renderStage(true);
+}
+
+function renderGreens() {
+  let html = '';
+  GREENS.forEach(cat => {
+    html += `<div class="cat-group"><div class="cat-label">${cat.cat}</div><div class="card-grid">`;
+    cat.items.forEach(item => {
+      const sel = state.greens.some(g => g.id === item.id);
+      const rec = state.greens.length > 0 && !sel && isRecommended(item.id, item.tags);
+      html += cardHTML(item, sel, '', rec);
+    });
+    html += '</div></div>';
+  });
+  html += `<div class="pick-hint">${state.greens.length} selected</div>`;
+  $container.innerHTML = stageWrap(0, html);
+  $container.querySelectorAll('.card').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+      const idx = state.greens.findIndex(g => g.id === id);
+      if (idx > -1) { state.greens.splice(idx, 1); }
+      else {
+        const item = GREENS.flatMap(c=>c.items).find(i=>i.id===id);
+        if (item && state.greens.length < 3) state.greens.push({id:item.id,name:item.name,tags:item.tags,sturdy:item.sturdy});
+      }
+      renderStage();
+    });
+  });
+}
+
+function renderVegs() {
+  let html = '<div class="card-grid">';
+  VEGETABLES.forEach(veg => {
+    const sel = state.vegs.find(v => v.id === veg.id);
+    const rec = !sel && isRecommended(veg.id, veg.tags);
+    const preps = veg.preps.map(p =>
+      `<button class="prep-btn ${sel && sel.prep===p?'active':''}" data-vid="${veg.id}" data-prep="${p}">${p}</button>`
+    ).join('');
+    html += `<div class="card veg-card ${sel?'selected':''}" data-id="${veg.id}">
+      ${rec?'<span class="badge">Pairs well</span>':''}
+      <div class="name">${veg.name}</div>
+      <div class="desc">${veg.desc}</div>
+      ${sel ? `<div class="prep-row">${preps}</div>` : ''}
+    </div>`;
+  });
+  html += '</div>';
+  html += `<div class="pick-hint">${state.vegs.length} selected</div>`;
+  $container.innerHTML = stageWrap(1, html);
+  // Veg card click to toggle selection
+  $container.querySelectorAll('.veg-card').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.classList.contains('prep-btn')) return;
+      const id = el.dataset.id;
+      const idx = state.vegs.findIndex(v => v.id === id);
+      if (idx > -1) { state.vegs.splice(idx, 1); }
+      else {
+        const veg = VEGETABLES.find(v => v.id === id);
+        if (veg && state.vegs.length < 4) state.vegs.push({id:veg.id, name:veg.name, tags:veg.tags, prep:veg.preps[0]});
+      }
+      renderStage();
+    });
+  });
+  // Prep buttons
+  $container.querySelectorAll('.prep-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const vid = btn.dataset.vid;
+      const prep = btn.dataset.prep;
+      const v = state.vegs.find(v => v.id === vid);
+      if (v) v.prep = prep;
+      renderStage();
+    });
+  });
+}
+
+function renderTextures() {
+  let html = '';
+  for (const [catKey, cat] of Object.entries(TEXTURES)) {
+    html += `<div class="cat-group"><div class="cat-label">${cat.label}</div><div class="card-grid">`;
+    cat.items.forEach(item => {
+      const sel = state.textures.some(t => t.id === item.id);
+      const rec = !sel && isRecommended(item.id, item.tags);
+      html += cardHTML(item, sel, '', rec);
+    });
+    html += '</div></div>';
+  }
+  html += `<div class="pick-hint">${state.textures.length} selected</div>`;
+  $container.innerHTML = stageWrap(2, html);
+  $container.querySelectorAll('.card').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+      const idx = state.textures.findIndex(t => t.id === id);
+      if (idx > -1) { state.textures.splice(idx, 1); }
+      else {
+        const cats = Object.values(TEXTURES);
+        let item, catKey;
+        for (const [k,c] of Object.entries(TEXTURES)) { const f = c.items.find(i=>i.id===id); if(f){item=f;catKey=k;break;} }
+        if (item) {
+          const inCat = state.textures.filter(t => t.cat === catKey).length;
+          if (inCat < 3) state.textures.push({id:item.id,name:item.name,tags:item.tags,cat:catKey});
+        }
+      }
+      renderStage();
+    });
+  });
+}
+
+function renderProtein() {
+  let html = '<div class="card-grid">';
+  PROTEINS.forEach(p => {
+    const sel = state.protein.find(sp => sp.id === p.id);
+    const rec = !sel && isRecommended(p.id, p.tags);
+    const preps = p.preps.map(pr =>
+      `<button class="prep-btn ${sel && sel.prep===pr?'active':''}" data-pid="${p.id}" data-prep="${pr}">${pr}</button>`
+    ).join('');
+    html += `<div class="card veg-card ${sel?'selected':''}" data-id="${p.id}">
+      ${rec?'<span class="badge">Pairs well</span>':''}
+      <div class="name">${p.name}</div>
+      <div class="desc">${p.desc}</div>
+      ${sel ? `<div class="prep-row">${preps}</div>` : ''}
+    </div>`;
+  });
+  html += '</div>';
+  html += `<div class="pick-hint">${state.protein.length} selected — skip this step if you want a vegetarian salad</div>`;
+  $container.innerHTML = stageWrap(3, html);
+  // Card click
+  $container.querySelectorAll('.veg-card').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.classList.contains('prep-btn')) return;
+      const id = el.dataset.id;
+      const idx = state.protein.findIndex(p => p.id === id);
+      if (idx > -1) { state.protein.splice(idx, 1); }
+      else {
+        const p = PROTEINS.find(p => p.id === id);
+        if (p && state.protein.length < 2) state.protein.push({id:p.id, name:p.name, tags:p.tags, prep:p.preps[0]});
+      }
+      renderStage();
+    });
+  });
+  // Prep buttons
+  $container.querySelectorAll('.prep-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pid = btn.dataset.pid;
+      const prep = btn.dataset.prep;
+      const p = state.protein.find(p => p.id === pid);
+      if (p) p.prep = prep;
+      renderStage();
+    });
+  });
+}
+
+function renderDressing() {
+  // Premade dressings
+  let html = '<div class="cat-group"><div class="cat-label">Start with a classic (or build your own below)</div><div class="premade-grid">';
+  PREMADE_DRESSINGS.forEach(pm => {
+    const sel = state.dressPreset === pm.id;
+    html += `<div class="premade-card ${sel?'selected':''}" data-id="${pm.id}" data-role="premade">
+      <div class="name">${pm.name}</div>
+      <div class="desc">${pm.desc}</div>
+    </div>`;
+  });
+  html += '</div></div>';
+
+  // Show how-to if a premade is selected
+  if (state.dressPreset) {
+    const pm = PREMADE_DRESSINGS.find(p => p.id === state.dressPreset);
+    if (pm) {
+      html += `<div class="howto-box">
+        <h4>${pm.name} — How to Make It</h4>
+        ${pm.howto}
+      </div>`;
+      html += `<button class="btn-secondary btn" style="margin-top:0.5rem" onclick="state.dressPreset=null;state.dressStyle=null;state.dressFat=[];state.dressAcid=[];state.dressEmulsifier=[];state.dressUmami=[];renderStage()">Build my own instead</button>`;
+    }
+  } else {
+    // Only show build-your-own when no premade is selected
+    html += '<div class="or-divider">or build your own</div>';
+
+    // Style picker
+    html += '<div class="cat-group"><div class="cat-label">Dressing Style</div><div class="card-grid">';
+    DRESS_STYLES.forEach(s => {
+      const sel = state.dressStyle === s.id;
+      const rec = !sel && isRecommended(s.id, []);
+      const warn = s.sturdyReq && state.greens.length > 0 && !state.greens.some(g => g.sturdy);
+      html += `<div class="card ${sel?'selected':''}" data-id="${s.id}" data-role="style">
+        ${rec?'<span class="badge">Pairs well</span>':''}
+        <div class="name">${s.name}</div>
+        <div class="desc">${s.desc}${warn?' <em style="color:var(--terra)">(better with sturdy greens)</em>':''}</div>
+      </div>`;
+    });
+    html += '</div></div>';
+
+    // Sub-components if style selected
+    if (state.dressStyle) {
+      const style = state.dressStyle;
+      const fats = DRESS_COMPONENTS.fats.items.filter(f => f.styles.includes(style));
+      html += dressSub('Base Fat', fats, state.dressFat, 'fat');
+      html += dressSub('Acids — pick 1–2 for depth', DRESS_COMPONENTS.acids.items, state.dressAcid, 'acid');
+      html += dressSub('Emulsifier', DRESS_COMPONENTS.emulsifiers.items, state.dressEmulsifier, 'emulsifier');
+      html += dressSub('Umami Booster (optional)', DRESS_COMPONENTS.umami.items, state.dressUmami, 'umami');
+    }
+  }
+
+  $container.innerHTML = stageWrap(4, html);
+
+  // Premade card click
+  $container.querySelectorAll('[data-role="premade"]').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+      if (state.dressPreset === id) {
+        // Deselect premade
+        state.dressPreset = null;
+        state.dressStyle = null;
+        state.dressFat = []; state.dressAcid = []; state.dressEmulsifier = []; state.dressUmami = [];
+      } else {
+        const pm = PREMADE_DRESSINGS.find(p => p.id === id);
+        if (pm) {
+          state.dressPreset = id;
+          state.dressStyle = pm.style;
+          state.dressFat = [...pm.fat];
+          state.dressAcid = [...pm.acid];
+          state.dressEmulsifier = [...pm.emulsifier];
+          state.dressUmami = [...pm.umami];
+        }
+      }
+      renderStage();
+    });
+  });
+  // Style card click
+  $container.querySelectorAll('[data-role="style"]').forEach(el => {
+    el.addEventListener('click', () => {
+      state.dressPreset = null; // clear premade if building custom
+      state.dressStyle = el.dataset.id;
+      state.dressFat = []; state.dressAcid = []; state.dressEmulsifier = []; state.dressUmami = [];
+      renderStage();
+    });
+  });
+  // Chip clicks
+  $container.querySelectorAll('.chip').forEach(el => {
+    el.addEventListener('click', () => {
+      state.dressPreset = null; // customizing clears premade
+      const role = el.dataset.role;
+      const id = el.dataset.id;
+      const arr = role==='fat'?state.dressFat:role==='acid'?state.dressAcid:role==='emulsifier'?state.dressEmulsifier:state.dressUmami;
+      const maxPick = role==='acid'?2:role==='fat'?2:1;
+      const idx = arr.indexOf(id);
+      if (idx > -1) arr.splice(idx,1);
+      else if (arr.length < maxPick) arr.push(id);
+      renderStage();
+    });
+  });
+}
+
+function dressSub(label, items, selected, role) {
+  let html = `<div class="dress-section"><h4>${label}</h4><div class="chip-row">`;
+  items.forEach(item => {
+    const sel = selected.includes(item.id);
+    const rec = !sel && isRecommended(item.id, item.tags);
+    html += `<span class="chip ${sel?'selected':''}" data-id="${item.id}" data-role="${role}">${item.name}${rec?'<span class="rec"> ★</span>':''}</span>`;
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function renderBalance() {
+  const b = calcBalance();
+  const pct = v => Math.round((v / 5) * 100);
+  const pillars = [
+    {key:'acid',label:'Acid',cls:'acid',val:b.acid,src:b.acidSrc,low:'Needs more brightness.',fixes:[
+      {text:'Add pickled vegetables',stage:1},
+      {text:'Add another acid to dressing',stage:4},
+      {text:'Add citrus zest as garnish',stage:6},
+    ]},
+    {key:'salt',label:'Salt / Umami',cls:'salt',val:b.salt,src:b.saltSrc,low:'Low on savory depth.',fixes:[
+      {text:'Add umami booster to dressing',stage:4},
+      {text:'Add fried capers or crispy element',stage:2},
+      {text:'Add a salty protein (prosciutto, halloumi)',stage:3},
+    ]},
+    {key:'fat',label:'Fat',cls:'fat',val:b.fat,src:b.fatSrc,low:'Could use more richness.',fixes:[
+      {text:'Add a creamy element (avocado, burrata)',stage:2},
+      {text:'Add toasted nuts',stage:2},
+      {text:'Add a finishing oil drizzle',stage:6},
+      {text:'Adjust dressing fat',stage:4},
+    ]},
+    {key:'sweet',label:'Sweet',cls:'sweet',val:b.sweet,src:b.sweetSrc,low:'A touch of sweetness would round this out.',fixes:[
+      {text:'Add dried fruit in textures',stage:2},
+      {text:'Roast a sweet vegetable (carrots, squash)',stage:1},
+      {text:'Add honey as emulsifier in dressing',stage:4},
+    ]},
+  ];
+
+  let html = '<div class="balance-grid">';
+  pillars.forEach(p => {
+    const weak = p.val < 1.5;
+    let fixHtml = '';
+    if (weak) {
+      fixHtml = `<div class="suggestion">${p.low}</div><div class="fix-links">`;
+      p.fixes.forEach(f => {
+        fixHtml += `<button class="fix-btn" onclick="goTo(${f.stage})">${f.text} &rarr;</button>`;
+      });
+      fixHtml += '</div>';
+    }
+    html += `<div class="balance-item">
+      <div class="pillar-name">${p.label}</div>
+      <div class="meter-track"><div class="meter-fill ${p.cls}" style="width:${pct(p.val)}%"></div></div>
+      <div class="sources">${p.src.length ? p.src.join(', ') : 'No sources yet'}</div>
+      ${fixHtml}
+    </div>`;
+  });
+  html += '</div>';
+
+  const allWeak = pillars.filter(p => p.val < 1.5);
+  if (allWeak.length === 0) html += '<p style="color:var(--accent);font-family:var(--font-ui);font-size:0.9rem;margin-top:0.5rem">Looking well-balanced. Trust your palate for the final adjustment.</p>';
+
+  $container.innerHTML = stageWrap(5, html);
+}
+
+function renderGarnish() {
+  let html = '';
+  for (const [catKey, cat] of Object.entries(GARNISHES)) {
+    html += `<div class="cat-group"><div class="cat-label">${cat.label}</div><div class="card-grid">`;
+    cat.items.forEach(item => {
+      const sel = state.garnishes.some(g => g.id === item.id);
+      const rec = !sel && isRecommended(item.id, item.tags);
+      html += cardHTML(item, sel, '', rec);
+    });
+    html += '</div></div>';
+  }
+  html += `<div class="pick-hint">${state.garnishes.length} selected</div>`;
+  $container.innerHTML = stageWrap(6, html);
+  $container.querySelectorAll('.card').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+      const idx = state.garnishes.findIndex(g => g.id === id);
+      if (idx > -1) { state.garnishes.splice(idx, 1); }
+      else {
+        let item, catKey;
+        for (const [k,c] of Object.entries(GARNISHES)) { const f = c.items.find(i=>i.id===id); if(f){item=f;catKey=k;break;} }
+        if (item) state.garnishes.push({id:item.id,name:item.name,tags:item.tags,cat:catKey});
+      }
+      renderStage();
+    });
+  });
+}
+
+function renderTemperature() {
+  // Assign temps
+  const items = [];
+  state.greens.forEach(g => items.push({name:g.name,temp:'cold',component:'Greens'}));
+  state.vegs.forEach(v => {
+    let temp = 'room';
+    if (['roasted','charred'].includes(v.prep)) temp = 'warm';
+    else if (['confit'].includes(v.prep)) temp = 'room';
+    else if (['raw/shaved'].includes(v.prep)) temp = 'cold';
+    else if (['quick-pickled','fermented'].includes(v.prep)) temp = 'cold';
+    items.push({name:`${v.name} (${v.prep})`,temp,component:'Vegetables'});
+  });
+  state.textures.forEach(t => {
+    let temp = 'room';
+    if (t.cat === 'crispy') temp = 'hot';
+    else if (t.cat === 'creamy') temp = 'cold';
+    else temp = 'room';
+    items.push({name:t.name,temp,component:'Texture'});
+  });
+  state.protein.forEach(p => {
+    let temp = 'warm';
+    if (['raw/crudo','raw/draped','cured','marinated'].includes(p.prep)) temp = 'cold';
+    else if (p.prep === 'poached') temp = 'room';
+    items.push({name:`${p.name} (${p.prep})`,temp,component:'Protein'});
+  });
+  if (state.dressStyle === 'warm') items.push({name:'Warm dressing',temp:'warm',component:'Dressing'});
+  else if (state.dressStyle) items.push({name:'Dressing',temp:'room',component:'Dressing'});
+
+  state.garnishes.forEach(g => items.push({name:g.name,temp:'cold',component:'Garnish'}));
+
+  const temps = items.map(i=>i.temp);
+  const unique = [...new Set(temps)];
+  const allSame = unique.length <= 1;
+
+  let html = '<ul class="temp-list">';
+  items.forEach(i => {
+    const cls = i.temp==='cold'?'temp-cold':i.temp==='warm'?'temp-warm':i.temp==='hot'?'temp-hot':'temp-room';
+    html += `<li><span class="temp-tag ${cls}">${i.temp}</span> ${i.name}</li>`;
+  });
+  html += '</ul>';
+
+  if (allSame && items.length > 0) {
+    html += `<div class="callout" style="border-left-color:var(--terra);margin-top:1rem">
+      <div class="callout-label" style="color:var(--terra)">Temperature Note</div>
+      <p style="font-size:0.88rem">Everything is ${unique[0] || 'the same temperature'}. Consider serving roasted or charred vegetables warm, or adding a hot crispy element on top of cold greens for thermal contrast.</p>
+    </div>`;
+  } else if (unique.length >= 2) {
+    html += `<p class="temp-note">Good thermal contrast. Add hot crispy elements at the very last second before serving.</p>`;
+  }
+
+  $container.innerHTML = stageWrap(7, html);
+}
+
+function generateSaladName() {
+  const parts = [];
+  // Green
+  if (state.greens.length) parts.push(state.greens[0].name);
+  // Notable component: protein > treated veg > texture
+  let notable = '';
+  if (state.protein.length) {
+    const p = state.protein[0];
+    notable = ['raw/crudo','raw/draped','marinated'].includes(p.prep) ? p.name : `${p.prep} ${p.name}`;
+  } else if (state.vegs.length) {
+    const treated = state.vegs.find(v => v.prep !== 'raw/shaved');
+    if (treated) notable = `${treated.prep} ${treated.name}`;
+    else notable = state.vegs[0].name;
+  } else {
+    const cheese = state.textures.find(t => ['burrata','feta','blue-cheese','goat-cheese','fresh-mozz','pecorino'].includes(t.id));
+    if (cheese) notable = cheese.name;
+  }
+  // Dressing name
+  let dressName = '';
+  const pm = state.dressPreset ? PREMADE_DRESSINGS.find(p=>p.id===state.dressPreset) : null;
+  if (pm) dressName = pm.name;
+  else if (state.dressStyle) { const s = DRESS_STYLES.find(s=>s.id===state.dressStyle); if(s) dressName = s.name; }
+
+  // Build name
+  let name = parts[0] || 'Salad';
+  if (notable && dressName) {
+    const full = `${name} with ${notable} & ${dressName}`;
+    if (full.split(' ').length <= 12) return full;
+    return `${name} with ${dressName}`;
+  }
+  if (notable) return `${name} with ${notable}`;
+  if (dressName) return `${name} with ${dressName}`;
+  return name;
+}
+
+function slugify(str) {
+  return str.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+}
+
+function renderSummary() {
+  const saladName = generateSaladName();
+
+  let html = '<div id="summaryCapture">';
+  html += '<div class="summary-card">';
+  html += `<h3>${saladName}</h3>`;
+  html += '<div class="summary-sub">Your composed salad.</div>';
+
+  // Greens
+  if (state.greens.length) {
+    html += summarySection('Greens Base', state.greens.map(g => g.name));
+  }
+  // Vegs
+  if (state.vegs.length) {
+    html += summarySection('Vegetables', state.vegs.map(v => `${v.name} — ${v.prep}`));
+  }
+  // Textures
+  if (state.textures.length) {
+    const grouped = {};
+    state.textures.forEach(t => {
+      const label = t.cat==='crispy'?'Crispy':t.cat==='creamy'?'Creamy':'Chewy/Hearty';
+      (grouped[label] = grouped[label]||[]).push(t.name);
+    });
+    const texList = Object.entries(grouped).map(([k,v]) => `${k}: ${v.join(', ')}`);
+    html += summarySection('Texture', texList);
+  }
+  // Protein
+  if (state.protein.length) {
+    html += summarySection('Protein', state.protein.map(p => `${p.name} — ${p.prep}`));
+  }
+  // Dressing
+  if (state.dressStyle) {
+    const parts = [];
+    const pm = state.dressPreset ? PREMADE_DRESSINGS.find(p=>p.id===state.dressPreset) : null;
+    if (pm) {
+      parts.push(pm.name);
+    } else {
+      const style = DRESS_STYLES.find(s=>s.id===state.dressStyle);
+      parts.push(style.name);
+    }
+    const fatNames = state.dressFat.map(f => DRESS_COMPONENTS.fats.items.find(i=>i.id===f)?.name).filter(Boolean);
+    if (fatNames.length) parts.push('Fat: ' + fatNames.join(' + '));
+    const acidNames = state.dressAcid.map(a => DRESS_COMPONENTS.acids.items.find(i=>i.id===a)?.name).filter(Boolean);
+    if (acidNames.length) parts.push('Acid: ' + acidNames.join(' + '));
+    const emNames = state.dressEmulsifier.map(e => DRESS_COMPONENTS.emulsifiers.items.find(i=>i.id===e)?.name).filter(Boolean);
+    if (emNames.length) parts.push('Emulsifier: ' + emNames.join(', '));
+    const umNames = state.dressUmami.map(u => DRESS_COMPONENTS.umami.items.find(i=>i.id===u)?.name).filter(Boolean);
+    if (umNames.length) parts.push('Umami: ' + umNames.join(', '));
+    html += summarySection('Dressing', parts);
+
+    // Collapsible recipe for premade dressings
+    if (pm) {
+      html += `<button class="recipe-toggle" onclick="toggleRecipe()">How to make it ▸</button>`;
+      html += `<div class="recipe-expand" id="recipeExpand"><h5>${pm.name}</h5>${pm.howto}</div>`;
+    }
+  }
+  // Garnishes
+  if (state.garnishes.length) {
+    html += summarySection('Finishing', state.garnishes.map(g => g.name));
+  }
+
+  html += '</div>';
+
+  // Plating tips
+  const tips = generatePlatingTips();
+  if (tips.length) {
+    html += `<div class="plating-tips"><h4>Plating Notes</h4><ul>${tips.map(t=>`<li>${t}</li>`).join('')}</ul></div>`;
+  }
+
+  html += '</div>'; // close #summaryCapture
+
+  // Action buttons
+  html += `<div style="margin-top:1.5rem;display:flex;align-items:center;flex-wrap:wrap;gap:0.5rem">
+    <button class="save-btn" onclick="saveSalad()">Save this salad</button>
+    <span id="saveConfirm" class="save-confirm">Saved!</span>
+    <button class="btn-reset" onclick="resetBuilder()" style="margin-top:0">Start over</button>
+  </div>`;
+
+  // Export buttons
+  html += `<div class="export-row">
+    <button class="export-btn" onclick="exportText()">Copy Text</button>
+    <button class="export-btn" onclick="exportImage()">Save Image</button>
+    <button class="export-btn" onclick="exportPDF()">Download PDF</button>
+    <span id="exportToast" class="export-toast"></span>
+  </div>`;
+
+  $container.innerHTML = stageWrap(8, html);
+}
+
+function summarySection(label, items) {
+  return `<div class="summary-section"><div class="ss-label">${label}</div><ul>${items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
+}
+
+function generatePlatingTips() {
+  const tips = [];
+  // Warm on cold
+  const warmVegs = state.vegs.filter(v => ['roasted','charred'].includes(v.prep));
+  if (warmVegs.length && state.greens.length) {
+    tips.push(`Place ${warmVegs.map(v=>v.name.toLowerCase()).join(' and ')} on the greens last — warm on cold creates thermal contrast.`);
+  }
+  // Creamy base
+  const creamyTex = state.textures.filter(t => t.cat === 'creamy');
+  if (creamyTex.length) {
+    const has = creamyTex.map(t=>t.name.toLowerCase());
+    if (has.some(n => n.includes('ricotta') || n.includes('labneh'))) {
+      tips.push('Swoosh the whipped ricotta or labneh on the plate first as a base — build the salad on top of it.');
+    }
+    if (has.some(n => n.includes('egg'))) {
+      tips.push('Place the soft-boiled egg halved, yolk-up, where it can be seen. Season the cut face with flaky salt and pepper.');
+    }
+    if (has.some(n => n.includes('burrata'))) {
+      tips.push('Place burrata at the last moment. Tear it open slightly so the creamy center is visible.');
+    }
+    if (has.some(n => n.includes('avocado'))) {
+      tips.push('Fan avocado slices or place smashed avocado as a base element — season with flaky salt and acid.');
+    }
+  }
+  // Protein
+  if (state.protein.length) {
+    const seared = state.protein.filter(p => ['seared','grilled'].includes(p.prep));
+    if (seared.length) tips.push(`Let ${seared.map(p=>p.name.toLowerCase()).join(' and ')} rest before slicing. Slice against the grain, fan over the top.`);
+    const crispy = state.protein.filter(p => ['crispy-fried','crispy-roasted'].includes(p.prep));
+    if (crispy.length) tips.push(`Add ${crispy.map(p=>p.name.toLowerCase()).join(' and ')} at the last second to keep the crunch.`);
+    const cured = state.protein.filter(p => ['raw/draped','cured'].includes(p.prep));
+    if (cured.length) tips.push(`Drape ${cured.map(p=>p.name.toLowerCase()).join(' and ')} loosely over the top — don't bury it under other elements.`);
+  }
+  // Crispy last
+  const crispyTex = state.textures.filter(t => t.cat === 'crispy');
+  if (crispyTex.length) {
+    tips.push(`Scatter ${crispyTex.map(t=>t.name.toLowerCase()).join(', ')} on top at the very last second — they lose crunch fast.`);
+  }
+  // Finishing oil / zest
+  const finishGarn = state.garnishes.filter(g => g.cat === 'finishing');
+  if (finishGarn.length) {
+    tips.push(`Apply ${finishGarn.map(g=>g.name.toLowerCase()).join(' and ')} after plating — a thin drizzle or pass, not a pour.`);
+  }
+  // Height
+  if (state.greens.length) {
+    tips.push('Mound the greens gently upward for height — don\'t press them flat.');
+  }
+  // Chill plate
+  tips.push('Chill the plate for 15 minutes before plating. Wipe the rim clean before serving.');
+  return tips;
+}
+
+// ---- Wrapper ----
+function stageWrap(idx, inner) {
+  const s = STAGES[idx];
+  const banner = state.templateName
+    ? `<div class="template-banner"><span>Starting from: <strong>${state.templateName}</strong> — modify anything as you go</span><button onclick="resetBuilder()">Clear all</button></div>`
+    : '';
+  return `<div class="stage active">
+    ${banner}
+    <div class="stage-title">${s.title}</div>
+    <div class="stage-sub">${s.sub}</div>
+    ${inner}
+    ${navButtons()}
+  </div>`;
+}
+
+// ---- Master render ----
+function renderStage(scrollTop) {
+  if (state.showStartScreen) {
+    renderStartScreen();
+    if (scrollTop) window.scrollTo({top: 0, behavior: 'smooth'});
+    return;
+  }
+  const renderers = [renderGreens, renderVegs, renderTextures, renderProtein, renderDressing, renderBalance, renderGarnish, renderTemperature, renderSummary];
+  renderers[state.currentStage]();
+  if (scrollTop) window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function resetBuilder() {
+  state.showStartScreen = true;
+  state.templateName = null;
+  state.greens = [];
+  state.vegs = [];
+  state.textures = [];
+  state.protein = [];
+  state.dressPreset = null;
+  state.dressStyle = null;
+  state.dressFat = [];
+  state.dressAcid = [];
+  state.dressEmulsifier = [];
+  state.dressUmami = [];
+  state.garnishes = [];
+  state.currentStage = 0;
+  renderProgress();
+  renderStage();
+}
+
+// ============================================================
+//  SAVED SALADS
+// ============================================================
+function getSavedSalads() {
+  try { return JSON.parse(localStorage.getItem('savedSalads') || '[]'); }
+  catch { return []; }
+}
+
+function buildPreview(s) {
+  const parts = [];
+  if (s.greens && s.greens.length) parts.push(s.greens.map(g=>g.name).join(', '));
+  if (s.vegs && s.vegs.length) parts.push(s.vegs.map(v=>`${v.name} (${v.prep})`).join(', '));
+  if (s.textures && s.textures.length) parts.push(s.textures.map(t=>t.name).join(', '));
+  if (s.protein && s.protein.length) parts.push(s.protein.map(p=>`${p.name} (${p.prep})`).join(', '));
+  const pm = s.dressPreset ? PREMADE_DRESSINGS.find(p=>p.id===s.dressPreset) : null;
+  if (pm) parts.push(pm.name);
+  else if (s.dressStyle) { const st = DRESS_STYLES.find(d=>d.id===s.dressStyle); if(st) parts.push(st.name); }
+  if (s.garnishes && s.garnishes.length) parts.push(s.garnishes.map(g=>g.name).join(', '));
+  return parts.join(' · ');
+}
+
+function saveSalad() {
+  const salads = getSavedSalads();
+  const stateSnap = JSON.parse(JSON.stringify({
+    greens:state.greens, vegs:state.vegs, textures:state.textures,
+    protein:state.protein, dressPreset:state.dressPreset, dressStyle:state.dressStyle,
+    dressFat:state.dressFat, dressAcid:state.dressAcid,
+    dressEmulsifier:state.dressEmulsifier, dressUmami:state.dressUmami,
+    garnishes:state.garnishes,
+  }));
+  const entry = {
+    id: Date.now(),
+    name: generateSaladName(),
+    date: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+    preview: buildPreview(stateSnap),
+    state: stateSnap,
+  };
+  salads.unshift(entry);
+  localStorage.setItem('savedSalads', JSON.stringify(salads));
+  updateSavedLink();
+  const confirm = document.getElementById('saveConfirm');
+  if (confirm) { confirm.classList.add('show'); setTimeout(() => confirm.classList.remove('show'), 2000); }
+}
+
+function loadSalad(id) {
+  const salads = getSavedSalads();
+  const entry = salads.find(s => s.id === id);
+  if (!entry) return;
+  Object.assign(state, entry.state);
+  state.showStartScreen = false;
+  state.showSavedPage = false;
+  state.templateName = null;
+  state.currentStage = 8;
+  renderProgress();
+  renderStage(true);
+}
+
+function confirmDelete(btn, id) {
+  const wrap = btn.parentElement;
+  btn.style.display = 'none';
+  const confirm = document.createElement('span');
+  confirm.className = 'confirm-del';
+  confirm.innerHTML = `<span>Delete?</span><button class="yes-btn" style="font-family:var(--font-ui);font-size:0.72rem;padding:0.25rem 0.6rem;border-radius:var(--radius);border:1px solid var(--terra);background:var(--surface);color:var(--terra);cursor:pointer">Yes</button><button class="no-btn" style="font-family:var(--font-ui);font-size:0.72rem;padding:0.25rem 0.6rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer">Cancel</button>`;
+  wrap.appendChild(confirm);
+  confirm.querySelector('.yes-btn').addEventListener('click', () => deleteSalad(id));
+  confirm.querySelector('.no-btn').addEventListener('click', () => { confirm.remove(); btn.style.display = ''; });
+}
+
+function deleteSalad(id) {
+  let salads = getSavedSalads();
+  salads = salads.filter(s => s.id !== id);
+  localStorage.setItem('savedSalads', JSON.stringify(salads));
+  updateSavedLink();
+  showSavedPage();
+}
+
+function renameSalad(id, newName) {
+  const salads = getSavedSalads();
+  const entry = salads.find(s => s.id === id);
+  if (entry) { entry.name = newName; localStorage.setItem('savedSalads', JSON.stringify(salads)); }
+}
+
+function showSavedPage() {
+  state.showSavedPage = true;
+  $progress.style.display = 'none';
+  const salads = getSavedSalads();
+
+  let html = '<div class="saved-page">';
+  html += '<button class="back-link" onclick="closeSavedPage()">&larr; Back to builder</button>';
+  html += '<h2>Saved Salads</h2>';
+  html += `<div class="saved-sub">${salads.length} salad${salads.length===1?'':'s'} saved</div>`;
+
+  if (!salads.length) {
+    html += '<p class="no-saved">No saved salads yet. Build one and save it from the summary page.</p>';
+  } else {
+    html += '<div class="saved-grid">';
+    salads.forEach(s => {
+      const displayName = s.name || 'Untitled Salad';
+      html += `<div class="saved-card" data-id="${s.id}">
+        <div class="saved-name-row">
+          <div class="saved-name" id="sname-${s.id}">${displayName}</div>
+          <button class="rename-btn" data-id="${s.id}">rename</button>
+        </div>
+        <div class="saved-date">${s.date}</div>
+        <div class="saved-preview">${s.preview || 'No details'}</div>
+        <div class="saved-actions">
+          <button class="load-btn" onclick="loadSalad(${s.id})">Load</button>
+          <button class="del-btn" onclick="confirmDelete(this,${s.id})">Delete</button>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  $container.innerHTML = html;
+
+  // Rename handlers
+  $container.querySelectorAll('.rename-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = +btn.dataset.id;
+      const $name = document.getElementById('sname-'+id);
+      const salads = getSavedSalads();
+      const entry = salads.find(s => s.id === id);
+      const curName = (entry && entry.name) || '';
+      $name.innerHTML = `<input type="text" value="${curName}" placeholder="Name this salad..." autofocus>`;
+      const $input = $name.querySelector('input');
+      $input.focus();
+      $input.select();
+      const save = () => { renameSalad(id, $input.value.trim()); showSavedPage(); };
+      $input.addEventListener('blur', save);
+      $input.addEventListener('keydown', (e) => { if (e.key === 'Enter') save(); });
+    });
+  });
+}
+
+function closeSavedPage() {
+  state.showSavedPage = false;
+  renderProgress();
+  renderStage(true);
+}
+
+function updateSavedLink() {
+  const count = getSavedSalads().length;
+  const $link = document.getElementById('savedLink');
+  if (count > 0) {
+    $link.innerHTML = `<button class="saved-link-btn" onclick="showSavedPage()">Saved Salads (${count})</button>`;
+  } else {
+    $link.innerHTML = '';
+  }
+}
+
+// ============================================================
+//  EXPORT & HELPERS
+// ============================================================
+function toggleRecipe() {
+  const el = document.getElementById('recipeExpand');
+  const btn = document.querySelector('.recipe-toggle');
+  if (el) {
+    el.classList.toggle('open');
+    btn.textContent = el.classList.contains('open') ? 'How to make it ▾' : 'How to make it ▸';
+  }
+}
+
+function showExportToast(msg) {
+  const el = document.getElementById('exportToast');
+  if (el) { el.textContent = msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2000); }
+}
+
+function exportText() {
+  const name = generateSaladName();
+  let lines = [name, ''];
+  if (state.greens.length) lines.push('GREENS: ' + state.greens.map(g=>g.name).join(', '));
+  if (state.vegs.length) lines.push('VEGETABLES: ' + state.vegs.map(v=>`${v.name} — ${v.prep}`).join(', '));
+  if (state.textures.length) {
+    const grouped = {};
+    state.textures.forEach(t => {
+      const label = t.cat==='crispy'?'Crispy':t.cat==='creamy'?'Creamy':'Chewy/Hearty';
+      (grouped[label]=grouped[label]||[]).push(t.name);
+    });
+    lines.push('TEXTURE: ' + Object.entries(grouped).map(([k,v])=>`${k}: ${v.join(', ')}`).join('; '));
+  }
+  if (state.protein.length) lines.push('PROTEIN: ' + state.protein.map(p=>`${p.name} — ${p.prep}`).join(', '));
+  if (state.dressStyle) {
+    const pm = state.dressPreset ? PREMADE_DRESSINGS.find(p=>p.id===state.dressPreset) : null;
+    const dName = pm ? pm.name : (DRESS_STYLES.find(s=>s.id===state.dressStyle)?.name || '');
+    lines.push('DRESSING: ' + dName);
+    const fatNames = state.dressFat.map(f=>DRESS_COMPONENTS.fats.items.find(i=>i.id===f)?.name).filter(Boolean);
+    if (fatNames.length) lines.push('  Fat: ' + fatNames.join(' + '));
+    const acidNames = state.dressAcid.map(a=>DRESS_COMPONENTS.acids.items.find(i=>i.id===a)?.name).filter(Boolean);
+    if (acidNames.length) lines.push('  Acid: ' + acidNames.join(' + '));
+    const emNames = state.dressEmulsifier.map(e=>DRESS_COMPONENTS.emulsifiers.items.find(i=>i.id===e)?.name).filter(Boolean);
+    if (emNames.length) lines.push('  Emulsifier: ' + emNames.join(', '));
+    const umNames = state.dressUmami.map(u=>DRESS_COMPONENTS.umami.items.find(i=>i.id===u)?.name).filter(Boolean);
+    if (umNames.length) lines.push('  Umami: ' + umNames.join(', '));
+    if (pm) {
+      lines.push('');
+      lines.push('HOW TO MAKE ' + pm.name.toUpperCase() + ':');
+      const temp = document.createElement('div');
+      temp.innerHTML = pm.howto;
+      temp.querySelectorAll('li').forEach(li => lines.push('  • ' + li.textContent));
+    }
+  }
+  if (state.garnishes.length) lines.push('FINISHING: ' + state.garnishes.map(g=>g.name).join(', '));
+  const tips = generatePlatingTips();
+  if (tips.length) {
+    lines.push('');
+    lines.push('PLATING NOTES:');
+    tips.forEach(t => lines.push('• ' + t));
+  }
+  navigator.clipboard.writeText(lines.join('\n')).then(() => showExportToast('Copied!'));
+}
+
+async function exportImage() {
+  const el = document.getElementById('summaryCapture');
+  if (!el || typeof html2canvas === 'undefined') { showExportToast('Loading...'); return; }
+  // Expand recipe if collapsed
+  const recipe = document.getElementById('recipeExpand');
+  const wasOpen = recipe && recipe.classList.contains('open');
+  if (recipe && !wasOpen) recipe.classList.add('open');
+  try {
+    const canvas = await html2canvas(el, { backgroundColor: '#faf8f5', scale: 2, useCORS: true });
+    if (recipe && !wasOpen) recipe.classList.remove('open');
+    const link = document.createElement('a');
+    link.download = slugify(generateSaladName()) + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showExportToast('Image saved!');
+  } catch(e) {
+    if (recipe && !wasOpen) recipe.classList.remove('open');
+    showExportToast('Error saving image');
+  }
+}
+
+async function exportPDF() {
+  const el = document.getElementById('summaryCapture');
+  if (!el || typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') { showExportToast('Loading...'); return; }
+  const recipe = document.getElementById('recipeExpand');
+  const wasOpen = recipe && recipe.classList.contains('open');
+  if (recipe && !wasOpen) recipe.classList.add('open');
+  try {
+    const canvas = await html2canvas(el, { backgroundColor: '#faf8f5', scale: 2, useCORS: true });
+    if (recipe && !wasOpen) recipe.classList.remove('open');
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [canvas.width, canvas.height] });
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+    pdf.save(slugify(generateSaladName()) + '.pdf');
+    showExportToast('PDF downloaded!');
+  } catch(e) {
+    if (recipe && !wasOpen) recipe.classList.remove('open');
+    showExportToast('Error creating PDF');
+  }
+}
+
+// Make functions available globally
+window.goTo = goTo;
+window.resetBuilder = resetBuilder;
+window.startFromScratch = startFromScratch;
+window.applyTemplate = applyTemplate;
+window.saveSalad = saveSalad;
+window.toggleRecipe = toggleRecipe;
+window.exportText = exportText;
+window.exportImage = exportImage;
+window.exportPDF = exportPDF;
+window.loadSalad = loadSalad;
+window.confirmDelete = confirmDelete;
+window.deleteSalad = deleteSalad;
+window.showSavedPage = showSavedPage;
+window.closeSavedPage = closeSavedPage;
+
+// Init
+renderProgress();
+renderStage();
+updateSavedLink();
+</script>
+</body>
+</html>

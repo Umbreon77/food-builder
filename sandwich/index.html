@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Art of Restaurant-Level Sandwiches</title>
+<style>
+  :root {
+    --clr-bg: #faf7f2;
+    --clr-surface: #ffffff;
+    --clr-text: #2c2c2c;
+    --clr-text-muted: #6b6155;
+    --clr-accent: #9a7032;
+    --clr-accent-light: #f5eed9;
+    --clr-border: #e4ddd2;
+    --clr-callout-bg: #fdf6ee;
+    --clr-callout-border: #dbb978;
+    --clr-tip-bg: #f0eadb;
+    --clr-tip-border: #c9b07a;
+    --clr-deep: #5c4a28;
+    --font-body: 'Georgia', 'Times New Roman', serif;
+    --font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --max-content: 52rem;
+    --nav-width: 16rem;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; scroll-padding-top: 2rem; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--clr-bg);
+    color: var(--clr-text);
+    line-height: 1.75;
+    font-size: 1.05rem;
+  }
+
+  /* ---------- HEADER ---------- */
+  .site-header {
+    text-align: center;
+    padding: 4rem 2rem 3rem;
+    border-bottom: 1px solid var(--clr-border);
+    background: var(--clr-surface);
+  }
+  .site-header h1 {
+    font-family: var(--font-heading);
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--clr-text);
+    margin-bottom: 0.5rem;
+  }
+  .site-header .subtitle {
+    font-size: 1.1rem;
+    color: var(--clr-text-muted);
+    max-width: 36rem;
+    margin: 0 auto;
+    font-style: italic;
+  }
+
+  /* ---------- LAYOUT ---------- */
+  .layout {
+    display: flex;
+    max-width: calc(var(--max-content) + var(--nav-width) + 4rem);
+    margin: 0 auto;
+    gap: 2rem;
+    padding: 2rem 1.5rem;
+  }
+
+  /* ---------- SIDEBAR NAV ---------- */
+  .sidebar {
+    position: sticky;
+    top: 2rem;
+    align-self: flex-start;
+    width: var(--nav-width);
+    flex-shrink: 0;
+  }
+  .sidebar nav { padding: 1rem 0; }
+  .sidebar .nav-label {
+    font-family: var(--font-heading);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--clr-text-muted);
+    margin-bottom: 0.75rem;
+  }
+  .sidebar a {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    color: var(--clr-text-muted);
+    text-decoration: none;
+    padding: 0.35rem 0.75rem;
+    border-left: 2px solid transparent;
+    transition: all 0.15s ease;
+    line-height: 1.4;
+  }
+  .sidebar a:hover,
+  .sidebar a.active {
+    color: var(--clr-accent);
+    border-left-color: var(--clr-accent);
+    background: var(--clr-accent-light);
+  }
+
+  /* ---------- MAIN CONTENT ---------- */
+  .content {
+    flex: 1;
+    min-width: 0;
+    max-width: var(--max-content);
+  }
+
+  .section {
+    background: var(--clr-surface);
+    border: 1px solid var(--clr-border);
+    border-radius: 8px;
+    padding: 2.5rem 2.5rem 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-number {
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--clr-accent);
+    margin-bottom: 0.25rem;
+  }
+
+  .section h2 {
+    font-family: var(--font-heading);
+    font-size: 1.55rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.25rem;
+    color: var(--clr-text);
+  }
+
+  .section .hook {
+    font-style: italic;
+    color: var(--clr-text-muted);
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+  }
+
+  .section h3 {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 1.75rem 0 0.5rem;
+    color: var(--clr-text);
+  }
+
+  .section p { margin-bottom: 1rem; }
+
+  .section ul, .section ol {
+    margin: 0.5rem 0 1rem 1.5rem;
+  }
+  .section li { margin-bottom: 0.4rem; }
+
+  .section strong { color: var(--clr-text); }
+
+  /* Callout boxes */
+  .callout {
+    border-left: 3px solid var(--clr-callout-border);
+    background: var(--clr-callout-bg);
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.95rem;
+  }
+  .callout-label {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #a07840;
+    margin-bottom: 0.3rem;
+  }
+
+  .tip {
+    border-left-color: var(--clr-tip-border);
+    background: var(--clr-tip-bg);
+  }
+  .tip .callout-label { color: var(--clr-deep); }
+
+  /* ---------- MOBILE NAV ---------- */
+  .mobile-nav {
+    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--clr-surface);
+    border-bottom: 1px solid var(--clr-border);
+    padding: 0.75rem 1.5rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  .mobile-nav a {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 0.8rem;
+    color: var(--clr-text-muted);
+    text-decoration: none;
+    padding: 0.3rem 0.75rem;
+    border-radius: 1rem;
+    transition: all 0.15s ease;
+  }
+  .mobile-nav a:hover,
+  .mobile-nav a.active {
+    color: var(--clr-accent);
+    background: var(--clr-accent-light);
+  }
+
+  /* ---------- FOOTER ---------- */
+  .site-footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--clr-text-muted);
+    font-size: 0.85rem;
+    font-family: var(--font-heading);
+    border-top: 1px solid var(--clr-border);
+    margin-top: 2rem;
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 860px) {
+    .sidebar { display: none; }
+    .mobile-nav { display: block; }
+    .layout { padding: 1.5rem 1rem; }
+    .section { padding: 1.75rem 1.5rem 1.5rem; }
+  }
+
+  @media (max-width: 500px) {
+    .section { padding: 1.25rem 1rem 1rem; }
+    .site-header { padding: 2.5rem 1.25rem 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<style>
+.fb-topnav{position:sticky;top:0;z-index:9999;display:flex;align-items:center;justify-content:space-between;padding:0.6rem 1.2rem;background:#1a1a1a;color:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;border-bottom:1px solid #333}
+.fb-topnav__brand{color:#f5f5f5;text-decoration:none;font-weight:600;font-size:0.95rem;letter-spacing:-0.01em}
+.fb-topnav__brand:hover{color:#fff}
+.fb-topnav__links{display:flex;gap:0.25rem}
+.fb-topnav__link{color:#bbb;text-decoration:none;font-size:0.85rem;font-weight:500;padding:0.45rem 0.9rem;border-radius:6px;transition:background 0.15s,color 0.15s}
+.fb-topnav__link:hover{color:#fff;background:#2a2a2a}
+.fb-topnav__link--active{color:#fff;background:#2a2a2a}
+</style>
+<nav class="fb-topnav" aria-label="Food Builder navigation">
+  <a href="../" class="fb-topnav__brand">Food Builder</a>
+  <div class="fb-topnav__links">
+    <a href="../salad/" class="fb-topnav__link">Salads</a>
+    <a href="../sandwich/" class="fb-topnav__link fb-topnav__link--active">Sandwiches</a>
+  </div>
+</nav>
+
+<header class="site-header">
+  <h1>The Art of Restaurant-Level Sandwiches</h1>
+  <p class="subtitle">A comprehensive reference for serious cooks who believe a sandwich deserves the same respect as any great dish.</p>
+  <p style="margin-top:1rem"><a href="builder.html" style="font-family:var(--font-heading);font-size:0.85rem;color:var(--clr-accent);text-decoration:none;border:1px solid var(--clr-accent);padding:0.45rem 1.2rem;border-radius:6px;transition:all 0.15s">Open the Sandwich Builder &rarr;</a></p>
+</header>
+
+<!-- Mobile horizontal nav -->
+<nav class="mobile-nav" aria-label="Section navigation (mobile)">
+  <a href="#bread">Bread</a>
+  <a href="#spreads">Spreads</a>
+  <a href="#protein">Protein</a>
+  <a href="#cheese">Cheese</a>
+  <a href="#vegetables">Vegetables</a>
+  <a href="#balance">Balance</a>
+  <a href="#assembly">Assembly</a>
+  <a href="#heat">Heat</a>
+  <a href="#cutting">Cutting</a>
+</nav>
+
+<div class="layout">
+
+  <!-- Sticky sidebar -->
+  <aside class="sidebar">
+    <nav aria-label="Section navigation">
+      <div class="nav-label">Guide</div>
+      <a href="#bread">Bread Selection &amp; Treatment</a>
+      <a href="#spreads">Building the Spread Layer</a>
+      <a href="#protein">Protein Treatment</a>
+      <a href="#cheese">Cheese Selection &amp; Melting</a>
+      <a href="#vegetables">Vegetables, Crunch &amp; Structure</a>
+      <a href="#balance">Acid, Salt, Fat &amp; Heat</a>
+      <a href="#assembly">Assembly Order &amp; Architecture</a>
+      <a href="#heat">Heat Application</a>
+      <a href="#cutting">Cutting, Serving &amp; Presentation</a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="content">
+
+    <!-- 1. BREAD SELECTION & TREATMENT -->
+    <article class="section" id="bread">
+      <div class="section-number">Section 01</div>
+      <h2>Bread Selection &amp; Treatment</h2>
+      <p class="hook">Bread is the most underrated decision in a sandwich. It's not packaging — it's an ingredient.</p>
+
+      <h3>Why bread matters more than filling</h3>
+      <p>Every sandwich is a ratio problem, and bread is half the equation. Professional kitchens choose bread the way a wine sommelier chooses a bottle — by asking what needs to happen structurally and texturally. A soft milk bread yields to a fried chicken cutlet; a sturdy ciabatta withstands a juicy tomato without collapsing. The bread either supports the filling or fights it, and there's no middle ground.</p>
+
+      <h3>Knowing your bread categories</h3>
+      <p><strong>Hearty/rustic</strong> — sourdough, ciabatta, baguette, rye, pumpernickel. Open crumbs, chewy crusts, bold flavor. These stand up to wet, heavy, or assertive fillings. A sourdough's tang cuts through rich meats. A baguette's shattering crust contrasts soft pâté.</p>
+      <p><strong>Soft/enriched</strong> — brioche, milk bread, potato roll, Hawaiian roll. Fat in the dough (butter, eggs, milk) makes them tender and slightly sweet. They compress around a burger patty and let the filling dominate. The bread plays a supporting role.</p>
+      <p><strong>Flatbreads/wraps</strong> — pita, tortilla, lavash, naan. Thin, pliable, vessel-first. These work when you want the filling-to-bread ratio tilted heavily toward filling, or when you need portability.</p>
+      <p><strong>Specialty</strong> — English muffin, bagel, pretzel roll, focaccia. Each brings a unique texture or flavor that defines the sandwich. A toasted English muffin's nooks hold butter and egg. A bagel's density stands up to schmear and lox.</p>
+
+      <h3>Toasting techniques</h3>
+      <p><strong>Dry toast</strong> in a toaster or oven gives crunch and structural integrity without added fat. <strong>Butter-toasted</strong> (bread face-down in a buttered pan) adds richness and a golden, shattering crust — the grilled cheese method. <strong>Griddled</strong> on a plancha or cast iron gives even browning with a slight chew. <strong>Broiled</strong> works for open-faced sandwiches — fast, intense top heat that chars edges.</p>
+
+      <h3>The hollow-out and the bread-to-filling ratio</h3>
+      <p>Scooping out some of the crumb from a baguette or sub roll isn't wasteful — it's architecture. It creates a channel for fillings, reduces bread dominance, and prevents the sandwich from being too doughy. The ideal bread-to-filling ratio varies by sandwich, but most home cooks use too much bread. When in doubt, remove some crumb.</p>
+
+      <div class="callout">
+        <div class="callout-label">Common Mistakes</div>
+        <ul>
+          <li><strong>Using bread that's too fresh for pressing</strong> — slightly stale bread holds up better on a panini press. Day-old bread compresses without turning gummy.</li>
+          <li><strong>Not toasting at all</strong> — even a light toast creates a moisture barrier that protects against soggy bread.</li>
+          <li><strong>Ignoring bread density</strong> — a thin, airy bread can't hold wet pulled pork. A dense bagel suffocates delicate smoked salmon.</li>
+          <li><strong>Slicing too thick</strong> — bread should frame the filling, not overpower it. A half-inch slice is usually plenty.</li>
+        </ul>
+      </div>
+
+      <div class="callout tip">
+        <div class="callout-label">Quick Reference</div>
+        <p><strong>For burgers:</strong> potato roll, brioche, milk bread, pretzel roll<br>
+        <strong>For deli/cold cuts:</strong> rye, sourdough, ciabatta, sub roll<br>
+        <strong>For pressed/grilled:</strong> sourdough, ciabatta, Cuban bread, rye<br>
+        <strong>For fried chicken/cutlets:</strong> brioche, milk bread, potato roll<br>
+        <strong>For open-faced:</strong> sourdough, rye, baguette slices, focaccia</p>
+      </div>
+    </article>
+
+    <!-- 2. BUILDING THE SPREAD LAYER -->
+    <article class="section" id="spreads">
+      <div class="section-number">Section 02</div>
+      <h2>Building the Spread Layer</h2>
+      <p class="hook">Spreads aren't an afterthought. They're flavor insulation and moisture control — the first and last thing your palate touches.</p>
+
+      <h3>The rule: both sides, edge to edge</h3>
+      <p>Professional kitchens spread on both pieces of bread, corner to corner, with no bare spots. This does two things: it creates a fat-based moisture barrier that prevents wet ingredients from sogging the bread, and it ensures flavor in every bite — not just the center where fillings are piled. A bare edge is a flavorless bite.</p>
+
+      <h3>Mayo is a technique, not just a condiment</h3>
+      <p>Standard mayo is a flavor carrier and moisture barrier in one. <strong>Kewpie</strong> (Japanese mayo with rice vinegar) is richer, tangier, and creamier — it's why some sandwiches taste "better" at restaurants. <strong>Garlic aioli</strong> adds punch. <strong>Chipotle mayo</strong> brings smoky heat. <strong>Herb mayo</strong> (fold in chopped herbs and lemon zest) feels custom. All are just mayo with an opinion, and that opinion makes the sandwich.</p>
+
+      <h3>Mustard: the underrated workhorse</h3>
+      <p>Yellow mustard is sharp and one-dimensional — that's its job on a hot dog or smashburger. <strong>Dijon</strong> is the all-purpose kitchen mustard: hot, creamy, emulsifying. <strong>Whole grain</strong> adds texture and a milder bite. <strong>Hot English</strong> is nasal-clearing heat. <strong>Honey mustard</strong> bridges sweet and sharp. Layering mustard on one side and mayo on the other is a classic pro move — acid meets fat.</p>
+
+      <h3>Beyond the basics</h3>
+      <p><strong>Compound butters</strong> (herb, garlic, anchovy) melt into warm bread and leave a silky richness that mayo can't match. <strong>Pesto</strong> — basil, sun-dried tomato, or pistachio — adds herbal punch. <strong>Romesco</strong> (roasted pepper and nut sauce) is smoky, nutty, and deeply savory. <strong>Harissa</strong> and <strong>gochujang</strong> bring complex heat. <strong>Tapenade</strong> (olive paste) adds briny depth to Mediterranean sandwiches. <strong>Hummus</strong> and <strong>baba ganoush</strong> are moisture barriers and flavor layers in one.</p>
+
+      <h3>Sweet-tangy spreads</h3>
+      <p><strong>Fig jam</strong> with prosciutto and brie. <strong>Cranberry sauce</strong> on leftover turkey. <strong>Apple butter</strong> on a pork sandwich. <strong>Hot honey</strong> drizzled on a fried chicken sandwich. These aren't dessert — they're the sweet-acid counterbalance that cuts through rich, fatty proteins. Used sparingly, they elevate. Overdone, they overpower.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>Mix spreads for depth: Dijon and mayo together, or hummus with a thin layer of harissa on top. Two complementary spreads on the same piece of bread create a more complex flavor profile than any single spread alone.</p>
+      </div>
+    </article>
+
+    <!-- 3. PROTEIN TREATMENT -->
+    <article class="section" id="protein">
+      <div class="section-number">Section 03</div>
+      <h2>Protein Treatment</h2>
+      <p class="hook">How professional kitchens treat protein for sandwiches is fundamentally different from how they plate it. Slicing, temperature, and layering change everything.</p>
+
+      <h3>The shingling principle</h3>
+      <p>Restaurant delis don't stack a thick slab of meat in the center and call it done. They shingle — laying thin slices in overlapping layers so every bite gets protein from edge to edge. Thin slices also mean more surface area touching spreads and dressing, which means more flavor per bite. A thick-cut piece of turkey tastes like turkey. Shingled thin-sliced turkey tastes like the whole sandwich.</p>
+
+      <h3>Slicing against the grain</h3>
+      <p>This matters more than most home cooks realize. Cutting against the grain shortens the muscle fibers, making every slice more tender. A perfectly cooked roast beef sliced <em>with</em> the grain will be chewy and stringy in a sandwich. The same roast, sliced against the grain paper-thin, will be butter-tender.</p>
+
+      <h3>Temperature is a choice</h3>
+      <p>Cold protein and warm protein create fundamentally different sandwiches. Cold deli meats keep the sandwich clean and portable. Warm protein — a just-fried chicken thigh, pulled pork off the smoker, a seared burger patty — melts cheese on contact, wilts lettuce intentionally, and changes the textural experience. Neither is better; both are deliberate decisions.</p>
+
+      <h3>Specific proteins and their techniques</h3>
+      <p><strong>Pastrami</strong> — steamed or warmed on a griddle, never cold from the fridge. Cold pastrami is waxy and dull; warm pastrami is silky and yielding. <strong>Fried chicken</strong> — brine first (always), dredge in seasoned flour, fry at 350°F until 165°F internal. Drain on a wire rack, never paper towels (they trap steam). <strong>Smashburger</strong> — thin ball of ground beef pressed hard onto a ripping-hot cast iron or plancha. Don't touch it for 2-3 minutes. The crust is the entire point. <strong>Pulled pork</strong> — low and slow, rested, pulled by hand (not shredded with forks, which tears the fibers). Dress with just enough sauce to coat, not drench.</p>
+
+      <h3>The rest before the slice</h3>
+      <p>Roasted meats (roast beef, turkey breast, pork loin) need to rest for at least 15 minutes before slicing for sandwiches. Cutting into a hot roast releases all the juices onto the cutting board instead of keeping them in the meat. Rest, then slice thin, then build.</p>
+
+      <div class="callout">
+        <div class="callout-label">Common Mistakes</div>
+        <ul>
+          <li><strong>Slicing too thick</strong> — unless it's a meatball sub or a thick-cut steak sandwich, thinner is almost always better for cold cuts and deli meats.</li>
+          <li><strong>Skipping the brine</strong> — chicken breast without brining is dry and bland. Even 30 minutes in salted water transforms the texture.</li>
+          <li><strong>Cold pastrami</strong> — if you're not warming it, you're missing half the flavor and all of the texture.</li>
+          <li><strong>One thick patty instead of two thin ones</strong> — for burgers, two thin patties with cheese between them beats one thick patty every time. More crust, more cheese surface, better ratio.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 4. CHEESE SELECTION & MELTING -->
+    <article class="section" id="cheese">
+      <div class="section-number">Section 04</div>
+      <h2>Cheese Selection &amp; Melting</h2>
+      <p class="hook">Cheese is both flavor and engineering. When to melt, what to pair, and how to place it determines whether the sandwich holds together.</p>
+
+      <h3>Melting cheeses vs. structural cheeses</h3>
+      <p><strong>Melting cheeses</strong> — American, cheddar, gruyère, fontina, raclette, provolone, Monterey Jack, mozzarella, pepper jack. These flow, stretch, and bind. They're best when heat is involved. American cheese is engineered to melt; its emulsifying salts create that impossible, gooey consistency that artisan cheeses can't replicate. That's not a flaw — for a smashburger or a grilled cheese, it's a feature.</p>
+      <p><strong>Structural cheeses</strong> — feta, halloumi, fresh mozzarella, goat cheese, ricotta, blue cheese, brie, camembert. These add flavor and texture without melting into the background. Fresh mozz on a caprese panini stays distinct. Crumbled blue cheese on a steak sandwich provides pops of funk. Brie spreads soft and creamy at room temperature without needing heat.</p>
+
+      <h3>Cheese as glue and moisture barrier</h3>
+      <p>Place cheese directly against the bread, not in the middle of the stack. A layer of melted provolone on the bottom bread seals it against wet fillings above. It's structural engineering. In a grilled cheese, cheese against both bread surfaces creates an adhesive that holds the sandwich together when you bite — instead of the fillings squishing out.</p>
+
+      <h3>Pre-melting and melting in the sandwich</h3>
+      <p><strong>Pre-melting</strong> cheese (adding it to hot protein on the griddle and covering with a dome or basting lid) gives you control. The cheese melts before it goes on the bread, so you're not over-toasting the bread trying to melt the cheese through. <strong>Melting in the sandwich</strong> (grilled cheese, melt, panini) works when the entire sandwich gets heat and you want the cheese to fuse everything together.</p>
+
+      <h3>Classic pairings</h3>
+      <p><strong>Pastrami + Swiss</strong> — the sharpness of Swiss cuts through fatty pastrami. <strong>Italian sub + provolone</strong> — mild and melty against bold cured meats. <strong>Smashburger + American</strong> — the melt standard. <strong>Ham + gruyère</strong> — the croque monsieur combination, nutty and rich. <strong>Turkey + brie</strong> — creamy and elegant. <strong>Roast beef + sharp cheddar</strong> — robust meets robust.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>Blend cheeses for complexity. A grilled cheese with sharp cheddar alone is fine. Sharp cheddar <em>plus</em> gruyère is better — you get the sharpness of cheddar with the nutty melt of gruyère. Two cheeses in one sandwich is almost always more interesting than one.</p>
+      </div>
+    </article>
+
+    <!-- 5. VEGETABLES, CRUNCH & STRUCTURE -->
+    <article class="section" id="vegetables">
+      <div class="section-number">Section 05</div>
+      <h2>Vegetables, Crunch &amp; Structure</h2>
+      <p class="hook">Vegetables in a sandwich aren't garnish. They're the crunch, the freshness, the structural integrity. Skip them and the sandwich goes flat.</p>
+
+      <h3>Every sandwich needs at least one crunch source</h3>
+      <p>This is a non-negotiable in professional kitchens. Without crunch, a sandwich is soft-on-soft — bread, meat, cheese, all the same yielding texture. <strong>Lettuce</strong> (iceberg for shatter, romaine for backbone, butter for delicacy, arugula for pepper), <strong>raw onion</strong> (thinly sliced), <strong>radishes</strong>, <strong>cucumber</strong>, <strong>sprouts</strong>, <strong>fennel</strong>, <strong>slaw</strong> — at least one of these needs to be present.</p>
+
+      <h3>Handling tomatoes</h3>
+      <p>Tomatoes are the single biggest source of soggy bread. The fix: <strong>slice them thick</strong> (thin slices leak more), <strong>seed them</strong> (scoop out the gel), <strong>salt them and let them drain</strong> on paper towels for 5 minutes before using. Some kitchens go further and place tomato slices on top of lettuce (never directly on bread) so the leaf acts as a moisture barrier. Peak-season tomatoes are worth this effort. Out-of-season ones aren't worth using at all.</p>
+
+      <h3>Grilled and roasted vegetables</h3>
+      <p>Roasted peppers (jarred are fine — drain and pat dry), grilled onions, roasted eggplant, grilled zucchini, sautéed mushrooms. These add meaty depth and sweetness. The key is cooking them properly: fully soft, well-seasoned, and <em>drained of excess liquid</em>. Wet roasted peppers will ruin bread faster than raw tomatoes.</p>
+
+      <h3>Pickled and fermented elements</h3>
+      <p>Pickles (dill or bread-and-butter) are the obvious choice, but professional kitchens go further. <strong>Giardiniera</strong> — Italian pickled vegetables — is the secret weapon of Chicago Italian beef and Italian subs. <strong>Kimchi</strong> on a Korean-inspired sandwich or burger adds acid, heat, and funk simultaneously. <strong>Sauerkraut</strong> on a Reuben isn't optional. <strong>Pickled onions</strong> and <strong>pickled jalapeños</strong> are all-purpose acid delivery systems.</p>
+
+      <h3>Slaw as a structural element</h3>
+      <p>Coleslaw, broccoli slaw, fennel slaw, or a quick vinegar slaw isn't just a side dish — it's a sandwich component. A well-drained, lightly dressed slaw inside a fried chicken sandwich adds crunch, acid, and moisture all at once. The key is <em>lightly dressed</em> — squeeze out excess liquid before it goes on the bread.</p>
+
+      <div class="callout">
+        <div class="callout-label">Common Mistakes</div>
+        <ul>
+          <li><strong>Wet lettuce</strong> — wash and dry thoroughly. A salad spinner is essential. Wet lettuce on bread is instant sog.</li>
+          <li><strong>Too much raw onion</strong> — a few thin rings. Not half an onion. Raw onion should accent, not dominate.</li>
+          <li><strong>Tomato directly on bread</strong> — always buffer with lettuce, cheese, or spread.</li>
+          <li><strong>Skipping the crunch entirely</strong> — even a simple pickle spear alongside the sandwich is better than nothing.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 6. ACID, SALT, FAT & HEAT -->
+    <article class="section" id="balance">
+      <div class="section-number">Section 06</div>
+      <h2>Acid, Salt, Fat &amp; Heat — The Sandwich Pillars</h2>
+      <p class="hook">Most home sandwiches are flat because they're missing acid or heat. Balance in a sandwich works differently than in a salad — and it matters just as much.</p>
+
+      <h3>Acid: the wakeup call</h3>
+      <p>Acid in a sandwich cuts through richness, lifts flavors, and prevents the heaviness that makes you feel like you need a nap after eating. <strong>Pickled elements</strong> (pickles, giardiniera, pickled onions, sauerkraut, kimchi) are the most common delivery method. <strong>Vinegar slaw</strong> inside the sandwich does double duty as crunch and acid. <strong>Mustard</strong> — especially Dijon — is a quiet acid bomb. <strong>Citrus</strong> is rarer in sandwiches but powerful: a squeeze of lemon over smoked salmon on a bagel, lime on a banh mi.</p>
+
+      <h3>Salt: the amplifier</h3>
+      <p>Salt in sandwiches often comes pre-loaded: cured meats (pastrami, prosciutto, salami), aged cheeses (Parmesan, pecorino), capers, olives, pickled elements. When your fillings are already salty, you need less elsewhere. When they're not (plain turkey, fresh mozzarella, tofu), you need to season deliberately — a pinch of flaky salt on the protein, seasoned spread, or finishing salt on top before closing.</p>
+
+      <h3>Fat: the pleasure center</h3>
+      <p>Fat makes sandwiches satisfying. The bread itself can be a fat source (butter-toasted, brioche, focaccia made with olive oil). <strong>Cheese</strong> is fat. <strong>Mayo and aioli</strong> are fat. <strong>Avocado</strong> is fat. <strong>Rendered fat from the protein</strong> (a well-marbled pastrami, crispy bacon). A sandwich that's "lean" by intent still needs some fat — even a thin schmear of mayo or a drizzle of olive oil — or it feels dry and austere.</p>
+
+      <h3>Heat: the missing pillar</h3>
+      <p>This is where most home sandwiches fail. Not thermal heat — <em>spice</em> heat. A hit of <strong>hot sauce</strong>, a few slices of <strong>fresh jalapeño</strong>, <strong>chili crisp</strong> spooned over the protein, <strong>horseradish</strong> with roast beef, <strong>pepperoncini</strong> in an Italian sub, <strong>red pepper flakes</strong> folded into mayo. Heat doesn't mean the sandwich should be spicy — it means there should be a warmth that makes the other flavors more vivid. Without it, sandwiches taste flat and monotone.</p>
+
+      <h3>Diagnosing a flat sandwich</h3>
+      <p>If your sandwich tastes boring, run through the pillars. Is there acid? (Add a pickle or mustard.) Salt? (A pinch of flaky salt, a salty cheese.) Fat? (More spread, better bread.) Heat? (Hot sauce, pepper, horseradish.) Nine times out of ten, you're missing acid or heat — they're the ones home cooks forget.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>The Italian sub has been quietly perfect for decades because it hits all four pillars: acid (pepperoncini, vinegar, oil-and-vinegar dressing), salt (cured meats, provolone), fat (salami, capicola, oil), heat (pepperoncini, black pepper). Use it as a template.</p>
+      </div>
+    </article>
+
+    <!-- 7. ASSEMBLY ORDER & ARCHITECTURE -->
+    <article class="section" id="assembly">
+      <div class="section-number">Section 07</div>
+      <h2>Assembly Order &amp; Architecture</h2>
+      <p class="hook">The order you stack a sandwich determines whether it holds together, distributes flavor evenly, and survives the trip from plate to mouth.</p>
+
+      <h3>The classic layering principle</h3>
+      <p>Bottom bread &rarr; <strong>spread</strong> &rarr; <strong>cheese</strong> (against the bread as a moisture barrier) &rarr; <strong>protein</strong> &rarr; <strong>vegetables/toppings</strong> &rarr; <strong>acid/pickled elements</strong> &rarr; <strong>spread</strong> &rarr; top bread. This isn't arbitrary. Spread on both bread surfaces protects against moisture. Cheese against the bread seals it. Protein in the center provides structure. Vegetables and pickled elements on top stay away from the bread.</p>
+
+      <h3>The moisture barrier concept</h3>
+      <p>Wet ingredients (tomato, slaw, pickles, condiments) should never directly touch bare bread. A layer of cheese, a schmear of mayo, or a leaf of lettuce between the bread and any moisture source buys you time before the bread becomes soggy. This is the most fundamental principle of sandwich engineering, and it's the one home cooks violate most often.</p>
+
+      <h3>Stacking for structural integrity</h3>
+      <p>Heavier, denser fillings go toward the bottom. Lighter, crunchier elements go on top. This creates a stable center of gravity. A sandwich with lettuce on the bottom and heavy meatballs on top will slide apart on the first bite. Put the meatballs down (with cheese as a base), then top with lighter elements.</p>
+
+      <h3>When to wrap and wait</h3>
+      <p>Some sandwiches get better with time. A <strong>muffuletta</strong> needs to be wrapped tightly and pressed under a weight for at least 30 minutes — the olive salad seeps into the bread and the layers compress into a unified whole. A <strong>banh mi</strong> benefits from 5 minutes of resting after assembly so the bread softens slightly and absorbs the pâté. <strong>Pressed sandwiches</strong> (cubano, muffuletta) should be wrapped tightly in foil or parchment and pressed — a heavy pan on top works.</p>
+
+      <h3>The overstuffing trap</h3>
+      <p>More filling isn't always better. A sandwich that's too thick to bite through cleanly forces you to compress it with every bite, pushing fillings out the back. Professional sandwiches are surprisingly restrained — they look generous but bite cleanly because every layer is thin and the ratio is controlled. If you can't get your mouth around it, reduce the filling or switch to a larger bread.</p>
+
+      <div class="callout">
+        <div class="callout-label">Common Mistakes</div>
+        <ul>
+          <li><strong>Tomato on bare bread</strong> — the number one structural failure in home sandwiches.</li>
+          <li><strong>All fillings in the center, nothing at the edges</strong> — the first and last bites should taste like the middle. Spread fillings to the edges.</li>
+          <li><strong>Not pressing when you should</strong> — grilled cheese, cubano, muffuletta, and panini all need firm, even pressure. A heavy pan or a foil-wrapped brick works if you don't have a press.</li>
+          <li><strong>Building too far in advance</strong> — unless it's a wrap-and-press type, assemble as close to eating time as possible.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 8. HEAT APPLICATION -->
+    <article class="section" id="heat">
+      <div class="section-number">Section 08</div>
+      <h2>Heat Application</h2>
+      <p class="hook">Cold, warm, hot, pressed, grilled, dipped, broiled. How and when you apply heat transforms a sandwich from one category into another entirely.</p>
+
+      <h3>Cold sandwiches</h3>
+      <p>A cold sandwich is an exercise in precision because there's no heat to meld flavors together. Every component needs to taste complete on its own: well-seasoned protein, flavorful spread, fresh crunch. Cold deli sandwiches, bagels with lox, BLTs (with a toasted bread but cold fillings) — these rely entirely on ingredient quality and assembly technique.</p>
+
+      <h3>Toasted bread, cold fillings</h3>
+      <p>The most common hybrid. Toasting the bread adds crunch, creates a moisture barrier, and makes the bread sturdier. The fillings stay cold and fresh. This is the BLT method, the club sandwich method, the deli sandwich on toasted sourdough method. It's the easiest upgrade most home cooks can make: just toast the bread.</p>
+
+      <h3>Pressed and grilled</h3>
+      <p>A panini press, a cast-iron pan with a heavy weight on top, a sandwich press — any firm, even heat source that compresses the sandwich while toasting both sides. This is the cubano method, the grilled cheese method, the patty melt method. The heat melts the cheese, the pressure fuses the layers, and the bread develops a golden crust. <strong>Key technique:</strong> moderate heat, patient cooking. High heat burns the bread before the cheese melts. Medium-low heat for 3-4 minutes per side is the move.</p>
+
+      <h3>Broiled and open-faced</h3>
+      <p>Building the sandwich open-faced, topping with cheese, and running it under the broiler gives you a molten, bubbly top without compressing the fillings. This is the tuna melt method, the French onion soup gratinée method applied to a sandwich. Watch it carefully — broilers go from golden to black in seconds.</p>
+
+      <h3>Steamed and dipped</h3>
+      <p><strong>Steaming</strong> — placing the assembled sandwich in a covered pan with a splash of water — is how great cheesesteak shops get their rolls soft and their cheese perfectly melted. <strong>Dipping</strong> — serving with a side of jus (French dip), a cup of tomato soup (grilled cheese), or a ramekin of au jus — adds a saucy dimension without making the bread soggy in advance.</p>
+
+      <h3>When NOT to apply heat</h3>
+      <p>Fresh herbs wilt and turn brown. Delicate raw vegetables (arugula, sprouts, thin-sliced tomato) cook and lose their texture. Mayonnaise as a primary spread can break and separate under sustained heat (butter is a better choice for grilled sandwiches). If your sandwich has these elements, add them <em>after</em> the hot components or keep the sandwich cold.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>For grilled sandwiches, spread mayo (not butter) on the <em>outside</em> of the bread before pressing. Mayo contains fat, egg, and acid — it browns more evenly than butter, doesn't burn as easily, and creates a tangier, crunchier crust. Try it once and you'll never go back.</p>
+      </div>
+    </article>
+
+    <!-- 9. CUTTING, SERVING & PRESENTATION -->
+    <article class="section" id="cutting">
+      <div class="section-number">Section 09</div>
+      <h2>Cutting, Serving &amp; Presentation</h2>
+      <p class="hook">How you cut a sandwich changes how it eats, how it looks, and whether people reach for it. The cross-section is your plating.</p>
+
+      <h3>Always use a serrated knife</h3>
+      <p>A straight-edged knife compresses the sandwich before it cuts through. A serrated knife saws through crust without crushing the crumb or squeezing the fillings. For very tall sandwiches, insert a toothpick to hold the layers before cutting — the pick maintains alignment while the knife works through.</p>
+
+      <h3>The diagonal cut</h3>
+      <p>Cutting diagonally (corner to corner) creates two triangles that feel bigger than two rectangles from a straight cut — it's a psychological and practical trick. The diagonal exposes more of the cross-section, which reveals the layers and makes the sandwich visually dramatic. This is why every deli, every diner, every sandwich shop cuts on the diagonal. It works.</p>
+
+      <h3>The cross-section as plating</h3>
+      <p>When you cut a sandwich and turn one half cut-side up, the cross-section becomes the visual centerpiece. This is why professional sandwiches are layered so carefully — the cross-section reveals the architecture. A well-layered sandwich on its side shows distinct bands of color and texture. A poorly assembled one looks like a compressed mess. Place the halves cut-side up, leaning against each other, and the sandwich sells itself.</p>
+
+      <h3>What to serve alongside</h3>
+      <p>A <strong>pickle spear</strong> — the classic companion, and for good reason. The acid and crunch of a cold pickle between bites of a rich sandwich is palate-cleansing and satisfying. <strong>Chips</strong> — the salt and crunch complement soft sandwiches. <strong>Slaw</strong> — if it's not in the sandwich, it works alongside it. <strong>A cup of soup</strong> — the grilled cheese and tomato soup pairing is perfect because the sandwich is rich and salty while the soup is acidic and warm.</p>
+
+      <h3>Wrapping for later</h3>
+      <p>For sandwiches eaten on the go or packed: wrap tightly in parchment, then foil. The parchment prevents the foil from sticking to spreads. Wrap firmly enough that the sandwich holds its shape but not so tight that fillings squeeze out. For sub-style sandwiches, wrap the whole thing and cut through the wrapper — the paper holds everything together while you eat.</p>
+
+      <div class="callout">
+        <div class="callout-label">Common Mistakes</div>
+        <ul>
+          <li><strong>Dull knife</strong> — a dull serrated knife tears instead of slicing. The bread shreds, the fillings push out, and the cross-section looks ragged.</li>
+          <li><strong>Not cleaning between cuts</strong> — if you're cutting multiple sandwiches, wipe the blade between each cut. Residue from the previous sandwich drags through the next one.</li>
+          <li><strong>Cutting too soon after grilling</strong> — let a pressed sandwich rest for 30-60 seconds after cooking. The cheese re-sets slightly and won't all ooze out when you cut.</li>
+          <li><strong>Serving on a plate that's too small</strong> — the sandwich should have room to breathe. A crowded plate with a sandwich crammed against a pile of fries looks like an afterthought.</li>
+        </ul>
+      </div>
+    </article>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <p>A reference for cooks who take their sandwiches seriously.</p>
+</footer>
+
+<script>
+  // Highlight active nav link on scroll
+  (function () {
+    const sections = document.querySelectorAll('.section[id]');
+    const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+    const mobileLinks = document.querySelectorAll('.mobile-nav a[href^="#"]');
+
+    if (!sections.length) return;
+
+    function setActive() {
+      let current = '';
+      for (const section of sections) {
+        const top = section.getBoundingClientRect().top;
+        if (top <= 120) current = section.id;
+      }
+      for (const link of sidebarLinks) {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+      }
+      for (const link of mobileLinks) {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+      }
+    }
+
+    window.addEventListener('scroll', setActive, { passive: true });
+    setActive();
+  })();
+</script>
+
+</body>
+</html>
