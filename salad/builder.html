@@ -33,14 +33,30 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
 .header p{color:var(--muted);font-size:0.95rem;max-width:32rem;margin:0 auto;font-style:italic}
 
 /* Progress */
-.progress-bar{display:flex;gap:0;background:var(--surface);border-bottom:1px solid var(--border);padding:0.5rem 1rem;overflow-x:auto;-webkit-overflow-scrolling:touch;position:sticky;top:0;z-index:50}
+.progress-bar{display:flex;gap:0;background:var(--surface);border-bottom:1px solid var(--border);padding:0.5rem 1rem;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .progress-step{flex:1;min-width:0;text-align:center;font-family:var(--font-ui);font-size:0.7rem;letter-spacing:0.03em;padding:0.5rem 0.25rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .progress-step.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
 .progress-step.done{color:var(--accent-dark);border-bottom-color:var(--accent-light)}
 .progress-step:hover{color:var(--accent)}
 
+/* Progress rail & always-visible nav */
+.layout{display:flex;flex-direction:column}
+.rail{position:sticky;top:0;z-index:50}
+.rail-nav{position:fixed;bottom:0;left:0;right:0;z-index:60;display:flex;gap:0.6rem;padding:0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--border)}
+.rail-nav .btn{flex:1}
+@media(min-width:901px){
+  .layout{flex-direction:row;align-items:flex-start;gap:1rem;max-width:64rem;margin:0 auto;padding:0 1rem}
+  .rail{top:3.2rem;width:13rem;flex-shrink:0;padding:1.75rem 0 2rem;max-height:calc(100vh - 3.2rem);overflow-y:auto}
+  .progress-bar{flex-direction:column;background:transparent;border-bottom:none;padding:0;overflow-x:visible}
+  .progress-step{flex:none;text-align:left;font-size:0.8rem;padding:0.5rem 0.85rem;border-bottom:none;border-left:2px solid transparent;border-radius:0 6px 6px 0;white-space:normal}
+  .progress-step.active{border-left-color:var(--accent);background:var(--accent-light)}
+  .progress-step.done{border-left-color:var(--accent-light)}
+  .rail-nav{position:static;margin-top:1.25rem;padding:0 0.85rem;background:transparent;border-top:none}
+  .main{flex:1;min-width:0;padding-bottom:4rem}
+}
+
 /* Main */
-.main{max-width:46rem;margin:0 auto;padding:1.5rem 1rem 4rem}
+.main{max-width:46rem;margin:0 auto;padding:1.5rem 1rem 6.5rem}
 
 /* Stage */
 .stage{display:none;animation:fadeIn 0.3s ease}
@@ -264,10 +280,14 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-he
   <p id="savedLink" style="margin-top:0.6rem"></p>
 </header>
 
-<div class="progress-bar" id="progressBar"></div>
-
+<div class="layout">
+<aside class="rail" id="railWrap">
+  <div class="progress-bar" id="progressBar"></div>
+  <div class="rail-nav" id="railNav"></div>
+</aside>
 <div class="main">
   <div id="stageContainer"></div>
+</div>
 </div>
 
 <footer class="footer">
@@ -804,10 +824,12 @@ function calcBalance() {
 // ============================================================
 const $container = document.getElementById('stageContainer');
 const $progress = document.getElementById('progressBar');
+const $rail = document.getElementById('railWrap');
+const $railNav = document.getElementById('railNav');
 
 function renderProgress() {
-  if (state.showStartScreen) { $progress.style.display = 'none'; return; }
-  $progress.style.display = 'flex';
+  if (state.showStartScreen) { $rail.style.display = 'none'; return; }
+  $rail.style.display = '';
   $progress.innerHTML = STAGES.map((s,i) => {
     let cls = 'progress-step';
     if (i === state.currentStage) cls += ' active';
@@ -820,24 +842,21 @@ function renderProgress() {
       goTo(idx);
     });
   });
+  renderRailNav();
+}
+
+function renderRailNav() {
+  const isFirst = state.currentStage === 0;
+  const isLast = state.currentStage === STAGES.length - 1;
+  $railNav.innerHTML = `
+    <button class="btn btn-secondary" ${isFirst?'disabled':''} onclick="goTo(${state.currentStage-1})">Back</button>
+    <button class="btn btn-primary" ${isLast?'disabled':''} onclick="goTo(${state.currentStage+1})">Next</button>`;
 }
 
 function goTo(idx) {
   state.currentStage = idx;
   renderProgress();
   renderStage(true);
-}
-
-function navButtons() {
-  const isFirst = state.currentStage === 0;
-  const isLast = state.currentStage === STAGES.length - 1;
-  return `<div class="nav-buttons">
-    <button class="btn btn-secondary" ${isFirst?'disabled':''} onclick="goTo(${state.currentStage-1})">Back</button>
-    ${isLast
-      ? ''
-      : `<button class="btn btn-primary" onclick="goTo(${state.currentStage+1})">Next</button>`
-    }
-  </div>`;
 }
 
 // Card helper
@@ -1524,7 +1543,6 @@ function stageWrap(idx, inner) {
     <div class="stage-title">${s.title}</div>
     <div class="stage-sub">${s.sub}</div>
     ${inner}
-    ${navButtons()}
   </div>`;
 }
 
@@ -1643,7 +1661,7 @@ function renameSalad(id, newName) {
 
 function showSavedPage() {
   state.showSavedPage = true;
-  $progress.style.display = 'none';
+  $rail.style.display = 'none';
   const salads = getSavedSalads();
 
   let html = '<div class="saved-page">';
