@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Art of Restaurant-Level Pasta</title>
+<style>
+  :root {
+    --clr-bg: #faf8f5;
+    --clr-surface: #ffffff;
+    --clr-text: #2c2c2c;
+    --clr-text-muted: #6b6560;
+    --clr-accent: #b0623a;
+    --clr-accent-light: #f5e3d6;
+    --clr-border: #e4dfd8;
+    --clr-callout-bg: #fdf6ee;
+    --clr-callout-border: #e0c9a6;
+    --clr-tip-bg: #f7ece4;
+    --clr-tip-border: #d9ab8d;
+    --font-body: 'Georgia', 'Times New Roman', serif;
+    --font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --max-content: 52rem;
+    --nav-width: 16rem;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; scroll-padding-top: 2rem; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--clr-bg);
+    color: var(--clr-text);
+    line-height: 1.75;
+    font-size: 1.05rem;
+  }
+
+  /* ---------- HEADER ---------- */
+  .site-header {
+    text-align: center;
+    padding: 4rem 2rem 3rem;
+    border-bottom: 1px solid var(--clr-border);
+    background: var(--clr-surface);
+  }
+  .site-header h1 {
+    font-family: var(--font-heading);
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--clr-text);
+    margin-bottom: 0.5rem;
+  }
+  .site-header .subtitle {
+    font-size: 1.1rem;
+    color: var(--clr-text-muted);
+    max-width: 36rem;
+    margin: 0 auto;
+    font-style: italic;
+  }
+
+  /* ---------- LAYOUT ---------- */
+  .layout {
+    display: flex;
+    max-width: calc(var(--max-content) + var(--nav-width) + 4rem);
+    margin: 0 auto;
+    gap: 2rem;
+    padding: 2rem 1.5rem;
+  }
+
+  /* ---------- SIDEBAR NAV ---------- */
+  .sidebar {
+    position: sticky;
+    top: 2rem;
+    align-self: flex-start;
+    width: var(--nav-width);
+    flex-shrink: 0;
+  }
+  .sidebar nav { padding: 1rem 0; }
+  .sidebar .nav-label {
+    font-family: var(--font-heading);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--clr-text-muted);
+    margin-bottom: 0.75rem;
+  }
+  .sidebar a {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    color: var(--clr-text-muted);
+    text-decoration: none;
+    padding: 0.35rem 0.75rem;
+    border-left: 2px solid transparent;
+    transition: all 0.15s ease;
+    line-height: 1.4;
+  }
+  .sidebar a:hover,
+  .sidebar a.active {
+    color: var(--clr-accent);
+    border-left-color: var(--clr-accent);
+    background: var(--clr-accent-light);
+  }
+
+  /* ---------- MAIN CONTENT ---------- */
+  .content {
+    flex: 1;
+    min-width: 0;
+    max-width: var(--max-content);
+  }
+
+  .section {
+    background: var(--clr-surface);
+    border: 1px solid var(--clr-border);
+    border-radius: 8px;
+    padding: 2.5rem 2.5rem 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-number {
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--clr-accent);
+    margin-bottom: 0.25rem;
+  }
+
+  .section h2 {
+    font-family: var(--font-heading);
+    font-size: 1.55rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.25rem;
+    color: var(--clr-text);
+  }
+
+  .section .hook {
+    font-style: italic;
+    color: var(--clr-text-muted);
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+  }
+
+  .section h3 {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 1.75rem 0 0.5rem;
+    color: var(--clr-text);
+  }
+
+  .section p { margin-bottom: 1rem; }
+
+  .section ul, .section ol {
+    margin: 0.5rem 0 1rem 1.5rem;
+  }
+  .section li { margin-bottom: 0.4rem; }
+
+  .section strong { color: var(--clr-text); }
+
+  /* Callout boxes */
+  .callout {
+    border-left: 3px solid var(--clr-callout-border);
+    background: var(--clr-callout-bg);
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.95rem;
+  }
+  .callout-label {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #a07840;
+    margin-bottom: 0.3rem;
+  }
+
+  .tip {
+    border-left-color: var(--clr-tip-border);
+    background: var(--clr-tip-bg);
+  }
+  .tip .callout-label { color: var(--clr-accent); }
+
+  /* ---------- MOBILE NAV ---------- */
+  .mobile-nav {
+    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--clr-surface);
+    border-bottom: 1px solid var(--clr-border);
+    padding: 0.75rem 1.5rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  .mobile-nav a {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 0.8rem;
+    color: var(--clr-text-muted);
+    text-decoration: none;
+    padding: 0.3rem 0.75rem;
+    border-radius: 1rem;
+    transition: all 0.15s ease;
+  }
+  .mobile-nav a:hover,
+  .mobile-nav a.active {
+    color: var(--clr-accent);
+    background: var(--clr-accent-light);
+  }
+
+  /* ---------- FOOTER ---------- */
+  .site-footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--clr-text-muted);
+    font-size: 0.85rem;
+    font-family: var(--font-heading);
+    border-top: 1px solid var(--clr-border);
+    margin-top: 2rem;
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 860px) {
+    .sidebar { display: none; }
+    .mobile-nav { display: block; }
+    .layout { padding: 1.5rem 1rem; }
+    .section { padding: 1.75rem 1.5rem 1.5rem; }
+  }
+
+  @media (max-width: 500px) {
+    .section { padding: 1.25rem 1rem 1rem; }
+    .site-header { padding: 2.5rem 1.25rem 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<style>
+.fb-topnav{position:sticky;top:0;z-index:9999;display:flex;align-items:center;justify-content:space-between;padding:0.6rem 1.2rem;background:#1a1a1a;color:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;border-bottom:1px solid #333}
+.fb-topnav__brand{color:#f5f5f5;text-decoration:none;font-weight:600;font-size:0.95rem;letter-spacing:-0.01em}
+.fb-topnav__brand:hover{color:#fff}
+.fb-topnav__links{display:flex;gap:0.25rem}
+.fb-topnav__link{color:#bbb;text-decoration:none;font-size:0.85rem;font-weight:500;padding:0.45rem 0.9rem;border-radius:6px;transition:background 0.15s,color 0.15s}
+.fb-topnav__link:hover{color:#fff;background:#2a2a2a}
+.fb-topnav__link--active{color:#fff;background:#2a2a2a}
+</style>
+<nav class="fb-topnav" aria-label="Food Builder navigation">
+  <a href="../" class="fb-topnav__brand">Food Builder</a>
+  <div class="fb-topnav__links">
+    <a href="../salad/" class="fb-topnav__link">Salads</a>
+    <a href="../sandwich/" class="fb-topnav__link">Sandwiches</a>
+    <a href="../pasta/" class="fb-topnav__link fb-topnav__link--active">Pasta</a>
+  </div>
+</nav>
+
+<header class="site-header">
+  <h1>The Art of Restaurant-Level Pasta</h1>
+  <p class="subtitle">A comprehensive reference for serious cooks who believe pasta is a technique, not a recipe.</p>
+  <p style="margin-top:1rem"><a href="builder.html" style="font-family:var(--font-heading);font-size:0.85rem;color:var(--clr-accent);text-decoration:none;border:1px solid var(--clr-accent);padding:0.45rem 1.2rem;border-radius:6px;transition:all 0.15s">Open the Pasta Builder &rarr;</a></p>
+</header>
+
+<!-- Mobile horizontal nav -->
+<nav class="mobile-nav" aria-label="Section navigation (mobile)">
+  <a href="#shapes">Shapes</a>
+  <a href="#water">The Water</a>
+  <a href="#families">Sauce Families</a>
+  <a href="#emulsion">The Emulsion</a>
+  <a href="#umami">Umami</a>
+  <a href="#vegetables">Vegetables</a>
+  <a href="#balance">Balance</a>
+  <a href="#cheese">Cheese & Finishing</a>
+  <a href="#serving">Serving</a>
+</nav>
+
+<div class="layout">
+
+  <!-- Sticky sidebar -->
+  <aside class="sidebar">
+    <nav aria-label="Section navigation">
+      <div class="nav-label">Guide</div>
+      <a href="#shapes">The Shape Chooses the Sauce</a>
+      <a href="#water">Salt the Water, Respect the Boil</a>
+      <a href="#families">The Six Sauce Families</a>
+      <a href="#emulsion">Pasta Water &amp; the Emulsion</a>
+      <a href="#umami">Cured Pork, Anchovy &amp; Umami</a>
+      <a href="#vegetables">Vegetables That Earn Their Place</a>
+      <a href="#balance">Acid, Salt, Fat &amp; Heat</a>
+      <a href="#cheese">Cheese &amp; Finishing</a>
+      <a href="#serving">Saucing, Plating &amp; Serving</a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="content">
+
+    <!-- 1. THE SHAPE CHOOSES THE SAUCE -->
+    <article class="section" id="shapes">
+      <div class="section-number">Section 01</div>
+      <h2>The Shape Chooses the Sauce</h2>
+      <p class="hook">Italians don't ask "what pasta do I have?" They ask "what does this sauce need?" The shape is not decoration — it's engineering.</p>
+
+      <h3>Why shape matters</h3>
+      <p>Every pasta shape is a delivery mechanism. Long smooth strands like spaghetti are built for sauces that cling as a film — oil emulsions, light tomato, carbonara. Ridged tubes like rigatoni grip chunky sauces on their ridges and trap them inside the tube. Wide egg ribbons like pappardelle have the porous, tender surface and structural width to carry a heavy braise. Cups and curls — orecchiette, shells, fusilli — catch crumbles and capture pesto in their grooves.</p>
+      <p>Get the marriage wrong and you feel it immediately: ragù sliding off spaghetti and pooling at the bottom of the bowl, or angel hair collapsing under cream. Get it right and every forkful arrives with the proportion of pasta to sauce the dish was designed around.</p>
+
+      <h3>The five families</h3>
+      <ul>
+        <li><strong>Long strands</strong> (spaghetti, linguine, bucatini, capellini) — for sauces that coat: oil, light tomato, seafood. Bucatini's hollow center is a bonus channel for sauce.</li>
+        <li><strong>Ribbons</strong> (tagliatelle, fettuccine, pappardelle) — egg-rich, porous, tender. The home of ragù, cream, and butter sauces.</li>
+        <li><strong>Tubes</strong> (penne, rigatoni, paccheri, ziti) — for chunky sauces with something to grip. Ridges (rigate) exist for exactly this reason.</li>
+        <li><strong>Shapes &amp; curves</strong> (orecchiette, fusilli, casarecce, shells) — catchers and scoopers. Pesto, sausage crumbles, peas, chopped vegetables.</li>
+        <li><strong>Filled</strong> (ravioli, tortellini, agnolotti) — the filling is the dish. The sauce is a glaze: butter, sage, a whisper of cream.</li>
+      </ul>
+
+      <h3>Dried versus fresh</h3>
+      <p>Fresh pasta is not better pasta — it's <em>different</em> pasta. Dried semolina pasta has the firm, springy bite that oil- and tomato-based sauces want, and it releases the starch that makes emulsions work. Fresh egg pasta is tender and porous, which is why it belongs with butter, cream, and slow ragù. A restaurant chooses based on the sauce; so should you.</p>
+
+      <div class="callout">
+        <div class="callout-label">Common Mistakes</div>
+        <ul>
+          <li><strong>Defaulting to spaghetti for everything</strong> — it fights with ragù and cream. The sauce slides off and you drink it from the bowl afterward.</li>
+          <li><strong>Heavy sauce on delicate pasta</strong> — angel hair under bolognese is a casualty, not a dish.</li>
+          <li><strong>Smooth tubes for gripping sauces</strong> — if it's chunky, you want ridges. "Rigate" on the box is a feature, not branding.</li>
+          <li><strong>Drowning filled pasta</strong> — ravioli under a ladle of meat sauce is a filling nobody will ever taste.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 2. SALT THE WATER, RESPECT THE BOIL -->
+    <article class="section" id="water">
+      <div class="section-number">Section 02</div>
+      <h2>Salt the Water, Respect the Boil</h2>
+      <p class="hook">The boiling pot is the only chance you get to season the pasta itself. Everything after is surface treatment.</p>
+
+      <h3>Like the sea</h3>
+      <p>The water should taste assertively salty — roughly 1 tablespoon of fine salt per quart, more than feels reasonable. Pasta absorbs water as it cooks, and if that water is bland, the noodle at the center of your dish is bland, and no amount of salty sauce fixes it. Under-salted pasta water is the single most common home-cooking failure, and it's free to fix.</p>
+
+      <h3>Big pot, real boil — usually</h3>
+      <p>Plenty of water at a rolling boil keeps the temperature from crashing when the pasta goes in and gives long shapes room to move. The exception restaurants exploit: cooking pasta in <em>less</em> water concentrates the starch, which makes the pasta water more powerful as a sauce-binder. For a dish like cacio e pepe, where the starch does the heavy lifting, a smaller pot is a deliberate choice.</p>
+
+      <h3>Al dente is a head start, not a finish line</h3>
+      <p>Restaurant pasta is pulled from the water 1–2 minutes before the package's al dente time, because it finishes cooking in the sauce. Those final minutes in the pan are where the pasta absorbs flavor instead of plain water, and where the surface starch binds everything together. If your pasta is fully cooked when it leaves the pot, it will be overcooked when it reaches the table.</p>
+
+      <h3>Never rinse. Never oil the water.</h3>
+      <p>Rinsing washes off the surface starch that makes sauce adhere — it's only correct for cold pasta salads. Oil in the boiling water does nothing except coat the pasta so the sauce slides off later. Stir for the first minute instead; that's what actually prevents sticking.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>Set a timer for 2 minutes <em>less</em> than the box says, and taste. You're looking for a thin, pale core at the center of the noodle — that's the head start the pan will finish.</p>
+      </div>
+    </article>
+
+    <!-- 3. THE SIX SAUCE FAMILIES -->
+    <article class="section" id="families">
+      <div class="section-number">Section 03</div>
+      <h2>The Six Sauce Families</h2>
+      <p class="hook">Hundreds of named sauces, six underlying techniques. Learn the families and you can improvise forever.</p>
+
+      <h3>Olio-based</h3>
+      <p>Garlic warmed gently in good olive oil, chili if you like, then emulsified with starchy pasta water into something creamy without a drop of dairy. Aglio e olio is the lesson; vongole is the graduation. The entire family lives or dies on not browning the garlic and on tossing hard enough to emulsify.</p>
+
+      <h3>Tomato</h3>
+      <p>From a bright 20-minute marinara to a long-simmered Sunday sauce, the variables are time, fat, and restraint. Good canned tomatoes (San Marzano if you can), enough olive oil to carry flavor, and resistance to the urge to add a dozen seasonings. The sauce is done when the oil separates and turns orange at the edges.</p>
+
+      <h3>Cream</h3>
+      <p>Real Italian cream sauces use less cream than you think, loosened with pasta water so they coat instead of smother. Cream is a carrier for something — vodka-tomato, gorgonzola, mushrooms, peas and prosciutto. If the dish tastes mostly of cream, it's out of balance.</p>
+
+      <h3>Butter emulsions</h3>
+      <p>Butter mounted with pasta water makes a glossy sauce that's barely there — the technique behind the real Alfredo and the foundation of cacio e pepe and carbonara (where the fat is guanciale's, and eggs join the emulsion). Browned with sage, it's the canonical dressing for filled pasta. This family is pure technique: temperature control and constant motion.</p>
+
+      <h3>Ragù</h3>
+      <p>Meat, soffritto, wine, tomato, time. The meat is browned hard (or, in Bologna, simmered gently with milk), the sauce barely bubbles for hours, and the result clings to wide ribbons and big tubes. A proper ragù is bound to the pasta with starchy water in the pan — never ladled over the top like chili on rice.</p>
+
+      <h3>Pesto and raw sauces</h3>
+      <p>Blended or pounded, never cooked. Basil pesto is the famous one, but the family includes sun-dried tomato pesto, pistachio pesto, and salsa cruda of raw tomatoes. Heat destroys the fresh aromatics — the sauce meets the pasta in the bowl, thinned with a spoonful of pasta water, off the flame entirely.</p>
+
+      <div class="callout">
+        <div class="callout-label">Quick Reference</div>
+        <p><strong>Olio:</strong> strands, orecchiette · <strong>Tomato:</strong> strands, tubes · <strong>Cream:</strong> ribbons, filled · <strong>Butter:</strong> filled, ribbons, strands · <strong>Ragù:</strong> wide ribbons, big tubes · <strong>Pesto:</strong> fusilli, linguine, casarecce</p>
+      </div>
+    </article>
+
+    <!-- 4. PASTA WATER & THE EMULSION -->
+    <article class="section" id="emulsion">
+      <div class="section-number">Section 04</div>
+      <h2>Pasta Water &amp; the Emulsion</h2>
+      <p class="hook">The cloudy water you pour down the drain is the most important ingredient in the dish.</p>
+
+      <h3>Liquid gold</h3>
+      <p>As pasta boils it sheds starch into the water. That starch is a natural emulsifier — it lets fat and water combine into a sauce that's creamy, glossy, and clinging, instead of greasy and broken. Every great pasta dish you've eaten in a restaurant used it. Before you drain, always — <em>always</em> — dip out a full cup.</p>
+
+      <h3>The marriage in the pan</h3>
+      <p>The technique restaurants call "mantecatura": the almost-cooked pasta goes into the pan with the sauce, a ladle of pasta water joins it, and the whole thing is tossed — vigorously, continuously — over heat. The starch binds, the sauce tightens, the pasta finishes cooking while drinking in flavor. When the sauce coats each strand and a streak drawn through the pan holds its line, it's done. This step takes ninety seconds and is the single biggest difference between home pasta and restaurant pasta.</p>
+
+      <h3>Reading the consistency</h3>
+      <p>Too tight (sauce clumping, pasta sticking): add pasta water, a splash at a time. Too loose (liquid pooling): keep tossing over heat, or rain in a little cheese off the flame. The target is a sauce that flows lazily and coats the back of a spoon — it will continue to tighten on the plate, so err slightly loose.</p>
+
+      <h3>Cheese is part of the emulsion</h3>
+      <p>Finely grated Parmigiano or pecorino, added off the heat in stages while tossing, melts into the starchy sauce and thickens it into silk. Added over direct heat or in one dump, it seizes into chewing-gum clumps. Cacio e pepe is nothing but this technique — which is why it's the dish cooks use to test each other.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>If a cheese sauce breaks or clumps, a splash of cold pasta water and hard tossing off the heat will usually bring it back. The starch wants to fix it for you.</p>
+      </div>
+    </article>
+
+    <!-- 5. CURED PORK, ANCHOVY & UMAMI -->
+    <article class="section" id="umami">
+      <div class="section-number">Section 05</div>
+      <h2>Cured Pork, Anchovy &amp; Umami</h2>
+      <p class="hook">The Roman classics are masterclasses in getting maximum flavor from one or two deep ingredients.</p>
+
+      <h3>Guanciale and pancetta</h3>
+      <p>Guanciale — cured pork jowl — is the engine of carbonara, amatriciana, and gricia. Rendered slowly from a cold pan, it gives up fat that becomes the literal base of the sauce, plus crisp, savory pieces for the finish. Pancetta is the easier-to-find understudy; bacon brings smoke that Romans would object to but your dinner guests won't. Whichever you use: render low and slow, and never discard the fat.</p>
+
+      <h3>Anchovy, the invisible ingredient</h3>
+      <p>A few fillets melted into warm oil dissolve completely, leaving no fishiness — only a deep, savory backbone. It's the secret in puttanesca, in many a "why is this so good?" tomato sauce, and in bitter-greens pastas where it bridges the vegetable and the fat. Colatura di alici — Italy's ancient fish sauce — does the same job in drops, added at the end.</p>
+
+      <h3>Dried porcini, tomato paste, and the pantry depths</h3>
+      <p>Tomato paste fried in fat until it darkens to brick is concentrated umami, the move that makes vodka sauce taste expensive. Dried porcini, soaked and chopped (and their soaking liquid added to the sauce), give a meatless ragù its meatiness. The rinds of Parmigiano, simmered in a sauce and fished out, leave their savor behind. None of these announce themselves; all of them are why restaurant sauces taste deeper than the ingredient list suggests.</p>
+
+      <div class="callout">
+        <div class="callout-label">Common Mistakes</div>
+        <ul>
+          <li><strong>Rendering cured pork over high heat</strong> — the outside burns before the fat releases. Cold pan, medium-low, patience.</li>
+          <li><strong>Fearing anchovies</strong> — melted into oil, they are depth, not fish. Nobody has ever detected them; everybody has noticed their absence.</li>
+          <li><strong>Adding tomato paste straight into liquid</strong> — unfried, it tastes raw and tinny. Fry it in the fat first, always.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 6. VEGETABLES THAT EARN THEIR PLACE -->
+    <article class="section" id="vegetables">
+      <div class="section-number">Section 06</div>
+      <h2>Vegetables That Earn Their Place</h2>
+      <p class="hook">In Italian cooking, a vegetable in pasta is never filler. It's either the point of the dish or it's not in the dish.</p>
+
+      <h3>One vegetable, treated well</h3>
+      <p>The great vegetable pastas are monogamous: pasta alla Norma is eggplant. Orecchiette con cime di rapa is broccoli rabe. Pasta e zucca is squash. One vegetable, cooked with intention — fried until custardy, braised until melting, blistered until bursting — gives a clearer, stronger dish than four vegetables diced and tossed in. If you take one idea from this section: pick fewer vegetables and do more to them.</p>
+
+      <h3>Treatments that work</h3>
+      <ul>
+        <li><strong>Blistered</strong> — cherry tomatoes in a screaming pan until they collapse into instant sauce.</li>
+        <li><strong>Melted</strong> — zucchini or leeks cooked low and slow in oil until they become the sauce themselves.</li>
+        <li><strong>Fried</strong> — eggplant in generous oil until golden and creamy inside; artichokes until shattering.</li>
+        <li><strong>Blanched &amp; sautéed</strong> — bitter greens softened in salted water, then finished in garlic-chili oil.</li>
+        <li><strong>Charred</strong> — corn, asparagus, broccoli rabe kissed by real heat for smoke and sweetness.</li>
+      </ul>
+
+      <h3>Cook the vegetable in the pasta's water</h3>
+      <p>A restaurant trick that's also a sink-saver: blanch greens, peas, or broccoli in the same pot the pasta will cook in (before or even alongside the pasta). The vegetable seasons the water, the water seasons the pasta, and everything tastes like one dish instead of components sharing a bowl.</p>
+
+      <h3>Frozen is fine; seasonal is better</h3>
+      <p>Frozen peas are picked riper than most fresh ones and belong in spring pastas without apology. But the calendar is the better menu: asparagus in spring, tomatoes and corn in summer, mushrooms and squash in fall, bitter greens in winter. Pasta is a vehicle for whatever is at its peak.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>Save a few of the best-looking pieces of whatever vegetable you cooked and place them on top of the plated pasta. Same ingredients, but the dish announces what it is.</p>
+      </div>
+    </article>
+
+    <!-- 7. ACID, SALT, FAT & HEAT -->
+    <article class="section" id="balance">
+      <div class="section-number">Section 07</div>
+      <h2>Acid, Salt, Fat &amp; Heat</h2>
+      <p class="hook">Pasta's failure mode is heaviness. The fix is almost never more richness — it's the pillars that cut through it.</p>
+
+      <h3>Acid: the rescue</h3>
+      <p>Rich pasta without acid eats like a chore by the fifth bite. Tomato brings acid built-in; cream and butter sauces need it added — a squeeze of lemon, a splash of the wine you deglazed with, a scatter of capers. Pasta al limone is the proof of concept: butter and cheese made weightless by citrus. If your pasta tastes flat or fatiguing, reach for acid before anything else.</p>
+
+      <h3>Salt: layered, not dumped</h3>
+      <p>The salt in a pasta dish arrives in layers: the pasta water, the seasoned sauce, the cured pork or anchovy, the final cheese. Because so many pasta ingredients are salty, restraint at each layer matters — taste before the cheese goes in, because pecorino will finish the job for you.</p>
+
+      <h3>Fat: the sauce is the vehicle</h3>
+      <p>Fat carries every flavor in the dish, and the emulsion is how it travels. The question is never "how much fat" but "is the fat bound" — a broken, greasy sauce has the same ingredients as a glossy one minus the technique. Finish with raw oil for aroma, not for richness.</p>
+
+      <h3>Heat: optional, but intentional</h3>
+      <p>Chili in pasta should be a decision, not a dusting. Bloomed in the fat at the start (arrabbiata, aglio e olio), it infuses the whole dish; chili oil at the end sits brighter and hotter on top. Plenty of perfect pastas have none at all — but where heat appears, it should feel designed.</p>
+
+      <div class="callout">
+        <div class="callout-label">The Diagnostic</div>
+        <p>Taste a full forkful before plating. <strong>Heavy?</strong> Acid. <strong>Flat?</strong> Salt — probably via cheese. <strong>Thin?</strong> Fat, emulsified with pasta water. <strong>Boring?</strong> A finishing element: zest, herbs, crunch, chili.</p>
+      </div>
+    </article>
+
+    <!-- 8. CHEESE & FINISHING -->
+    <article class="section" id="cheese">
+      <div class="section-number">Section 08</div>
+      <h2>Cheese &amp; Finishing</h2>
+      <p class="hook">The last sixty seconds of a pasta dish add the layer the sauce can't provide. Restaurants never skip them.</p>
+
+      <h3>Know your gratings</h3>
+      <p><strong>Parmigiano-Reggiano</strong> is nutty, deep, and rounded — the universal finisher. <strong>Pecorino Romano</strong> is sharper, saltier, and more aggressive — Rome's choice, and the right one for carbonara, amatriciana, and cacio e pepe. <strong>Ricotta salata</strong> grates into salty snow over Norma. Grate finely and freshly; pre-grated cheese is coated in anti-caking starch and melts badly. Buy the wedge.</p>
+
+      <h3>Cheese technique</h3>
+      <p>Off the heat, in stages, while tossing — that's the whole rule. And hold cheese back entirely from seafood pastas (tradition's most famous prohibition; pangrattato does the job instead) — though rules, famously, are regional.</p>
+
+      <h3>Herbs at the end</h3>
+      <p>Basil is torn, never chopped, and added at the last moment — it blackens with heat and bruising. Parsley is chopped fine and can take a little pan time. Sage is fried crisp in the butter it flavors. Mint, unexpected and excellent, lifts peas, zucchini, and lamb. Dried oregano belongs in the sauce; fresh herbs belong on top of the finished dish.</p>
+
+      <h3>Pangrattato and crunch</h3>
+      <p>Toasted garlicky breadcrumbs — "poor man's Parmesan" — give the textural contrast pasta otherwise lacks. Toasted pine nuts, walnuts, fried capers, and reserved crispy guanciale do the same job. A soft dish with one crisp element is more interesting in every bite.</p>
+
+      <h3>The final drizzle</h3>
+      <p>A thin pass of your best olive oil over the plated dish adds aroma the cooked oil lost. Lemon zest, microplaned at the table, wakes up cream and butter sauces. A few drops of colatura deepen tomato and vegetable pastas. These are five-second moves with outsized returns.</p>
+
+      <div class="callout">
+        <div class="callout-label">Common Mistakes</div>
+        <ul>
+          <li><strong>Pre-grated cheese</strong> — anti-caking agents are why your sauce went grainy.</li>
+          <li><strong>Cheese into a screaming pan</strong> — it seizes. Off the heat, in stages, tossing.</li>
+          <li><strong>Chopped basil stirred through early</strong> — black flecks and lost perfume. Tear it over the plate.</li>
+          <li><strong>Skipping texture</strong> — when every bite is soft, attention drifts by the third forkful.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 9. SAUCING, PLATING & SERVING -->
+    <article class="section" id="serving">
+      <div class="section-number">Section 09</div>
+      <h2>Saucing, Plating &amp; Serving</h2>
+      <p class="hook">Sauce the pasta, don't pasta the sauce. The Italian proportion is the opposite of the American one.</p>
+
+      <h3>The right amount of sauce</h3>
+      <p>A properly sauced pasta has no pool at the bottom of the bowl — every bit of sauce is riding the pasta, bound by the emulsion. If sauce remains when the pasta is gone, there was too much (or it was never married in the pan). This is the most reliable visual difference between restaurant pasta and home pasta.</p>
+
+      <h3>The twirl</h3>
+      <p>Long pasta is plated by twirling a portion around tongs (or a carving fork) inside a ladle, then sliding the nest onto the plate. It gives height, keeps the strands aligned for the first forkful, and looks deliberate. Short pasta is spooned into a low mound — never flattened. Feature elements (the seared shrimp, the crisp guanciale, the burst tomatoes you held back) go on top where they can be seen.</p>
+
+      <h3>Warm bowls, wide rims</h3>
+      <p>Pasta hits the table losing heat fast — a cold plate kills the emulsion in a minute, the sauce tightening into glue. Warm the bowls in a low oven or with a ladle of pasta water swirled and dumped. Wide, shallow bowls with a rim are the professional default: they hold heat, frame the food, and give the twirl somewhere to stand.</p>
+
+      <h3>Serve immediately, finish at the table</h3>
+      <p>Pasta waits for no one — it keeps absorbing sauce and softening from the moment it leaves the pan. Restaurants plate and run. At home: bowls warmed, table set, diners seated <em>before</em> the mantecatura starts. The last grating of cheese, the drizzle of oil, the torn basil — do them at the table. It's thirty seconds of theater and the food is better for it.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>Hold back a few tablespoons of pasta water even after saucing. If the dish tightens up on the way to the table, a splash and a quick toss in the bowl revives the gloss.</p>
+      </div>
+    </article>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <p>A reference for cooks who take their pasta seriously.</p>
+</footer>
+
+<script>
+  // Highlight active nav link on scroll
+  (function () {
+    const sections = document.querySelectorAll('.section[id]');
+    const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+    const mobileLinks = document.querySelectorAll('.mobile-nav a[href^="#"]');
+
+    if (!sections.length) return;
+
+    function setActive() {
+      let current = '';
+      for (const section of sections) {
+        const top = section.getBoundingClientRect().top;
+        if (top <= 120) current = section.id;
+      }
+      for (const link of sidebarLinks) {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+      }
+      for (const link of mobileLinks) {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+      }
+    }
+
+    window.addEventListener('scroll', setActive, { passive: true });
+    setActive();
+  })();
+</script>
+
+</body>
+</html>

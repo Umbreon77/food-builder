@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Food Builder — Restaurant-Level Salads & Sandwiches</title>
+<title>Food Builder — Restaurant-Level Salads, Sandwiches & Pasta</title>
 <style>
   :root {
     --clr-bg: #faf8f5;
@@ -17,6 +17,9 @@
     --clr-sandwich: #9a7032;
     --clr-sandwich-light: #f5eed9;
     --clr-sandwich-bg: #faf3e4;
+    --clr-pasta: #b0623a;
+    --clr-pasta-light: #f5e3d6;
+    --clr-pasta-bg: #faf0e9;
     --font-body: 'Georgia', 'Times New Roman', serif;
     --font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   }
@@ -96,6 +99,7 @@
 
   .card--salad { border-top: 4px solid var(--clr-salad); background: linear-gradient(180deg, var(--clr-salad-bg) 0%, var(--clr-surface) 60%); }
   .card--sandwich { border-top: 4px solid var(--clr-sandwich); background: linear-gradient(180deg, var(--clr-sandwich-bg) 0%, var(--clr-surface) 60%); }
+  .card--pasta { border-top: 4px solid var(--clr-pasta); background: linear-gradient(180deg, var(--clr-pasta-bg) 0%, var(--clr-surface) 60%); }
 
   .card h2 {
     font-family: var(--font-heading);
@@ -106,6 +110,7 @@
   }
   .card--salad h2 { color: var(--clr-salad); }
   .card--sandwich h2 { color: var(--clr-sandwich); }
+  .card--pasta h2 { color: var(--clr-pasta); }
 
   .card p {
     font-size: 0.98rem;
@@ -131,6 +136,8 @@
   .btn--primary-salad:hover { background: #475a38; }
   .btn--primary-sandwich { background: var(--clr-sandwich); color: #fff; }
   .btn--primary-sandwich:hover { background: #7c5a28; }
+  .btn--primary-pasta { background: var(--clr-pasta); color: #fff; }
+  .btn--primary-pasta:hover { background: #8a4426; }
 
   .btn--secondary {
     background: transparent;
@@ -157,12 +164,13 @@
   <div class="fb-topnav__links">
     <a href="./salad/" class="fb-topnav__link">Salads</a>
     <a href="./sandwich/" class="fb-topnav__link">Sandwiches</a>
+    <a href="./pasta/" class="fb-topnav__link">Pasta</a>
   </div>
 </nav>
 
 <section class="hero">
   <h1>Food Builder</h1>
-  <p>Interactive tools for composing restaurant-level salads and sandwiches — one choice at a time.</p>
+  <p>Interactive tools for composing restaurant-level salads, sandwiches, and pasta — one choice at a time.</p>
 </section>
 
 <section class="cards">
@@ -181,6 +189,15 @@
     <div class="actions">
       <a class="btn btn--primary-sandwich" href="./sandwich/builder.html">Open Sandwich Builder</a>
       <a class="btn btn--secondary" href="./sandwich/">Read the guide</a>
+    </div>
+  </article>
+
+  <article class="card card--pasta">
+    <h2>Pasta</h2>
+    <p>Eight stages from shape to plate. A shape-to-sauce pairing engine, thirteen classic dishes, and the technique checklist behind the marriage in the pan.</p>
+    <div class="actions">
+      <a class="btn btn--primary-pasta" href="./pasta/builder.html">Open Pasta Builder</a>
+      <a class="btn btn--secondary" href="./pasta/">Read the guide</a>
     </div>
   </article>
 </section>
