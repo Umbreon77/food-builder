@@ -345,45 +345,45 @@ const SAUCE_STYLES = [
 const STYLES = [
   {cat:'Neapolitan & Roman', items:[
     {id:'neapolitan',name:'Neapolitan',desc:'00 flour, blistered in a 900°F oven for 90 seconds. Soft, tender, minimalist by law. The furnace heat flashes off the classic wet build — but little more.',weight:'delicate',crumb:'airy',family:'artisan',capacity:4,
-      dough:{flour:'00 (Caputo)',hydration:'60–62%',ferment:'8–24 h, mostly room temp',ball:'250–280 g',bake:'850–900°F · 60–90 sec'},
+      dough:{flour:'00 (Caputo)',hydration:'60–62%',ferment:'8–24 h, mostly room temp',ball:'250–280 g',shape:'Hand-stretch; drape over knuckles and let gravity open it. No rolling pin.',bake:'850–900°F · 60–90 sec'},
       doughRecipe:'<ul><li>Mix 500g 00 flour, 310g cool water, 12g salt, 1g instant yeast until shaggy; rest 20 min</li><li>Knead until smooth and elastic, 8–10 min; bulk rise 2 h at room temp</li><li>Divide into 250–280g balls; cold-ferment 8–24 h, then 2 h at room temp before baking</li><li>Stretch by hand to ~11"; never touch the rim. Bake as hot as your oven goes</li></ul>',
       affinity:{'red-raw':2,'red-cooked':1,white:2,pesto:1,vodka:1,bbq:0}},
     {id:'romantaglio',name:'Roman al Taglio',desc:'Very high hydration, long ferment, baked in trays and cut by weight. Light, crisp-bottomed, open-crumbed — a canvas for bold toppings.',weight:'medium',crumb:'open & airy',family:'roman',capacity:4,
-      dough:{flour:'bread flour / 00 blend',hydration:'75–80%',ferment:'24–48 h cold',ball:'~1 kg per tray',bake:'525–550°F oiled tray · 12–18 min'},
+      dough:{flour:'bread flour / 00 blend',hydration:'75–80%',ferment:'24–48 h cold',ball:'~1 kg per tray',shape:'Stretch & dimple gently into an oiled tray with your fingertips.',bake:'525–550°F oiled tray · 12–18 min'},
       doughRecipe:'<ul><li>Mix 500g flour, 390g water (78%), 11g salt, 2g yeast; fold (don\'t knead) every 30 min, 4 times</li><li>Cold-ferment 24–48 h; the dough should be slack and bubbly</li><li>Stretch gently into an oiled tray, dimpling with fingers; proof 1–2 h</li><li>Par-bake the base, then top and finish — crisp bottom, airy crumb</li></ul>',
       affinity:{'red-raw':1,'red-cooked':1,white:2,pesto:2,vodka:1,bbq:1}},
     {id:'tonda',name:'Roman Tonda',desc:'Cracker-thin and crisp, rolled flat with no real rim. Shatters when you bite. Keep it light.',weight:'delicate',crumb:'cracker-crisp',family:'thin',capacity:2,
-      dough:{flour:'00 or AP + a little oil',hydration:'55–58%',ferment:'24 h cold',ball:'~200 g, rolled thin',bake:'550°F · 7–9 min'},
+      dough:{flour:'00 or AP + a little oil',hydration:'55–58%',ferment:'24 h cold',ball:'~200 g, rolled thin',shape:'Roll thin with a pin — this style wants no puff.',bake:'550°F · 7–9 min'},
       doughRecipe:'<ul><li>Mix 500g flour, 285g water, 10g salt, 15g olive oil, 2g yeast; knead smooth</li><li>Cold-ferment 24 h; divide into ~200g balls</li><li>Roll (yes, roll) paper-thin — this style wants no puff</li><li>Top sparingly and bake on a hot steel until crisp and snappy</li></ul>',
       affinity:{'red-raw':1,'red-cooked':2,white:1,pesto:1,vodka:1,bbq:1}},
   ]},
   {cat:'American Slice', items:[
     {id:'newyork',name:'New York',desc:'Foldable, sturdy, the great all-rounder. High-gluten dough with a little oil and sugar; low-moisture mozz. Bakes around 550°F.',weight:'medium',crumb:'chewy',family:'american',capacity:3,
-      dough:{flour:'high-gluten bread flour',hydration:'62–64%',ferment:'24–72 h cold',ball:'~340 g (12–14")',bake:'550°F on steel · 6–8 min'},
+      dough:{flour:'high-gluten bread flour',hydration:'62–64%',ferment:'24–72 h cold',ball:'~340 g (12–14")',shape:'Hand-stretch on your knuckles; leave a modest rim.',bake:'550°F on steel · 6–8 min'},
       doughRecipe:'<ul><li>Mix 500g bread flour, 315g water, 10g salt, 7g sugar, 12g oil, 2g yeast; knead until smooth</li><li>Cold-ferment 24–72 h — the longer, the more flavor and browning</li><li>Temper 1–2 h; hand-stretch to 14", leaving a modest rim</li><li>Bake on a preheated steel near the top, finish under the broiler for color</li></ul>',
       affinity:{'red-raw':2,'red-cooked':2,white:2,pesto:1,vodka:2,bbq:1}},
     {id:'tavern',name:'Tavern / Thin',desc:'Cracker crust, party-cut into squares. The Midwest bar classic — crisp, low-rise, restrained. Almost no load tolerance.',weight:'delicate',crumb:'cracker-crisp',family:'thin',capacity:2,
-      dough:{flour:'AP + a little oil',hydration:'50–55%',ferment:'same-day OK',ball:'rolled paper-thin',bake:'500–525°F · 10–12 min'},
+      dough:{flour:'AP + a little oil',hydration:'50–55%',ferment:'same-day OK',ball:'rolled paper-thin',shape:'Roll cracker-thin with a pin and dock all over with a fork.',bake:'500–525°F · 10–12 min'},
       doughRecipe:'<ul><li>Mix 500g AP flour, 270g water, 9g salt, 15g oil, 4g yeast; knead to a stiff dough</li><li>Short rest, 30–60 min — this is a same-day dough</li><li>Roll cracker-thin and dock all over with a fork to stop bubbling</li><li>Top lightly, bake crisp, and cut into squares (party-cut)</li></ul>',
       affinity:{'red-raw':1,'red-cooked':2,white:1,pesto:0,vodka:1,bbq:1}},
   ]},
   {cat:'Pan & Square', items:[
     {id:'detroit',name:'Detroit',desc:'Airy focaccia-like dough in an oiled steel pan; brick cheese to the edge fries into a lacy frico crust. Sauce goes on TOP. Carries a mountain.',weight:'hearty',crumb:'airy, fried-bottom',family:'pan',capacity:5,
-      dough:{flour:'bread flour',hydration:'70%',ferment:'24 h cold + pan proof',ball:'~280–300 g per pan',bake:'500°F oiled steel pan · 12–15 min'},
+      dough:{flour:'bread flour',hydration:'70%',ferment:'24 h cold + pan proof',ball:'~280–300 g per pan',shape:'Press & dimple into the corners of an oiled pan; rest if it fights.',bake:'500°F oiled steel pan · 12–15 min'},
       doughRecipe:'<ul><li>Mix 350g bread flour, 245g water, 7g salt, 2g yeast; fold a few times, cold-ferment 24 h</li><li>Press into a well-oiled Detroit pan; proof until it fills the corners, 2–3 h</li><li>Cheese all the way to the edges so it caramelizes against the metal</li><li>Bake, then stripe cooked sauce on top — red top, never under</li></ul>',
       affinity:{'red-raw':1,'red-cooked':2,white:1,pesto:0,vodka:1,bbq:1}},
     {id:'sicilian',name:'Sicilian',desc:'Thick, spongy square baked in an oiled pan, crisp-fried on the bottom. Robust, generous, built for a crowd.',weight:'hearty',crumb:'thick & spongy',family:'pan',capacity:4,
-      dough:{flour:'bread flour',hydration:'70%',ferment:'overnight + pan proof',ball:'half-sheet pan',bake:'500°F oiled pan · 15–20 min'},
+      dough:{flour:'bread flour',hydration:'70%',ferment:'overnight + pan proof',ball:'half-sheet pan',shape:'Stretch into an oiled sheet, letting it relax between presses.',bake:'500°F oiled pan · 15–20 min'},
       doughRecipe:'<ul><li>Mix 600g bread flour, 420g water, 13g salt, 3g yeast; fold and rest, cold-ferment overnight</li><li>Stretch into a generously oiled half-sheet; proof 2–3 h until puffy</li><li>Top with cooked sauce and mozzarella; the oil fries the base as it bakes</li><li>Bake until the bottom is deep golden and crisp</li></ul>',
       affinity:{'red-raw':1,'red-cooked':2,white:1,pesto:1,vodka:1,bbq:1}},
     {id:'grandma',name:'Grandma',desc:'Thin-ish square pressed into an oiled sheet pan, same-day. Crisp bottom, fast bake — the home cook\'s pan pizza.',weight:'medium',crumb:'thin & crisp',family:'pan',capacity:4,
-      dough:{flour:'bread / AP',hydration:'65%',ferment:'same-day to overnight',ball:'quarter/half sheet, thin',bake:'525°F oiled pan · 12–16 min'},
+      dough:{flour:'bread / AP',hydration:'65%',ferment:'same-day to overnight',ball:'quarter/half sheet, thin',shape:'Press thin into an oiled sheet pan by hand.',bake:'525°F oiled pan · 12–16 min'},
       doughRecipe:'<ul><li>Mix 400g flour, 260g water, 9g salt, 14g oil, 4g yeast; knead briefly</li><li>Rest 1–2 h, then press thin into an oiled sheet pan (let it relax if it fights)</li><li>Dot with raw San Marzano and mozzarella; garlic and oregano are traditional</li><li>Bake hot until the cheese browns and the bottom crisps</li></ul>',
       affinity:{'red-raw':2,'red-cooked':2,white:1,pesto:1,vodka:1,bbq:0}},
   ]},
   {cat:'Deep Dish', items:[
     {id:'chicago',name:'Chicago Deep Dish',desc:'A tall, buttery crust in a deep pan, layered INVERTED: cheese on the bottom, fillings, chunky tomato on top. A 35-minute bake. A casserole that happens to be pizza.',weight:'hearty',crumb:'buttery & tall',family:'deep',capacity:5,
-      dough:{flour:'AP + cornmeal + butter/oil',hydration:'55%',ferment:'same-day, short rest',ball:'~450 g per deep pan',bake:'425°F · 30–40 min'},
+      dough:{flour:'AP + cornmeal + butter/oil',hydration:'55%',ferment:'same-day, short rest',ball:'~450 g per deep pan',shape:'Press up the sides of a deep pan like a pie crust.',bake:'425°F · 30–40 min'},
       doughRecipe:'<ul><li>Mix 400g AP flour, 60g cornmeal, 250g water, 9g salt, 50g melted butter, 5g yeast</li><li>Knead lightly; rest 1 h — this is a rich, pastry-like dough, not a lean one</li><li>Press up the sides of a deep oiled pan; layer cheese, then fillings, then chunky tomato on top</li><li>Bake low and slow at 425°F for 30–40 min until the crust is deep gold</li></ul>',
       affinity:{'red-raw':0,'red-cooked':2,white:0,pesto:0,vodka:1,bbq:0}},
   ]},
@@ -1034,6 +1034,7 @@ function doughSpecHTML(styleId) {
       <dt>Hydration</dt><dd>${d.hydration}</dd>
       <dt>Ferment</dt><dd>${d.ferment}</dd>
       <dt>Portion</dt><dd>${d.ball}</dd>
+      ${d.shape?`<dt>Shape</dt><dd>${d.shape}</dd>`:''}
       <dt>Bake</dt><dd>${d.bake}</dd>
     </dl>
     <button class="recipe-toggle" onclick="toggleDough()">Full dough recipe ▸</button>
@@ -1529,7 +1530,7 @@ function renderSummary() {
     html += summarySection('Style', [`${state.style.name} — ${state.style.weight}, ${state.style.crumb} (${FAMILY_LABEL[state.style.family]})`]);
     const d = styleFull(state.style.id).dough;
     html += `<button class="recipe-toggle" onclick="toggleDough()">Dough spec &amp; recipe ▸</button>`;
-    html += `<div class="recipe-expand" id="doughExpand"><h5>${state.style.name} Dough</h5><ul><li>Flour: ${d.flour}</li><li>Hydration: ${d.hydration}</li><li>Ferment: ${d.ferment}</li><li>Portion: ${d.ball}</li><li>Bake: ${d.bake}</li></ul>${styleFull(state.style.id).doughRecipe}</div>`;
+    html += `<div class="recipe-expand" id="doughExpand"><h5>${state.style.name} Dough</h5><ul><li>Flour: ${d.flour}</li><li>Hydration: ${d.hydration}</li><li>Ferment: ${d.ferment}</li><li>Portion: ${d.ball}</li>${d.shape?`<li>Shape: ${d.shape}</li>`:''}<li>Bake: ${d.bake}</li></ul>${styleFull(state.style.id).doughRecipe}</div>`;
   }
   if (state.sauceStyle) {
     html += summarySection('Sauce', sauceSummaryParts());
