@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Art of Restaurant-Level Pizza</title>
+<style>
+  :root {
+    --clr-bg: #faf8f5;
+    --clr-surface: #ffffff;
+    --clr-text: #2c2c2c;
+    --clr-text-muted: #6b6560;
+    --clr-accent: #c43d2e;
+    --clr-accent-light: #f8ddd6;
+    --clr-border: #e4dfd8;
+    --clr-callout-bg: #fdf3ee;
+    --clr-callout-border: #e6c2a6;
+    --clr-tip-bg: #f9e7e2;
+    --clr-tip-border: #dba89c;
+    --font-body: 'Georgia', 'Times New Roman', serif;
+    --font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --max-content: 52rem;
+    --nav-width: 16rem;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; scroll-padding-top: 2rem; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--clr-bg);
+    color: var(--clr-text);
+    line-height: 1.75;
+    font-size: 1.05rem;
+  }
+
+  /* ---------- HEADER ---------- */
+  .site-header {
+    text-align: center;
+    padding: 4rem 2rem 3rem;
+    border-bottom: 1px solid var(--clr-border);
+    background: var(--clr-surface);
+  }
+  .site-header h1 {
+    font-family: var(--font-heading);
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--clr-text);
+    margin-bottom: 0.5rem;
+  }
+  .site-header .subtitle {
+    font-size: 1.1rem;
+    color: var(--clr-text-muted);
+    max-width: 36rem;
+    margin: 0 auto;
+    font-style: italic;
+  }
+
+  /* ---------- LAYOUT ---------- */
+  .layout {
+    display: flex;
+    max-width: calc(var(--max-content) + var(--nav-width) + 4rem);
+    margin: 0 auto;
+    gap: 2rem;
+    padding: 2rem 1.5rem;
+  }
+
+  /* ---------- SIDEBAR NAV ---------- */
+  .sidebar {
+    position: sticky;
+    top: 2rem;
+    align-self: flex-start;
+    width: var(--nav-width);
+    flex-shrink: 0;
+  }
+  .sidebar nav { padding: 1rem 0; }
+  .sidebar .nav-label {
+    font-family: var(--font-heading);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--clr-text-muted);
+    margin-bottom: 0.75rem;
+  }
+  .sidebar a {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    color: var(--clr-text-muted);
+    text-decoration: none;
+    padding: 0.35rem 0.75rem;
+    border-left: 2px solid transparent;
+    transition: all 0.15s ease;
+    line-height: 1.4;
+  }
+  .sidebar a:hover,
+  .sidebar a.active {
+    color: var(--clr-accent);
+    border-left-color: var(--clr-accent);
+    background: var(--clr-accent-light);
+  }
+
+  /* ---------- MAIN CONTENT ---------- */
+  .content {
+    flex: 1;
+    min-width: 0;
+    max-width: var(--max-content);
+  }
+
+  .section {
+    background: var(--clr-surface);
+    border: 1px solid var(--clr-border);
+    border-radius: 8px;
+    padding: 2.5rem 2.5rem 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-number {
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--clr-accent);
+    margin-bottom: 0.25rem;
+  }
+
+  .section h2 {
+    font-family: var(--font-heading);
+    font-size: 1.55rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.25rem;
+    color: var(--clr-text);
+  }
+
+  .section .hook {
+    font-style: italic;
+    color: var(--clr-text-muted);
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+  }
+
+  .section h3 {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 1.75rem 0 0.5rem;
+    color: var(--clr-text);
+  }
+
+  .section p { margin-bottom: 1rem; }
+
+  .section ul, .section ol {
+    margin: 0.5rem 0 1rem 1.5rem;
+  }
+  .section li { margin-bottom: 0.4rem; }
+
+  .section strong { color: var(--clr-text); }
+
+  /* Spec table for dough */
+  .spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    margin: 1rem 0 1.25rem;
+  }
+  .spec-table th, .spec-table td {
+    text-align: left;
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid var(--clr-border);
+    vertical-align: top;
+  }
+  .spec-table th {
+    font-weight: 700;
+    color: var(--clr-accent);
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    letter-spacing: 0.05em;
+  }
+  .spec-table td:first-child { font-weight: 600; white-space: nowrap; }
+
+  /* Callout boxes */
+  .callout {
+    border-left: 3px solid var(--clr-callout-border);
+    background: var(--clr-callout-bg);
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.95rem;
+  }
+  .callout-label {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #b06a32;
+    margin-bottom: 0.3rem;
+  }
+
+  .tip {
+    border-left-color: var(--clr-tip-border);
+    background: var(--clr-tip-bg);
+  }
+  .tip .callout-label { color: var(--clr-accent); }
+
+  /* ---------- MOBILE NAV ---------- */
+  .mobile-nav {
+    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--clr-surface);
+    border-bottom: 1px solid var(--clr-border);
+    padding: 0.75rem 1.5rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  .mobile-nav a {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-size: 0.8rem;
+    color: var(--clr-text-muted);
+    text-decoration: none;
+    padding: 0.3rem 0.75rem;
+    border-radius: 1rem;
+    transition: all 0.15s ease;
+  }
+  .mobile-nav a:hover,
+  .mobile-nav a.active {
+    color: var(--clr-accent);
+    background: var(--clr-accent-light);
+  }
+
+  /* ---------- FOOTER ---------- */
+  .site-footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--clr-text-muted);
+    font-size: 0.85rem;
+    font-family: var(--font-heading);
+    border-top: 1px solid var(--clr-border);
+    margin-top: 2rem;
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 860px) {
+    .sidebar { display: none; }
+    .mobile-nav { display: block; }
+    .layout { padding: 1.5rem 1rem; }
+    .section { padding: 1.75rem 1.5rem 1.5rem; }
+  }
+
+  @media (max-width: 500px) {
+    .section { padding: 1.25rem 1rem 1rem; }
+    .site-header { padding: 2.5rem 1.25rem 2rem; }
+    .spec-table { font-size: 0.78rem; }
+  }
+</style>
+</head>
+<body>
+
+<style>
+.fb-topnav{position:sticky;top:0;z-index:9999;display:flex;align-items:center;justify-content:space-between;padding:0.6rem 1.2rem;background:#1a1a1a;color:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;border-bottom:1px solid #333}
+.fb-topnav__brand{color:#f5f5f5;text-decoration:none;font-weight:600;font-size:0.95rem;letter-spacing:-0.01em}
+.fb-topnav__brand:hover{color:#fff}
+.fb-topnav__links{display:flex;gap:0.25rem}
+.fb-topnav__link{color:#bbb;text-decoration:none;font-size:0.85rem;font-weight:500;padding:0.45rem 0.9rem;border-radius:6px;transition:background 0.15s,color 0.15s}
+.fb-topnav__link:hover{color:#fff;background:#2a2a2a}
+.fb-topnav__link--active{color:#fff;background:#2a2a2a}
+</style>
+<nav class="fb-topnav" aria-label="Food Builder navigation">
+  <a href="../" class="fb-topnav__brand">Food Builder</a>
+  <div class="fb-topnav__links">
+    <a href="../salad/" class="fb-topnav__link">Salads</a>
+    <a href="../sandwich/" class="fb-topnav__link">Sandwiches</a>
+    <a href="../pasta/" class="fb-topnav__link">Pasta</a>
+    <a href="../pizza/" class="fb-topnav__link fb-topnav__link--active">Pizza</a>
+  </div>
+</nav>
+
+<header class="site-header">
+  <h1>The Art of Restaurant-Level Pizza</h1>
+  <p class="subtitle">A comprehensive reference for serious cooks who believe pizza is a dough, a bake, and a moisture budget — not a list of toppings.</p>
+  <p style="margin-top:1rem"><a href="builder.html" style="font-family:var(--font-heading);font-size:0.85rem;color:var(--clr-accent);text-decoration:none;border:1px solid var(--clr-accent);padding:0.45rem 1.2rem;border-radius:6px;transition:all 0.15s">Open the Pizza Builder &rarr;</a></p>
+</header>
+
+<!-- Mobile horizontal nav -->
+<nav class="mobile-nav" aria-label="Section navigation (mobile)">
+  <a href="#dough">The Dough</a>
+  <a href="#styles">Styles</a>
+  <a href="#sauce">Sauce</a>
+  <a href="#cheese">Cheese</a>
+  <a href="#toppings">Toppings &amp; Moisture</a>
+  <a href="#balance">Balance</a>
+  <a href="#bake">The Bake</a>
+  <a href="#finishing">Finishing</a>
+</nav>
+
+<div class="layout">
+
+  <!-- Sticky sidebar -->
+  <aside class="sidebar">
+    <nav aria-label="Section navigation">
+      <div class="nav-label">Guide</div>
+      <a href="#dough">The Dough Is the Pizza</a>
+      <a href="#styles">The Style Sets the Rules</a>
+      <a href="#sauce">Sauce: Less Than You Think</a>
+      <a href="#cheese">Cheese &amp; the Melt</a>
+      <a href="#toppings">Toppings &amp; the Moisture Budget</a>
+      <a href="#balance">Acid, Salt, Fat &amp; Heat</a>
+      <a href="#bake">The Bake</a>
+      <a href="#finishing">Finishing After the Oven</a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="content">
+
+    <!-- 1. THE DOUGH IS THE PIZZA -->
+    <article class="section" id="dough">
+      <div class="section-number">Section 01</div>
+      <h2>The Dough Is the Pizza</h2>
+      <p class="hook">Everything else is seasoning. Two pizzas with identical toppings but different doughs are two different dishes — and the topping isn't what made them different.</p>
+
+      <h3>Four ingredients, infinite results</h3>
+      <p>Flour, water, salt, yeast. That's it — and yet a Neapolitan and a Detroit share no DNA beyond those four words. The variables that separate them are <strong>hydration</strong> (how much water), <strong>flour strength</strong> (how much protein), <strong>fermentation</strong> (how long and how cold), and <strong>the bake</strong>. Master those four dials and you can make any style; ignore them and you can make exactly one mediocre pizza.</p>
+
+      <h3>Hydration: the single most important number</h3>
+      <p>Hydration is the weight of water as a percentage of the flour. A 60% dough (600g water to 1000g flour) is firm, easy to shape, and bakes into a tight crumb — the New York and Neapolitan range. Push to 70–80% and the dough turns slack, sticky, and hard to handle, but it bakes into the open, airy, blistered crumb of a Roman al taglio or a Detroit. More water means more steam in the oven, which means more rise and more holes. It also means a stickier dough that punishes impatience.</p>
+
+      <h3>Flour: protein is structure</h3>
+      <p>Bread flour and Italian <strong>00</strong> are high-protein flours that build the gluten network strong, stretchy doughs need. All-purpose works but tears more easily and browns faster. The famous Caputo "00" is milled fine and is the Neapolitan standard precisely because it stays extensible at brutal oven temperatures. For New York and pan styles, a strong bread flour (12–14% protein) gives the chew. Match the flour to the bake: low-protein flour in a 900°F oven, high-protein flour for the long haul.</p>
+
+      <h3>The cold ferment is free flavor</h3>
+      <p>The difference between a same-day dough and one that has spent 24–72 hours in the fridge is not subtle. Slow, cold fermentation lets enzymes break starch into sugar (better browning) and develops the lactic tang and complexity that defines great pizza. A two-day cold-fermented dough tastes <em>baked</em>, not floury. If you take one thing from this section: mix your dough the day before yesterday.</p>
+
+      <h3>A master dough, and where to take it</h3>
+      <p>A reliable all-purpose starting point — enough for two 12-inch pies or one large pan:</p>
+      <ul>
+        <li><strong>500g</strong> bread flour (or 00 for Neapolitan)</li>
+        <li><strong>325g</strong> water (65% hydration) — cool, not warm</li>
+        <li><strong>10g</strong> fine salt (2%)</li>
+        <li><strong>2g</strong> instant dry yeast (0.4%) for a long cold rise, or 5g for same-day</li>
+      </ul>
+      <p>Mix until shaggy, rest 20 minutes (the autolyse), then knead or fold until smooth and elastic. Bulk-rise 1–2 hours at room temperature, divide into balls, and cold-ferment 24–72 hours. Pull the dough out 1–2 hours before baking so it comes to room temperature — cold dough fights you and bakes dense. From here, raise the water for airier styles, switch to 00 and shorten the bake for Neapolitan, or enrich with oil for pan crusts.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>Weigh everything in grams. Baker's percentages — salt at 2%, yeast at 0.4%, water at whatever your style wants — are the language every pizzaiolo speaks, and a kitchen scale is the cheapest upgrade your pizza will ever get. Volume measures lie; the dough doesn't.</p>
+      </div>
+
+      <div class="callout">
+        <div class="callout-label">Common Mistakes</div>
+        <ul>
+          <li><strong>Warm water and a fast rise</strong> — you get bread-flavored dough with none of the depth. Cool water, cold time.</li>
+          <li><strong>Shaping cold dough</strong> — it snaps back and won't stretch. Always temper it to room temperature first.</li>
+          <li><strong>A rolling pin</strong> — it crushes the gas you spent two days developing. Stretch by hand and leave the rim alone.</li>
+          <li><strong>Under-salting</strong> — 2% salt isn't seasoning, it's structure; it also reins in the yeast. Skip it and the dough is slack and bland.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 2. THE STYLE SETS THE RULES -->
+    <article class="section" id="styles">
+      <div class="section-number">Section 02</div>
+      <h2>The Style Sets the Rules</h2>
+      <p class="hook">You don't choose a style at the end and drape it over your toppings. The style is the first decision, and it dictates the dough, the sauce, the cheese, the oven, and how much you're allowed to pile on.</p>
+
+      <h3>The styles, and what defines each</h3>
+      <ul>
+        <li><strong>Neapolitan</strong> — 00 flour, ~60% hydration, a screaming 850–900°F oven for 60–90 seconds. Soft, tender, leopard-spotted. The center is meant to be slightly wet ("soup") — but that means it tolerates almost no extra moisture. Minimalist by law.</li>
+        <li><strong>New York</strong> — bread flour, ~62% hydration, a little oil and sugar, baked around 550°F. Foldable, sturdy, the great all-rounder. Low-moisture mozzarella and a cooked, oregano-forward sauce.</li>
+        <li><strong>Detroit</strong> — high-hydration dough pressed into an oiled steel pan, cheese (brick or low-moisture mozz) taken all the way to the edge so it fries into a lacy <em>frico</em> crust. Sauce goes on <em>top</em>, in stripes, after the bake or just before. Holds enormous load.</li>
+        <li><strong>Sicilian &amp; Grandma</strong> — thick (Sicilian) or thin-ish (Grandma) square pan pizzas, robust and oily-crisp on the bottom. Forgiving, generous, built for a crowd.</li>
+        <li><strong>Roman al taglio</strong> — very high hydration (75–80%), long ferment, baked in long trays and sold by weight. Light, crisp-bottomed, open-crumbed; a canvas for elaborate, even raw, toppings.</li>
+        <li><strong>Roman tonda &amp; tavern thin</strong> — cracker-thin, rolled or pressed flat, baked crisp with no real rim. Tavern (party-cut) is the Midwest bar classic. Almost no load tolerance — keep it light.</li>
+        <li><strong>Chicago deep dish</strong> — a tall, buttery pastry-like crust in a deep pan, layered <em>inverted</em>: cheese on the bottom against the dough, then fillings, then chunky tomato on top. Bakes 30–40 minutes. A casserole that happens to be pizza.</li>
+      </ul>
+
+      <div class="callout">
+        <div class="callout-label">The Big Idea</div>
+        <p>Each style carries a <strong>load capacity</strong> — how much wet sauce, cheese, and topping it can take before the center goes soggy. A Detroit pan can shoulder a mountain; a Neapolitan can barely take a second handful of mozzarella. The builder makes this explicit with a moisture meter. The principle holds everywhere: <em>respect the capacity of the crust you chose.</em></p>
+      </div>
+    </article>
+
+    <!-- 3. SAUCE -->
+    <article class="section" id="sauce">
+      <div class="section-number">Section 03</div>
+      <h2>Sauce: Less Than You Think</h2>
+      <p class="hook">Pizza sauce is not pasta sauce. It is thinner, simpler, and used in a quantity that always looks too small. The oven is going to concentrate it.</p>
+
+      <h3>Raw versus cooked</h3>
+      <p>The great Neapolitan and New York sauce is <strong>uncooked</strong>: good canned San Marzano tomatoes, crushed by hand, with salt and maybe a tear of basil. It cooks on the pie, in the oven, where it should. Cooking the sauce first — softening garlic and onion, adding oregano, simmering it down — gives the seasoned, herby "pizzeria" flavor of pan and Sicilian styles. Neither is wrong; they belong to different pizzas. Raw is brighter; cooked is rounder and more forgiving of a long bake.</p>
+
+      <h3>Beyond red</h3>
+      <p>A <strong>white pizza</strong> swaps tomato for a garlic-and-oil base or a thin béchamel — the cheese and toppings carry the dish. <strong>Pesto</strong> as a base wants the same off-the-oven caution it gets on pasta: a thin layer, and don't bake it to death. <strong>Vodka sauce</strong> — tomato softened with cream and a little chili — is the modern slice-shop darling and pairs beautifully with hot honey. And then the American specialties: <strong>BBQ</strong>, buffalo, even a ranch base. Heresy to a Neapolitan; dinner to everyone else.</p>
+
+      <h3>How much, and how to spread it</h3>
+      <p>A 12-inch pie wants roughly a third of a cup of sauce — a ladleful spread in a spiral with the back of the spoon, stopping short of the rim. Too much sauce is the second most common cause of a soggy center (too much wet cheese is the first). On a Detroit or a deep dish the rules invert: the sauce goes on top, where it can't waterlog the crust.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>Drain or reduce a watery canned tomato before it ever touches the dough. A sauce you can mound on a spoon without it running is a sauce that won't flood your pizza. Strain off the packing liquid; keep the pulp.</p>
+      </div>
+    </article>
+
+    <!-- 4. CHEESE -->
+    <article class="section" id="cheese">
+      <div class="section-number">Section 04</div>
+      <h2>Cheese &amp; the Melt</h2>
+      <p class="hook">The cheese you buy and the form you buy it in matter more than the brand. Moisture and fat content decide whether your pie browns and stretches or weeps and slides.</p>
+
+      <h3>Fresh versus low-moisture mozzarella</h3>
+      <p><strong>Fresh mozzarella</strong> (fior di latte, or buffalo) is milky, soft, and beautiful — and full of water. It's the Neapolitan classic, but in any slower oven it floods the pie. Tear it, and let it drain on paper towels first; on a New York pie, add it in patches rather than a blanket. <strong>Low-moisture mozzarella</strong> — the shrink-wrapped block — is the workhorse of American pizza: it melts into a cohesive, browning, stretchy layer that fresh mozzarella can't match. Shred it yourself; pre-shredded is coated in cellulose that fights the melt.</p>
+
+      <h3>Building a blend</h3>
+      <p>Few great pizzas are one cheese. Low-moisture mozz for melt and stretch; a little <strong>provolone</strong> for sharpness; a dusting of <strong>Parmigiano or pecorino</strong> for salt and umami; dollops of <strong>ricotta</strong> for soft, cool pockets; <strong>gorgonzola</strong> for funk on a white pie with honey. Detroit's signature is <strong>brick cheese</strong>, taken to the pan edge so it caramelizes into the frico crust. The blend is where a home pizza starts tasting like a pizzeria's.</p>
+
+      <h3>When to add it</h3>
+      <p>On a hot, fast bake, cheese goes on with everything else. On a longer bake, or with delicate fresh mozzarella, hold the cheese back and add it partway through, so it melts without browning to leather or weeping its water onto the crust. Burrata and fresh basil never go in the oven at all — they go on after.</p>
+
+      <div class="callout">
+        <div class="callout-label">Common Mistakes</div>
+        <ul>
+          <li><strong>Pre-shredded "pizza blend"</strong> — anti-caking cellulose is why it clumps and never quite melts. Buy the block, shred it cold.</li>
+          <li><strong>A solid blanket of fresh mozzarella</strong> — it's a puddle waiting to happen. Patches, drained, on a pie that bakes fast.</li>
+          <li><strong>Too much cheese, full stop</strong> — the number-one cause of the soggy center. The crust has to breathe.</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- 5. TOPPINGS & MOISTURE -->
+    <article class="section" id="toppings">
+      <div class="section-number">Section 05</div>
+      <h2>Toppings &amp; the Moisture Budget</h2>
+      <p class="hook">Every topping is a deposit or a withdrawal from your crust's moisture budget. Spend more water than the style can evaporate, and the center collapses into a wet, doughy disappointment.</p>
+
+      <h3>The wet ones will sink your pizza</h3>
+      <p>Raw mushrooms, fresh tomato slices, raw spinach, zucchini, pineapple — these are mostly water, and a pizza oven cannot drive it all off before the crust is done. Left raw, they steam, weep, and leave a pale wet patch. The fix is always the same: <strong>cook the water out first.</strong> Sauté mushrooms until they give up their liquid and brown. Roast or grill peppers, eggplant, zucchini. Salt and drain tomato slices. Wilt and squeeze spinach. A pre-cooked topping is a withdrawal turned into a deposit.</p>
+
+      <h3>Raw belongs on top, or after the oven</h3>
+      <p>Some things are better never baked: arugula, fresh basil, prosciutto, a shower of parmesan, a drizzle of good oil. They go on when the pizza comes out, so their freshness and aroma survive. A Roman al taglio or a New York pie finished with peppery arugula and torn prosciutto is using raw deliberately — as contrast, not as a baked topping.</p>
+
+      <h3>Fewer, better, distributed</h3>
+      <p>The pizzeria instinct is restraint: two or three toppings, placed so every slice gets some, never a wet heap in the middle. Pre-cook what needs cooking, slice thin so heat penetrates, and remember that the cheese and sauce already brought their own moisture to the budget. The greatest pizzas in the world are nearly always the simplest.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>Par-cook any topping you'd hesitate to eat raw and watery. Mushrooms lose 70% of their weight in water when sautéed — pile those same raw mushrooms on instead and that water ends up in your crust. The pan is where you protect the bake.</p>
+      </div>
+    </article>
+
+    <!-- 6. BALANCE -->
+    <article class="section" id="balance">
+      <div class="section-number">Section 06</div>
+      <h2>Acid, Salt, Fat &amp; Heat</h2>
+      <p class="hook">A balanced pizza tastes "complete" in a way you can't quite name. The four pillars are how you get there — and how you diagnose a pie that's almost-but-not-quite right.</p>
+
+      <h3>Acid: the brightness</h3>
+      <p>Tomato brings acid built in, which is half of why a red pie tastes alive. A white pizza has to find it elsewhere — a squeeze of lemon, pickled chilies, a scatter of capers, a balsamic drizzle, the tang of goat cheese. A rich, cheesy white pie with no acid eats heavy by the third slice. Reach for brightness before you reach for more cheese.</p>
+
+      <h3>Salt: layered everywhere</h3>
+      <p>Salt arrives from the dough, the sauce, the cheese, and the cured meats — which is exactly why pizza is so easy to over-salt and so often under-seasoned at the dough stage. Pecorino, anchovy, pepperoni, and olives are salt bombs; if you're using them, ease off elsewhere. Taste your sauce before it goes on.</p>
+
+      <h3>Fat: carry and richness</h3>
+      <p>Fat is the cheese, the oil under a Detroit, the rendered fat of a cup-and-char pepperoni, the finishing drizzle. It carries flavor and gives the mouthfeel that makes pizza crave-able — but unbalanced fat with no acid or heat to cut it turns leaden. A grassy olive oil at the end adds aroma, not just grease.</p>
+
+      <h3>Heat: a decision</h3>
+      <p>Chili flakes in the sauce, Calabrian chili or 'nduja as a topping, hot honey or chili oil at the finish — heat on pizza should be intentional. Hot honey over a spicy soppressata pie is a modern classic precisely because the sweet-heat-salt-fat axis is in perfect tension. Plenty of perfect pizzas have no heat at all.</p>
+
+      <div class="callout">
+        <div class="callout-label">The Diagnostic</div>
+        <p>Taste a finished slice. <strong>Heavy?</strong> Acid — lemon, chili, something pickled. <strong>Flat?</strong> Salt, probably a hard grating cheese. <strong>Greasy and dull?</strong> It needs acid or heat to cut the fat. <strong>Boring?</strong> A finishing move: fresh herbs, hot honey, good oil, flaky salt.</p>
+      </div>
+    </article>
+
+    <!-- 7. THE BAKE -->
+    <article class="section" id="bake">
+      <div class="section-number">Section 07</div>
+      <h2>The Bake</h2>
+      <p class="hook">You can do everything else perfectly and a bad bake will ruin it. Heat — how much, from where, and onto what surface — is the final and least forgiving variable.</p>
+
+      <h3>Hotter is better, almost always</h3>
+      <p>Pizza wants the hottest oven you can give it. A Neapolitan needs 850–900°F and bakes in 90 seconds; a home oven maxing out at 550°F is a different game that calls for a different style (New York, pan, Sicilian) and a longer bake. The enemy is the middle: an oven hot enough to dry the toppings but too slow to crisp the crust before everything overcooks. Know your oven's ceiling and choose a style that fits it.</p>
+
+      <h3>Steel beats stone beats sheet pan</h3>
+      <p>A pizza needs fierce heat from <em>below</em> to set and crisp the bottom before the top is done. A <strong>baking steel</strong> conducts heat faster than a stone and is the single best upgrade for home pizza — preheated for 45 minutes to an hour near the top of the oven, it gives a bottom char a sheet pan never will. A stone is the next best thing. For pan styles, a heavy steel or cast-iron pan with oil <em>is</em> the heat-transfer surface, and it fries the bottom as it bakes.</p>
+
+      <h3>Read the leopard</h3>
+      <p>The mark of a properly baked Neapolitan is <em>leoparding</em> — dark, almost-black spots across a puffed, tender rim, not a uniform tan. It signals that the dough hit the heat hard and fast. For slower styles, you want the bottom set and golden (lift an edge and look) and the cheese melted and just starting to brown at the edges. Undercarriage first: a beautifully topped pizza with a pale, floppy bottom is underbaked, full stop.</p>
+
+      <div class="callout tip">
+        <div class="callout-label">Pro Tip</div>
+        <p>Finish under the broiler. Bake until the bottom is set on your steel or stone, then switch to the top broiler for the last minute to char the cheese and rim — it's the closest a home oven gets to a wood fire's top-down heat. Watch it like a hawk; it goes from leopard to char in seconds.</p>
+      </div>
+    </article>
+
+    <!-- 8. FINISHING -->
+    <article class="section" id="finishing">
+      <div class="section-number">Section 08</div>
+      <h2>Finishing After the Oven</h2>
+      <p class="hook">The last ten seconds — done off the heat, on the cutting board — add the layer the oven can't. Pizzerias never skip them.</p>
+
+      <h3>What goes on after the bake</h3>
+      <p>Fresh basil (torn, so it doesn't blacken), a drizzle of grassy extra-virgin olive oil, a shower of microplaned Parmigiano, peppery arugula, draped prosciutto or torn burrata, hot honey, chili oil, a few flakes of crunchy salt, a hit of dried oregano, a squeeze of lemon. None of these survive the oven well; all of them transform the pie. Choose one or two — the goal is a finishing accent, not a second pizza.</p>
+
+      <h3>Rest, then cut</h3>
+      <p>Let the pizza sit for one to two minutes before cutting. Straight out of the oven the cheese is molten and the crumb is still setting; cut immediately and the toppings slide off and the slice goes limp. A short rest lets it firm into something that holds its shape on the lift. Cut with a rocking knife or a wheel in confident strokes — sawing drags the toppings around.</p>
+
+      <h3>The contrast principle</h3>
+      <p>The best finishing moves add what the baked pizza lacks: freshness against richness (basil, arugula), brightness against fat (lemon, balsamic), sweetness against heat (hot honey), crunch and sparkle against soft (flaky salt). A pizza that's all one note — all rich, all soft, all savory — is exactly the pizza a thirty-second finish rescues.</p>
+
+      <div class="callout">
+        <div class="callout-label">Common Mistakes</div>
+        <ul>
+          <li><strong>Cutting immediately</strong> — molten cheese and sliding toppings. Give it ninety seconds.</li>
+          <li><strong>Baking the delicate stuff</strong> — basil blackens, prosciutto turns to jerky, arugula wilts to nothing. They go on after.</li>
+          <li><strong>Forgetting the finish entirely</strong> — a plain baked pie is good; the same pie with oil, salt, and a torn herb is the one people remember.</li>
+        </ul>
+      </div>
+    </article>
+
+  </main>
+</div>
+
+<footer class="site-footer">
+  <p>A reference for cooks who take their pizza seriously.</p>
+</footer>
+
+<script>
+  // Highlight active nav link on scroll
+  (function () {
+    const sections = document.querySelectorAll('.section[id]');
+    const sidebarLinks = document.querySelectorAll('.sidebar a[href^="#"]');
+    const mobileLinks = document.querySelectorAll('.mobile-nav a[href^="#"]');
+
+    if (!sections.length) return;
+
+    function setActive() {
+      let current = '';
+      for (const section of sections) {
+        const top = section.getBoundingClientRect().top;
+        if (top <= 120) current = section.id;
+      }
+      for (const link of sidebarLinks) {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+      }
+      for (const link of mobileLinks) {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+      }
+    }
+
+    window.addEventListener('scroll', setActive, { passive: true });
+    setActive();
+  })();
+</script>
+
+</body>
+</html>

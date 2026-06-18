@@ -1,0 +1,1917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pizza Builder — Compose a Restaurant-Level Pizza</title>
+<style>
+:root {
+  --bg: #faf8f5;
+  --surface: #ffffff;
+  --text: #2c2c2c;
+  --muted: #6b6560;
+  --accent: #c43d2e;
+  --accent-light: #f8ddd6;
+  --accent-dark: #9e2e22;
+  --border: #e4dfd8;
+  --warm: #c4854c;
+  --warm-light: #fdf3ee;
+  --warm-border: #e6c2a6;
+  --terra: #9c3535;
+  --good: #5a7247;
+  --font-body: 'Georgia','Times New Roman',serif;
+  --font-ui: -apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);line-height:1.65;font-size:1rem}
+
+/* Header */
+.header{text-align:center;padding:2.5rem 1.5rem 2rem;border-bottom:1px solid var(--border);background:var(--surface)}
+.header h1{font-family:var(--font-ui);font-size:clamp(1.5rem,3.5vw,2.2rem);font-weight:700;letter-spacing:-0.02em;margin-bottom:0.3rem}
+.header p{color:var(--muted);font-size:0.95rem;max-width:32rem;margin:0 auto;font-style:italic}
+
+/* Progress */
+.progress-bar{display:flex;gap:0;background:var(--surface);border-bottom:1px solid var(--border);padding:0.5rem 1rem;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.progress-step{flex:1;min-width:0;text-align:center;font-family:var(--font-ui);font-size:0.7rem;letter-spacing:0.03em;padding:0.5rem 0.25rem;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.progress-step.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.progress-step.done{color:var(--accent-dark);border-bottom-color:var(--accent-light)}
+.progress-step:hover{color:var(--accent)}
+
+/* Progress rail & always-visible nav */
+.layout{display:flex;flex-direction:column}
+.rail{position:sticky;top:0;z-index:50}
+.rail-nav{position:fixed;bottom:0;left:0;right:0;z-index:60;display:flex;gap:0.6rem;padding:0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom));background:var(--surface);border-top:1px solid var(--border)}
+.rail-nav .btn{flex:1}
+@media(min-width:901px){
+  .layout{flex-direction:row;align-items:flex-start;gap:1rem;max-width:64rem;margin:0 auto;padding:0 1rem}
+  .rail{top:3.2rem;width:13rem;flex-shrink:0;padding:1.75rem 0 2rem;max-height:calc(100vh - 3.2rem);overflow-y:auto}
+  .progress-bar{flex-direction:column;background:transparent;border-bottom:none;padding:0;overflow-x:visible}
+  .progress-step{flex:none;text-align:left;font-size:0.8rem;padding:0.5rem 0.85rem;border-bottom:none;border-left:2px solid transparent;border-radius:0 6px 6px 0;white-space:normal}
+  .progress-step.active{border-left-color:var(--accent);background:var(--accent-light)}
+  .progress-step.done{border-left-color:var(--accent-light)}
+  .rail-nav{position:static;margin-top:1.25rem;padding:0 0.85rem;background:transparent;border-top:none}
+  .main{flex:1;min-width:0;padding-bottom:4rem}
+}
+
+/* Main */
+.main{max-width:46rem;margin:0 auto;padding:1.5rem 1rem 6.5rem}
+
+/* Stage */
+.stage{display:none;animation:fadeIn 0.3s ease}
+.stage.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.stage-title{font-family:var(--font-ui);font-size:1.4rem;font-weight:700;margin-bottom:0.2rem}
+.stage-sub{color:var(--muted);font-size:0.92rem;margin-bottom:1.5rem;font-style:italic}
+
+/* Category groups */
+.cat-group{margin-bottom:1.5rem}
+.cat-label{font-family:var(--font-ui);font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem}
+
+/* Cards */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.6rem}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:0.7rem 0.85rem;cursor:pointer;transition:all 0.15s}
+.card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.card.selected{border-color:var(--accent);background:var(--accent-light)}
+.card .name{font-family:var(--font-ui);font-size:0.88rem;font-weight:600;margin-bottom:0.15rem}
+.card .desc{font-size:0.78rem;color:var(--muted);line-height:1.4}
+.card .badge,.premade-card .badge{display:inline-block;font-family:var(--font-ui);font-size:0.6rem;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--warm);background:var(--warm-light);border:1px solid var(--warm-border);padding:0.1rem 0.4rem;border-radius:1rem;margin-bottom:0.3rem}
+.card .shape-meta{display:flex;gap:0.25rem;flex-wrap:wrap;margin-top:0.35rem}
+.card .shape-tag{font-family:var(--font-ui);font-size:0.6rem;padding:0.1rem 0.4rem;border-radius:1rem;background:var(--bg);border:1px solid var(--border);color:var(--muted)}
+
+/* Veg prep selector */
+.veg-card{padding:0.7rem 0.85rem}
+.veg-card .prep-row{display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.4rem}
+.prep-btn{font-family:var(--font-ui);font-size:0.68rem;padding:0.2rem 0.55rem;border-radius:1rem;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--muted);transition:all 0.15s}
+.prep-btn:hover{border-color:var(--accent);color:var(--accent)}
+.prep-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.wet-tag{display:inline-block;font-family:var(--font-ui);font-size:0.58rem;font-weight:700;letter-spacing:0.03em;text-transform:uppercase;color:var(--terra);background:#f8e8e6;border:1px solid #dbb0aa;padding:0.05rem 0.4rem;border-radius:1rem;margin-left:0.3rem}
+
+/* Sauce builder */
+.dress-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:1rem}
+.dress-section h4{font-family:var(--font-ui);font-size:0.85rem;font-weight:600;margin-bottom:0.5rem}
+.chip-row{display:flex;flex-wrap:wrap;gap:0.35rem}
+.chip{font-family:var(--font-ui);font-size:0.78rem;padding:0.3rem 0.7rem;border-radius:1rem;border:1px solid var(--border);background:var(--surface);cursor:pointer;color:var(--text);transition:all 0.15s}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
+.chip .rec{color:var(--warm);margin-left:0.2rem;font-size:0.65rem}
+
+/* Dough spec */
+.dough-spec{background:var(--warm-light);border:1px solid var(--warm-border);border-radius:var(--radius);padding:1rem 1.1rem;margin:0.5rem 0 1rem}
+.dough-spec h4{font-family:var(--font-ui);font-size:0.85rem;font-weight:700;margin-bottom:0.5rem;color:var(--warm)}
+.spec-list{display:grid;grid-template-columns:auto 1fr;gap:0.25rem 0.9rem;font-family:var(--font-ui);font-size:0.8rem}
+.spec-list dt{font-weight:700;color:var(--accent-dark)}
+.spec-list dd{color:var(--text)}
+
+/* Balance meters */
+.balance-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0}
+.balance-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem}
+.balance-item .pillar-name{font-family:var(--font-ui);font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.4rem}
+.meter-track{height:8px;background:#eee;border-radius:4px;overflow:hidden;margin-bottom:0.4rem}
+.meter-fill{height:100%;border-radius:4px;transition:width 0.4s ease}
+.meter-fill.acid{background:#c9a52c}
+.meter-fill.salt{background:#8b7355}
+.meter-fill.fat{background:var(--warm)}
+.meter-fill.heat{background:var(--terra)}
+.meter-fill.load-good{background:var(--good)}
+.meter-fill.load-watch{background:var(--warm)}
+.meter-fill.load-bad{background:var(--terra)}
+.balance-item .sources{font-size:0.75rem;color:var(--muted);line-height:1.4}
+.balance-item .suggestion{font-size:0.8rem;color:var(--terra);margin-top:0.35rem;font-style:italic}
+.fix-links{display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.4rem}
+.fix-btn{font-family:var(--font-ui);font-size:0.72rem;padding:0.25rem 0.6rem;border-radius:1rem;border:1px solid var(--accent);background:var(--accent-light);color:var(--accent-dark);cursor:pointer;transition:all 0.15s;text-align:left;line-height:1.3}
+.fix-btn:hover{background:var(--accent);color:#fff}
+
+/* Load gauge (signature) */
+.load-gauge{border-radius:var(--radius);padding:1.25rem 1.4rem;margin-bottom:1.25rem;border:1.5px solid}
+.load-gauge.good{background:#eef4e9;border-color:#b3cda0}
+.load-gauge.watch{background:var(--warm-light);border-color:var(--warm-border)}
+.load-gauge.bad{background:#f8e8e6;border-color:#dbb0aa}
+.load-gauge h4{font-family:var(--font-ui);font-size:1rem;font-weight:700;margin-bottom:0.15rem}
+.load-gauge.good h4{color:var(--good)}
+.load-gauge.watch h4{color:var(--warm)}
+.load-gauge.bad h4{color:var(--terra)}
+.load-gauge .load-num{font-family:var(--font-ui);font-size:0.78rem;color:var(--muted);margin-bottom:0.5rem}
+.load-gauge p{font-size:0.9rem;margin-top:0.3rem}
+
+/* Premade sauces */
+.premade-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.6rem;margin-bottom:1.5rem}
+.premade-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:0.7rem 0.85rem;cursor:pointer;transition:all 0.15s}
+.premade-card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.premade-card.selected{border-color:var(--accent);background:var(--accent-light)}
+.premade-card .name{font-family:var(--font-ui);font-size:0.88rem;font-weight:600;margin-bottom:0.15rem}
+.premade-card .desc{font-size:0.78rem;color:var(--muted);line-height:1.4}
+.howto-box{background:var(--warm-light);border:1px solid var(--warm-border);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:1.5rem}
+.howto-box h4{font-family:var(--font-ui);font-size:0.85rem;font-weight:700;margin-bottom:0.4rem;color:var(--warm)}
+.howto-box ul{margin:0.3rem 0 0 1.2rem;font-size:0.88rem;line-height:1.7}
+.howto-box li{margin-bottom:0.2rem}
+.or-divider{font-family:var(--font-ui);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);text-align:center;margin:1.25rem 0;position:relative}
+.or-divider::before,.or-divider::after{content:'';position:absolute;top:50%;width:calc(50% - 1.5rem);height:1px;background:var(--border)}
+.or-divider::before{left:0}
+.or-divider::after{right:0}
+
+/* Verdict */
+.verdict{border-radius:var(--radius);padding:1.25rem 1.4rem;margin-bottom:1.25rem;border:1.5px solid}
+.verdict h4{font-family:var(--font-ui);font-size:0.95rem;font-weight:700;margin-bottom:0.3rem}
+.verdict p{font-size:0.9rem}
+.verdict.good{background:#eef4e9;border-color:#b3cda0}
+.verdict.good h4{color:var(--good)}
+.verdict.ok{background:var(--warm-light);border-color:var(--warm-border)}
+.verdict.ok h4{color:var(--warm)}
+.verdict.bad{background:#f8e8e6;border-color:#dbb0aa}
+.verdict.bad h4{color:var(--terra)}
+.check-list{list-style:none;margin:1rem 0}
+.check-list li{display:flex;align-items:baseline;gap:0.6rem;padding:0.5rem 0;border-bottom:1px solid var(--border);font-size:0.9rem}
+.check-list .check-mark{font-family:var(--font-ui);color:var(--accent);font-weight:700;flex-shrink:0}
+
+/* Saved pizzas */
+.save-btn{font-family:var(--font-ui);font-size:0.88rem;font-weight:600;padding:0.65rem 1.5rem;border-radius:var(--radius);border:1.5px solid var(--accent);background:var(--accent-light);color:var(--accent-dark);cursor:pointer;transition:all 0.15s;margin-right:0.5rem}
+.save-btn:hover{background:var(--accent);color:#fff}
+.save-confirm{font-family:var(--font-ui);font-size:0.82rem;color:var(--accent);margin-left:0.5rem;opacity:0;transition:opacity 0.3s}
+.save-confirm.show{opacity:1}
+.saved-link-btn{font-family:var(--font-ui);font-size:0.82rem;color:var(--accent);cursor:pointer;background:none;border:1px solid var(--accent);padding:0.35rem 0.9rem;border-radius:var(--radius);transition:all 0.15s;text-decoration:none}
+.saved-link-btn:hover{background:var(--accent);color:#fff}
+.saved-page{max-width:46rem;margin:0 auto;padding:2rem 1rem 4rem}
+.saved-page h2{font-family:var(--font-ui);font-size:1.4rem;font-weight:700;margin-bottom:0.3rem}
+.saved-page .saved-sub{color:var(--muted);font-size:0.92rem;font-style:italic;margin-bottom:1.5rem}
+.saved-page .back-link{font-family:var(--font-ui);font-size:0.82rem;color:var(--accent);cursor:pointer;background:none;border:none;text-decoration:underline;margin-bottom:1.5rem;display:inline-block}
+.saved-page .back-link:hover{color:var(--accent-dark)}
+.saved-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.saved-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;transition:all 0.15s}
+.saved-card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.saved-card .saved-name-row{display:flex;align-items:center;gap:0.4rem;margin-bottom:0.15rem}
+.saved-card .saved-name{font-family:var(--font-ui);font-size:0.95rem;font-weight:600;flex:1;min-width:0}
+.saved-card .saved-name input{font-family:var(--font-ui);font-size:0.95rem;font-weight:600;border:1px solid var(--border);border-radius:4px;padding:0.15rem 0.4rem;width:100%;background:var(--bg)}
+.saved-card .saved-name input:focus{outline:none;border-color:var(--accent)}
+.saved-card .rename-btn{font-family:var(--font-ui);font-size:0.65rem;color:var(--muted);cursor:pointer;background:none;border:none;text-decoration:underline;flex-shrink:0}
+.saved-card .rename-btn:hover{color:var(--accent)}
+.saved-card .saved-date{font-family:var(--font-ui);font-size:0.7rem;color:var(--muted);margin-bottom:0.5rem}
+.saved-card .saved-preview{font-size:0.82rem;color:var(--text);line-height:1.5;margin-bottom:0.75rem}
+.saved-card .saved-actions{display:flex;gap:0.5rem}
+.saved-card .saved-actions button{font-family:var(--font-ui);font-size:0.78rem;padding:0.35rem 0.8rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:all 0.15s}
+.saved-card .load-btn{color:var(--accent);border-color:var(--accent)}
+.saved-card .load-btn:hover{background:var(--accent);color:#fff}
+.saved-card .del-btn{color:var(--muted)}
+.saved-card .del-btn:hover{border-color:var(--terra);color:var(--terra)}
+.saved-card .confirm-del{display:inline-flex;gap:0.3rem;align-items:center}
+.saved-card .confirm-del span{font-family:var(--font-ui);font-size:0.72rem;color:var(--terra)}
+.saved-card .confirm-del .yes-btn{color:var(--terra);border-color:var(--terra)}
+.saved-card .confirm-del .yes-btn:hover{background:var(--terra);color:#fff}
+.saved-card .confirm-del .no-btn{color:var(--muted)}
+.no-saved{font-family:var(--font-ui);font-size:0.92rem;color:var(--muted);font-style:italic;text-align:center;padding:3rem 1rem}
+
+/* Export buttons */
+.export-row{display:flex;gap:0.4rem;margin-top:0.75rem;flex-wrap:wrap}
+.export-btn{font-family:var(--font-ui);font-size:0.75rem;padding:0.35rem 0.7rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:all 0.15s}
+.export-btn:hover{border-color:var(--accent);color:var(--accent)}
+.export-toast{font-family:var(--font-ui);font-size:0.75rem;color:var(--accent);margin-left:0.3rem;opacity:0;transition:opacity 0.3s}
+.export-toast.show{opacity:1}
+
+/* Collapsible recipe */
+.recipe-toggle{font-family:var(--font-ui);font-size:0.8rem;color:var(--warm);cursor:pointer;background:none;border:none;padding:0.3rem 0;margin-top:0.3rem;transition:color 0.15s}
+.recipe-toggle:hover{color:var(--terra)}
+.recipe-expand{display:none;background:var(--warm-light);border:1px solid var(--warm-border);border-radius:var(--radius);padding:0.75rem 1rem;margin-top:0.4rem}
+.recipe-expand.open{display:block}
+.recipe-expand h5{font-family:var(--font-ui);font-size:0.78rem;font-weight:700;color:var(--warm);margin-bottom:0.3rem}
+.recipe-expand ul{margin:0.2rem 0 0 1.2rem;font-size:0.82rem;line-height:1.6}
+.recipe-expand li{margin-bottom:0.15rem}
+
+/* Start screen */
+.start-screen{max-width:46rem;margin:0 auto;padding:2rem 1rem 4rem}
+.start-fork{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem}
+.fork-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--radius);padding:1.5rem;cursor:pointer;text-align:center;transition:all 0.15s}
+.fork-card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.fork-card h3{font-family:var(--font-ui);font-size:1.1rem;font-weight:700;margin-bottom:0.3rem}
+.fork-card p{font-size:0.85rem;color:var(--muted)}
+.template-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.75rem}
+.template-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:1rem;cursor:pointer;transition:all 0.15s}
+.template-card:hover{border-color:var(--accent);box-shadow:var(--shadow)}
+.template-card .name{font-family:var(--font-ui);font-size:0.95rem;font-weight:600;margin-bottom:0.2rem}
+.template-card .desc{font-size:0.8rem;color:var(--muted);line-height:1.4;margin-bottom:0.5rem}
+.template-card .tags{display:flex;flex-wrap:wrap;gap:0.25rem}
+.template-card .tag{font-family:var(--font-ui);font-size:0.62rem;padding:0.12rem 0.45rem;border-radius:1rem;background:var(--accent-light);color:var(--accent-dark)}
+.template-banner{font-family:var(--font-ui);font-size:0.82rem;background:var(--accent-light);color:var(--accent-dark);padding:0.5rem 1rem;border-radius:var(--radius);margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center}
+.template-banner button{font-family:var(--font-ui);font-size:0.72rem;background:none;border:1px solid var(--accent);color:var(--accent);padding:0.2rem 0.6rem;border-radius:var(--radius);cursor:pointer}
+.template-banner button:hover{background:var(--accent);color:#fff}
+@media(max-width:500px){
+  .start-fork{grid-template-columns:1fr}
+  .template-grid{grid-template-columns:1fr 1fr}
+}
+
+/* Summary card */
+.summary-card{background:var(--surface);border:2px solid var(--accent);border-radius:var(--radius);padding:2rem;margin-top:1rem}
+.summary-card h3{font-family:var(--font-ui);font-size:1.1rem;font-weight:700;margin-bottom:0.15rem}
+.summary-card .summary-sub{color:var(--muted);font-size:0.85rem;font-style:italic;margin-bottom:1.25rem}
+.summary-section{margin-bottom:1rem}
+.summary-section .ss-label{font-family:var(--font-ui);font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--accent);margin-bottom:0.3rem}
+.summary-section ul{list-style:none;font-size:0.88rem;line-height:1.6}
+.summary-section li::before{content:'· ';color:var(--accent);font-weight:700}
+.plating-tips{background:var(--warm-light);border:1px solid var(--warm-border);border-radius:var(--radius);padding:1rem;margin-top:1rem}
+.plating-tips h4{font-family:var(--font-ui);font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--warm);margin-bottom:0.4rem}
+.plating-tips ul{font-size:0.85rem;margin-left:1.2rem;color:var(--text)}
+.plating-tips li{margin-bottom:0.3rem}
+
+/* Buttons */
+.nav-buttons{display:flex;justify-content:space-between;margin-top:2rem;gap:1rem}
+.btn{font-family:var(--font-ui);font-size:0.88rem;font-weight:600;padding:0.65rem 1.5rem;border-radius:var(--radius);border:none;cursor:pointer;transition:all 0.15s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-dark)}
+.btn-secondary{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn:disabled{opacity:0.4;cursor:default}
+
+/* Reset button */
+.btn-reset{display:inline-block;margin-top:1.5rem;font-family:var(--font-ui);font-size:0.8rem;color:var(--muted);cursor:pointer;background:none;border:none;text-decoration:underline}
+.btn-reset:hover{color:var(--terra)}
+
+/* Selection count hint */
+.pick-hint{font-family:var(--font-ui);font-size:0.75rem;color:var(--muted);margin-bottom:1rem}
+
+/* Footer */
+.footer{text-align:center;padding:1.5rem;font-family:var(--font-ui);font-size:0.8rem;color:var(--muted);border-top:1px solid var(--border)}
+.footer a{color:var(--accent);text-decoration:none}
+.footer a:hover{text-decoration:underline}
+
+@media(max-width:500px){
+  .card-grid{grid-template-columns:1fr 1fr}
+  .balance-grid{grid-template-columns:1fr}
+  .summary-card{padding:1.25rem}
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+</head>
+<body>
+
+<style>
+.fb-topnav{position:sticky;top:0;z-index:9999;display:flex;align-items:center;justify-content:space-between;padding:0.6rem 1.2rem;background:#1a1a1a;color:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;border-bottom:1px solid #333}
+.fb-topnav__brand{color:#f5f5f5;text-decoration:none;font-weight:600;font-size:0.95rem;letter-spacing:-0.01em}
+.fb-topnav__brand:hover{color:#fff}
+.fb-topnav__links{display:flex;gap:0.25rem}
+.fb-topnav__link{color:#bbb;text-decoration:none;font-size:0.85rem;font-weight:500;padding:0.45rem 0.9rem;border-radius:6px;transition:background 0.15s,color 0.15s}
+.fb-topnav__link:hover{color:#fff;background:#2a2a2a}
+.fb-topnav__link--active{color:#fff;background:#2a2a2a}
+</style>
+<nav class="fb-topnav" aria-label="Food Builder navigation">
+  <a href="../" class="fb-topnav__brand">Food Builder</a>
+  <div class="fb-topnav__links">
+    <a href="../salad/" class="fb-topnav__link">Salads</a>
+    <a href="../sandwich/" class="fb-topnav__link">Sandwiches</a>
+    <a href="../pasta/" class="fb-topnav__link">Pasta</a>
+    <a href="../pizza/" class="fb-topnav__link fb-topnav__link--active">Pizza</a>
+  </div>
+</nav>
+
+<header class="header">
+  <h1>Pizza Builder</h1>
+  <p>Compose a restaurant-level pizza step by step. The style sets the rules — and your crust is keeping score on moisture.</p>
+  <p id="savedLink" style="margin-top:0.6rem"></p>
+</header>
+
+<div class="layout">
+<aside class="rail" id="railWrap">
+  <div class="progress-bar" id="progressBar"></div>
+  <div class="rail-nav" id="railNav"></div>
+</aside>
+<div class="main">
+  <div id="stageContainer"></div>
+</div>
+</div>
+
+<footer class="footer">
+  <a href="index.html">Back to the reference guide</a>
+</footer>
+
+<script>
+// ============================================================
+//  DATA
+// ============================================================
+
+// Sauce families
+const SAUCE_STYLES = [
+  {id:'red-raw',name:'Raw Tomato',desc:'Crushed San Marzano, uncooked — it cooks on the pie. Bright and pure. The Neapolitan & NY classic.'},
+  {id:'red-cooked',name:'Cooked Pizza Sauce',desc:'Simmered with garlic and oregano. Rounder, herby, forgiving of a long bake. Pan & Sicilian.'},
+  {id:'white',name:'White / Garlic-Oil',desc:'No tomato. A garlic-oil or béchamel base lets cheese and toppings carry the pie.'},
+  {id:'pesto',name:'Pesto',desc:'Basil, nuts, cheese, oil. Thin layer only — heat dulls it, so finish off the oven.'},
+  {id:'vodka',name:'Vodka / Pink',desc:'Tomato softened with cream and chili. The modern slice-shop darling — loves hot honey.'},
+  {id:'bbq',name:'BBQ / Specialty',desc:'Sweet-tangy barbecue base. Heresy to a Neapolitan; dinner to everyone else.'},
+];
+
+// Pizza styles — the engine driver. capacity = how much wet load the crust tolerates (2 low → 5 max).
+// affinity: 2 = classic, 1 = works, 0 = fighting
+const STYLES = [
+  {cat:'Neapolitan & Roman', items:[
+    {id:'neapolitan',name:'Neapolitan',desc:'00 flour, blistered in a 900°F oven for 90 seconds. Soft, tender, minimalist by law. The furnace heat flashes off the classic wet build — but little more.',weight:'delicate',crumb:'airy',family:'artisan',capacity:4,
+      dough:{flour:'00 (Caputo)',hydration:'60–62%',ferment:'8–24 h, mostly room temp',ball:'250–280 g',bake:'850–900°F · 60–90 sec'},
+      doughRecipe:'<ul><li>Mix 500g 00 flour, 310g cool water, 12g salt, 1g instant yeast until shaggy; rest 20 min</li><li>Knead until smooth and elastic, 8–10 min; bulk rise 2 h at room temp</li><li>Divide into 250–280g balls; cold-ferment 8–24 h, then 2 h at room temp before baking</li><li>Stretch by hand to ~11"; never touch the rim. Bake as hot as your oven goes</li></ul>',
+      affinity:{'red-raw':2,'red-cooked':1,white:2,pesto:1,vodka:1,bbq:0}},
+    {id:'romantaglio',name:'Roman al Taglio',desc:'Very high hydration, long ferment, baked in trays and cut by weight. Light, crisp-bottomed, open-crumbed — a canvas for bold toppings.',weight:'medium',crumb:'open & airy',family:'roman',capacity:4,
+      dough:{flour:'bread flour / 00 blend',hydration:'75–80%',ferment:'24–48 h cold',ball:'~1 kg per tray',bake:'525–550°F oiled tray · 12–18 min'},
+      doughRecipe:'<ul><li>Mix 500g flour, 390g water (78%), 11g salt, 2g yeast; fold (don\'t knead) every 30 min, 4 times</li><li>Cold-ferment 24–48 h; the dough should be slack and bubbly</li><li>Stretch gently into an oiled tray, dimpling with fingers; proof 1–2 h</li><li>Par-bake the base, then top and finish — crisp bottom, airy crumb</li></ul>',
+      affinity:{'red-raw':1,'red-cooked':1,white:2,pesto:2,vodka:1,bbq:1}},
+    {id:'tonda',name:'Roman Tonda',desc:'Cracker-thin and crisp, rolled flat with no real rim. Shatters when you bite. Keep it light.',weight:'delicate',crumb:'cracker-crisp',family:'thin',capacity:2,
+      dough:{flour:'00 or AP + a little oil',hydration:'55–58%',ferment:'24 h cold',ball:'~200 g, rolled thin',bake:'550°F · 7–9 min'},
+      doughRecipe:'<ul><li>Mix 500g flour, 285g water, 10g salt, 15g olive oil, 2g yeast; knead smooth</li><li>Cold-ferment 24 h; divide into ~200g balls</li><li>Roll (yes, roll) paper-thin — this style wants no puff</li><li>Top sparingly and bake on a hot steel until crisp and snappy</li></ul>',
+      affinity:{'red-raw':1,'red-cooked':2,white:1,pesto:1,vodka:1,bbq:1}},
+  ]},
+  {cat:'American Slice', items:[
+    {id:'newyork',name:'New York',desc:'Foldable, sturdy, the great all-rounder. High-gluten dough with a little oil and sugar; low-moisture mozz. Bakes around 550°F.',weight:'medium',crumb:'chewy',family:'american',capacity:3,
+      dough:{flour:'high-gluten bread flour',hydration:'62–64%',ferment:'24–72 h cold',ball:'~340 g (12–14")',bake:'550°F on steel · 6–8 min'},
+      doughRecipe:'<ul><li>Mix 500g bread flour, 315g water, 10g salt, 7g sugar, 12g oil, 2g yeast; knead until smooth</li><li>Cold-ferment 24–72 h — the longer, the more flavor and browning</li><li>Temper 1–2 h; hand-stretch to 14", leaving a modest rim</li><li>Bake on a preheated steel near the top, finish under the broiler for color</li></ul>',
+      affinity:{'red-raw':2,'red-cooked':2,white:2,pesto:1,vodka:2,bbq:1}},
+    {id:'tavern',name:'Tavern / Thin',desc:'Cracker crust, party-cut into squares. The Midwest bar classic — crisp, low-rise, restrained. Almost no load tolerance.',weight:'delicate',crumb:'cracker-crisp',family:'thin',capacity:2,
+      dough:{flour:'AP + a little oil',hydration:'50–55%',ferment:'same-day OK',ball:'rolled paper-thin',bake:'500–525°F · 10–12 min'},
+      doughRecipe:'<ul><li>Mix 500g AP flour, 270g water, 9g salt, 15g oil, 4g yeast; knead to a stiff dough</li><li>Short rest, 30–60 min — this is a same-day dough</li><li>Roll cracker-thin and dock all over with a fork to stop bubbling</li><li>Top lightly, bake crisp, and cut into squares (party-cut)</li></ul>',
+      affinity:{'red-raw':1,'red-cooked':2,white:1,pesto:0,vodka:1,bbq:1}},
+  ]},
+  {cat:'Pan & Square', items:[
+    {id:'detroit',name:'Detroit',desc:'Airy focaccia-like dough in an oiled steel pan; brick cheese to the edge fries into a lacy frico crust. Sauce goes on TOP. Carries a mountain.',weight:'hearty',crumb:'airy, fried-bottom',family:'pan',capacity:5,
+      dough:{flour:'bread flour',hydration:'70%',ferment:'24 h cold + pan proof',ball:'~280–300 g per pan',bake:'500°F oiled steel pan · 12–15 min'},
+      doughRecipe:'<ul><li>Mix 350g bread flour, 245g water, 7g salt, 2g yeast; fold a few times, cold-ferment 24 h</li><li>Press into a well-oiled Detroit pan; proof until it fills the corners, 2–3 h</li><li>Cheese all the way to the edges so it caramelizes against the metal</li><li>Bake, then stripe cooked sauce on top — red top, never under</li></ul>',
+      affinity:{'red-raw':1,'red-cooked':2,white:1,pesto:0,vodka:1,bbq:1}},
+    {id:'sicilian',name:'Sicilian',desc:'Thick, spongy square baked in an oiled pan, crisp-fried on the bottom. Robust, generous, built for a crowd.',weight:'hearty',crumb:'thick & spongy',family:'pan',capacity:4,
+      dough:{flour:'bread flour',hydration:'70%',ferment:'overnight + pan proof',ball:'half-sheet pan',bake:'500°F oiled pan · 15–20 min'},
+      doughRecipe:'<ul><li>Mix 600g bread flour, 420g water, 13g salt, 3g yeast; fold and rest, cold-ferment overnight</li><li>Stretch into a generously oiled half-sheet; proof 2–3 h until puffy</li><li>Top with cooked sauce and mozzarella; the oil fries the base as it bakes</li><li>Bake until the bottom is deep golden and crisp</li></ul>',
+      affinity:{'red-raw':1,'red-cooked':2,white:1,pesto:1,vodka:1,bbq:1}},
+    {id:'grandma',name:'Grandma',desc:'Thin-ish square pressed into an oiled sheet pan, same-day. Crisp bottom, fast bake — the home cook\'s pan pizza.',weight:'medium',crumb:'thin & crisp',family:'pan',capacity:4,
+      dough:{flour:'bread / AP',hydration:'65%',ferment:'same-day to overnight',ball:'quarter/half sheet, thin',bake:'525°F oiled pan · 12–16 min'},
+      doughRecipe:'<ul><li>Mix 400g flour, 260g water, 9g salt, 14g oil, 4g yeast; knead briefly</li><li>Rest 1–2 h, then press thin into an oiled sheet pan (let it relax if it fights)</li><li>Dot with raw San Marzano and mozzarella; garlic and oregano are traditional</li><li>Bake hot until the cheese browns and the bottom crisps</li></ul>',
+      affinity:{'red-raw':2,'red-cooked':2,white:1,pesto:1,vodka:1,bbq:0}},
+  ]},
+  {cat:'Deep Dish', items:[
+    {id:'chicago',name:'Chicago Deep Dish',desc:'A tall, buttery crust in a deep pan, layered INVERTED: cheese on the bottom, fillings, chunky tomato on top. A 35-minute bake. A casserole that happens to be pizza.',weight:'hearty',crumb:'buttery & tall',family:'deep',capacity:5,
+      dough:{flour:'AP + cornmeal + butter/oil',hydration:'55%',ferment:'same-day, short rest',ball:'~450 g per deep pan',bake:'425°F · 30–40 min'},
+      doughRecipe:'<ul><li>Mix 400g AP flour, 60g cornmeal, 250g water, 9g salt, 50g melted butter, 5g yeast</li><li>Knead lightly; rest 1 h — this is a rich, pastry-like dough, not a lean one</li><li>Press up the sides of a deep oiled pan; layer cheese, then fillings, then chunky tomato on top</li><li>Bake low and slow at 425°F for 30–40 min until the crust is deep gold</li></ul>',
+      affinity:{'red-raw':0,'red-cooked':2,white:0,pesto:0,vodka:1,bbq:0}},
+  ]},
+];
+
+// Premade sauces
+const PREMADE_SAUCES = [
+  {id:'pm-san-marzano',name:'Raw San Marzano (NY-style)',suffix:'al Pomodoro',desc:'Hand-crushed raw tomato, salt, a little oregano. The Joe\'s-style move — it cooks on the pie.',
+    style:'red-raw',fat:['evoo'],aromatics:['oregano-a','basil-a'],body:['crushed-tomato'],umami:[],classicStyles:['neapolitan','newyork','grandma'],
+    howto:'<ul><li>Hand-crush one 28-oz can of San Marzano tomatoes (drain off the watery packing liquid first)</li><li>Season with ¾ tsp salt, a pinch of dried oregano, and a little olive oil</li><li>Do not cook it — spread a thin spiral on the dough and let the oven do the work</li><li>Less than you think: about ⅓ cup for a 12" pie</li></ul>'},
+  {id:'pm-marinara-noz',name:'Marinara (No Cheese)',suffix:'Marinara',desc:'Tomato, garlic, oregano, oil — no cheese at all. The original Neapolitan pie.',
+    style:'red-raw',fat:['evoo'],aromatics:['garlic','oregano-a','basil-a'],body:['crushed-tomato'],umami:[],classicStyles:['neapolitan','grandma'],
+    howto:'<ul><li>Spread thin raw crushed San Marzano over the dough</li><li>Scatter thinly sliced raw garlic and a generous pinch of dried oregano</li><li>Drizzle with olive oil — no cheese</li><li>Bake hot; finish with fresh basil and more oil</li></ul>'},
+  {id:'pm-pizza-sauce',name:'Classic Cooked Pizza Sauce',suffix:'',desc:'Simmered with garlic and oregano — the seasoned, herby pizzeria flavor.',
+    style:'red-cooked',fat:['evoo','garlic-oil'],aromatics:['garlic','oregano-a'],body:['cooked-tomato','tomato-paste-b'],umami:[],classicStyles:['newyork','sicilian','detroit','grandma','tavern','tonda'],
+    howto:'<ul><li>Warm 2 tbsp olive oil with 2 minced garlic cloves until fragrant</li><li>Add one 28-oz can crushed tomatoes, 1 tbsp tomato paste, 1 tsp oregano, salt, a pinch of sugar</li><li>Simmer 20–30 min until thick enough to mound on a spoon</li><li>Cool before saucing — a thick sauce protects the crust</li></ul>'},
+  {id:'pm-vodka',name:'Vodka / Pink Sauce',suffix:'alla Vodka',desc:'Tomato softened with cream, chili, and a splash of vodka. Loves hot honey.',
+    style:'vodka',fat:['butter-f'],aromatics:['garlic','chili-flake'],body:['cooked-tomato','cream-b','vodka-b'],umami:['parm-u'],classicStyles:['newyork','grandma'],
+    howto:'<ul><li>Soften garlic and chili flake in 2 tbsp butter; add ¼ cup tomato paste and fry dark</li><li>Deglaze with 2 tbsp vodka, then stir in ½ cup cream</li><li>Simmer to a thick blush sauce; finish with grated Parmigiano</li><li>Spread a thin layer — it\'s rich. Hot honey on top after the bake</li></ul>'},
+  {id:'pm-white',name:'White Garlic-Oil',suffix:'Bianca',desc:'No tomato — garlic-infused oil and black pepper. The cheese carries the pie.',
+    style:'white',fat:['garlic-oil','evoo'],aromatics:['garlic','black-pepper'],body:[],umami:['pecorino-u'],classicStyles:['neapolitan','romantaglio','newyork'],
+    howto:'<ul><li>Warm ¼ cup olive oil with 4 sliced garlic cloves until just golden — don\'t brown it</li><li>Brush the oil over the stretched dough; crack black pepper over</li><li>Add mozzarella and any toppings; a dusting of pecorino is traditional</li><li>Finish with fresh herbs and a squeeze of lemon for brightness</li></ul>'},
+  {id:'pm-bechamel',name:'Béchamel White',suffix:'Bianca',desc:'A thin white sauce base — silky, rich, the Roman-tray and Detroit white move.',
+    style:'white',fat:['butter-f'],aromatics:['black-pepper'],body:['bechamel-b'],umami:['parm-u'],classicStyles:['romantaglio','detroit'],
+    howto:'<ul><li>Melt 2 tbsp butter, whisk in 2 tbsp flour, cook 1 min</li><li>Whisk in 1 cup warm milk until smooth and thickened; season with salt, pepper, nutmeg</li><li>Keep it thin enough to spread but thick enough not to run</li><li>A light layer only — it\'s rich, and the oven won\'t evaporate it</li></ul>'},
+  {id:'pm-pesto',name:'Basil Pesto',suffix:'al Pesto',desc:'Basil, pine nuts, garlic, cheese, oil. Heat dulls it — thin layer, finish off the oven.',
+    style:'pesto',fat:['evoo'],aromatics:['garlic','basil-a'],body:['pesto-b'],umami:['parm-u','pecorino-u'],classicStyles:['romantaglio','neapolitan'],
+    howto:'<ul><li>Blend 2 cups basil, ⅓ cup pine nuts, 1 garlic clove, ½ cup olive oil, and a pinch of salt</li><li>Stir in ½ cup grated Parmigiano and pecorino</li><li>Spread a thin layer on the base, or swirl on near the end of the bake</li><li>For the brightest flavor, dot extra pesto on after the oven</li></ul>'},
+  {id:'pm-bbq',name:'BBQ Base',suffix:'',desc:'Sweet-tangy barbecue sauce — the base for a BBQ chicken pie.',
+    style:'bbq',fat:['butter-f'],aromatics:['onion-a'],body:['bbq-b'],umami:[],classicStyles:['newyork','grandma'],
+    howto:'<ul><li>Spread a thin layer of your favorite BBQ sauce over the dough</li><li>Top with mozzarella, a little sharp cheddar, sliced red onion, and cooked chicken</li><li>Bake until bubbling; the sauce caramelizes at the edges</li><li>Finish with fresh cilantro and a few extra dots of BBQ sauce</li></ul>'},
+  {id:'pm-deepdish',name:'Chunky Deep-Dish Tomato',suffix:'',desc:'Thick, barely-cooked crushed tomato that goes ON TOP of a deep dish. Survives the long bake.',
+    style:'red-cooked',fat:['evoo'],aromatics:['garlic','oregano-a','basil-a'],body:['crushed-tomato'],umami:[],classicStyles:['chicago'],
+    howto:'<ul><li>Hand-crush one 28-oz can of tomatoes; drain well — you want chunks, not soup</li><li>Stir in salt, oregano, basil, a little garlic and olive oil (no long simmer)</li><li>Layer it on TOP of the cheese and fillings in the deep pan</li><li>It protects the cheese through a 35-minute bake and concentrates as it cooks</li></ul>'},
+  {id:'pm-nduja',name:'Spicy ’Nduja Tomato',suffix:'Diavola',desc:'Cooked tomato spiked with spreadable Calabrian ’nduja. Deep, savory, hot.',
+    style:'red-cooked',fat:['evoo'],aromatics:['garlic','chili-flake'],body:['cooked-tomato'],umami:['nduja-u'],classicStyles:['newyork','neapolitan'],
+    howto:'<ul><li>Warm 2 tbsp ’nduja in a little olive oil until it melts and releases its fat</li><li>Stir into 1 cup cooked tomato sauce with garlic and chili flake</li><li>Spread thin — it\'s intense; the heat blooms in the oven</li><li>Great under fresh mozzarella, finished with hot honey and basil</li></ul>'},
+];
+
+// Custom sauce components
+const SAUCE_COMPONENTS = {
+  fats: {label:'Oil & Fat',items:[
+    {id:'evoo',name:'Extra-Virgin Olive Oil',tags:['rich','herbaceous'],styles:['red-raw','red-cooked','white','pesto','vodka']},
+    {id:'garlic-oil',name:'Garlic-Infused Oil',tags:['rich','savory'],styles:['white','red-cooked','red-raw','pesto']},
+    {id:'butter-f',name:'Butter',tags:['rich','creamy'],styles:['vodka','white','bbq']},
+    {id:'chili-oil-b',name:'Chili Oil',tags:['rich','spicy'],styles:['red-cooked','white','vodka','bbq']},
+  ]},
+  aromatics: {label:'Aromatics (pick 1–3)',items:[
+    {id:'garlic',name:'Garlic',tags:['savory'],note:'Sliced thin or minced — golden, never burnt'},
+    {id:'oregano-a',name:'Dried Oregano',tags:['herbaceous','robust'],note:'The pizzeria perfume — belongs in the sauce'},
+    {id:'basil-a',name:'Fresh Basil',tags:['herbaceous','sweet'],note:'Torn into raw sauce; more on top after baking'},
+    {id:'chili-flake',name:'Chili Flake',tags:['spicy'],note:'Bloomed in oil or stirred into the sauce'},
+    {id:'fennel-seed',name:'Fennel Seed',tags:['herbaceous','sweet'],note:'The sausage-pizza note, toasted and crushed'},
+    {id:'black-pepper',name:'Black Pepper',tags:['spicy','savory'],note:'Coarse-cracked — essential on white pies'},
+    {id:'onion-a',name:'Onion',tags:['sweet','savory'],note:'Softened into cooked sauces, or raw on top'},
+  ]},
+  body: {label:'Tomato & Liquid (pick 1–2)',items:[
+    {id:'crushed-tomato',name:'Crushed Raw San Marzano',tags:['bright','tangy','sweet'],note:'Uncooked — the NY & Neapolitan standard'},
+    {id:'cooked-tomato',name:'Cooked Tomato Sauce',tags:['bright','tangy'],note:'Simmered and seasoned — rounder and thicker'},
+    {id:'tomato-paste-b',name:'Tomato Paste',tags:['umami','sweet'],note:'Concentrated depth; fry it dark first'},
+    {id:'cream-b',name:'Cream',tags:['rich','creamy'],note:'The vodka-sauce softener — use sparingly'},
+    {id:'bechamel-b',name:'Béchamel',tags:['rich','creamy'],note:'A thin white sauce base for white pies'},
+    {id:'pesto-b',name:'Pesto Base',tags:['herbaceous','rich'],note:'A thin layer only — heat dulls it'},
+    {id:'bbq-b',name:'BBQ Base',tags:['sweet','tangy'],note:'Sweet-tangy — for chicken and specialty pies'},
+    {id:'vodka-b',name:'Vodka Splash',tags:['spicy'],note:'Cuts the cream, carries the tomato aroma'},
+  ]},
+  umami: {label:'Umami & Depth (optional)',items:[
+    {id:'parm-u',name:'Parmigiano (in sauce)',tags:['umami','savory','nutty']},
+    {id:'pecorino-u',name:'Pecorino (in sauce)',tags:['umami','savory','tangy']},
+    {id:'anchovy-u',name:'Anchovy (melted in)',tags:['umami','savory']},
+    {id:'nduja-u',name:'’Nduja',tags:['umami','savory','spicy']},
+    {id:'roasted-garlic-u',name:'Roasted Garlic',tags:['umami','sweet']},
+  ]},
+};
+
+// Cheeses — pick 1–3. moisture feeds the load engine.
+const CHEESES = [
+  {id:'low-moist-mozz',name:'Low-Moisture Mozzarella',desc:'The shredded block. Melts, browns, stretches — the American workhorse. Shred it yourself.',tags:['creamy','savory'],moisture:0},
+  {id:'fresh-mozz',name:'Fresh Mozzarella (Fior di Latte)',desc:'Milky and soft, the Neapolitan classic. Tear and drain — it carries water.',tags:['creamy','milky','mild'],moisture:2},
+  {id:'buffalo-mozz',name:'Buffalo Mozzarella',desc:'Richer, wetter, tangier. Best torn on after the bake, or it floods the pie.',tags:['creamy','rich','milky'],moisture:3},
+  {id:'brick',name:'Brick Cheese',desc:'Detroit\'s cheese — taken to the pan edge it fries into the lacy frico crust.',tags:['creamy','savory','rich'],moisture:0},
+  {id:'provolone',name:'Provolone',desc:'Sharp, stretchy melt. A little in the blend wakes up mozzarella.',tags:['savory','sharp'],moisture:0},
+  {id:'parm',name:'Parmigiano-Reggiano',desc:'Grated fine for salt and nutty umami — under the cheese or over the finish.',tags:['umami','savory','nutty'],moisture:0},
+  {id:'pecorino',name:'Pecorino Romano',desc:'Sharper and saltier than parm. A dusting goes a long way.',tags:['umami','savory','tangy'],moisture:0},
+  {id:'ricotta',name:'Ricotta (dollops)',desc:'Cool, soft pockets spooned on — the classic white-pie move.',tags:['creamy','mild'],moisture:1},
+  {id:'gorgonzola',name:'Gorgonzola',desc:'Funky blue for a white pie with honey and walnuts.',tags:['umami','rich','savory'],moisture:1},
+  {id:'goat',name:'Goat Cheese',desc:'Tangy, bright crumbles — brings the acid a rich white pie needs.',tags:['tangy','creamy'],moisture:1},
+  {id:'cheddar',name:'Sharp Cheddar',desc:'American move — in a blend for BBQ or buffalo pies.',tags:['savory','rich','sharp'],moisture:0},
+];
+
+// Vegetables — moisture feeds the load engine; cooking preps reduce it.
+const VEGETABLES = [
+  {id:'mushroom',name:'Mushrooms',desc:'Sauté first — raw, they steam and weep water onto the crust.',tags:['umami','earthy','savory'],preps:['sautéed first','roasted','raw sliced'],moisture:2},
+  {id:'onion',name:'Onions',desc:'Caramelized for sweetness, or thin raw red rings for bite.',tags:['sweet','savory'],preps:['caramelized','raw red','sautéed'],moisture:1},
+  {id:'bell-pepper',name:'Bell Peppers',desc:'Roast or sauté to concentrate — raw they release water and stay crunchy.',tags:['sweet','fresh'],preps:['roasted','sautéed','raw'],moisture:1},
+  {id:'fresh-tomato',name:'Fresh Tomato Slices',desc:'Beautiful and dangerous — salt and drain hard, or they flood the pie.',tags:['bright','sweet','tangy'],preps:['salted & drained','roasted','raw slices'],moisture:3},
+  {id:'cherry-tomato',name:'Cherry Tomatoes',desc:'Halved and roasted until they collapse, or burst for sweetness.',tags:['bright','sweet','tangy'],preps:['halved & roasted','burst','raw halved'],moisture:2},
+  {id:'spinach',name:'Spinach',desc:'Wilt and squeeze dry first — raw, a mountain melts into a wet patch.',tags:['earthy','fresh'],preps:['wilted & squeezed','raw'],moisture:2},
+  {id:'arugula',name:'Arugula',desc:'Peppery and bright — a raw, after-the-oven topping, never baked.',tags:['bitter','fresh'],preps:['raw, after bake'],moisture:0},
+  {id:'basil',name:'Fresh Basil',desc:'Torn over the hot pie after baking so it doesn\'t blacken.',tags:['herbaceous','sweet','fresh'],preps:['torn, after bake'],moisture:0},
+  {id:'garlic',name:'Garlic',desc:'Thin raw slices that crisp in the oven, or mellow confit.',tags:['savory'],preps:['thin raw','confit'],moisture:0},
+  {id:'olives',name:'Olives',desc:'Briny, salty punctuation — kalamata or oil-cured.',tags:['savory','tangy','umami'],preps:['whole','sliced'],moisture:0},
+  {id:'jalapeno',name:'Jalapeños',desc:'Fresh for grassy heat, or pickled for tang and bite.',tags:['spicy'],preps:['fresh','pickled'],moisture:1},
+  {id:'calabrian',name:'Calabrian Chili',desc:'Fruity, fiery, oil-packed — the modern hot-pizza standard.',tags:['spicy','tangy'],preps:['chopped'],moisture:1},
+  {id:'artichoke',name:'Artichokes',desc:'Marinated hearts or roasted wedges — earthy and a little tangy.',tags:['earthy','nutty'],preps:['marinated','roasted'],moisture:1},
+  {id:'roasted-pepper',name:'Roasted Red Peppers',desc:'Smoky-sweet ribbons, jarred or freshly charred.',tags:['sweet','smoky'],preps:['roasted','jarred'],moisture:1},
+  {id:'eggplant',name:'Eggplant',desc:'Roast or fry until custardy — never raw on a pizza.',tags:['earthy','rich'],preps:['roasted','fried'],moisture:1},
+  {id:'pineapple',name:'Pineapple',desc:'Grill it to drive off water and caramelize. The eternal debate.',tags:['sweet','bright'],preps:['grilled','fresh'],moisture:2},
+];
+
+const PROTEINS = [
+  {id:'pepperoni',name:'Pepperoni',desc:'Cup-and-char curls of fat and spice — the American king.',tags:['savory','rich'],preps:['cup-and-char','flat slices'],moisture:0},
+  {id:'sausage',name:'Italian Sausage',desc:'Fennel-spiked crumbles. Par-cook unless it\'s a long deep-dish bake.',tags:['savory','rich'],preps:['par-cooked crumbles','raw crumbled','sliced coins'],moisture:1},
+  {id:'bacon',name:'Bacon',desc:'Par-cook to render the fat and crisp — raw, it leaves a greasy slick.',tags:['savory','smoky','rich'],preps:['par-cooked','raw chopped'],moisture:0},
+  {id:'ham',name:'Ham',desc:'Diced or torn cooked ham — the Hawaiian half of the argument.',tags:['savory'],preps:['diced','torn'],moisture:0},
+  {id:'prosciutto',name:'Prosciutto',desc:'Draped raw over the hot pie after baking, or crisped into shards.',tags:['savory','umami','rich'],preps:['draped after bake','crisped'],moisture:0},
+  {id:'soppressata',name:'Soppressata',desc:'Spicy cured salami that cups and chars — the hot-honey partner.',tags:['savory','rich','spicy'],preps:['cup-and-char'],moisture:0},
+  {id:'nduja',name:'’Nduja',desc:'Spreadable spicy Calabrian sausage — dot it on and it melts into the cheese.',tags:['savory','rich','spicy'],preps:['dotted on'],moisture:1},
+  {id:'anchovy',name:'Anchovy',desc:'Salty, savory backbone — divisive, essential, and melts as it bakes.',tags:['savory','umami'],preps:['whole fillets'],moisture:0},
+  {id:'meatball',name:'Meatballs',desc:'Sliced or crumbled cooked meatball — hearty and rich.',tags:['savory','rich'],preps:['sliced','crumbled'],moisture:1},
+  {id:'chicken',name:'Chicken',desc:'Grilled and diced — the BBQ and buffalo pizza protein.',tags:['savory','mild'],preps:['grilled & diced','BBQ'],moisture:1},
+  {id:'clams',name:'Clams',desc:'The New Haven white pie — shucked, with garlic, oil, and pecorino. No mozz.',tags:['savory','umami'],preps:['shucked, after par-bake'],moisture:2},
+];
+
+const FINISHES = {
+  herbs: {label:'Fresh Herbs & Greens', items:[
+    {id:'basil',name:'Torn Basil',desc:'Added the second it leaves the oven so it stays green and fragrant.',tags:['herbaceous','sweet','fresh']},
+    {id:'arugula',name:'Arugula',desc:'A peppery raw handful piled on a hot pie — freshness against richness.',tags:['bitter','fresh']},
+    {id:'oregano-fin',name:'Dried Oregano',desc:'A final pinch — the unmistakable pizzeria aroma.',tags:['herbaceous','robust']},
+  ]},
+  drizzle: {label:'Drizzles', items:[
+    {id:'hot-honey',name:'Hot Honey',desc:'Sweet heat over spicy salami or a funky cheese — the modern classic.',tags:['sweet','spicy']},
+    {id:'chili-oil',name:'Chili Oil',desc:'Heat and sheen, drizzled at the table.',tags:['spicy']},
+    {id:'evoo-fin',name:'Grassy EVOO Drizzle',desc:'The good bottle, a thin pass over the finished pie for aroma.',tags:['rich','herbaceous']},
+    {id:'balsamic',name:'Balsamic Glaze',desc:'A sweet-tart drizzle — brightness against fat.',tags:['tangy','bright','sweet']},
+  ]},
+  grated: {label:'Grated & Torn', items:[
+    {id:'parm-fin',name:'Parmigiano Shower',desc:'Microplaned over the top — salt and nutty depth.',tags:['umami','savory','nutty']},
+    {id:'pecorino-fin',name:'Pecorino Shower',desc:'Sharper and saltier than parm — a little goes far.',tags:['umami','savory','tangy']},
+    {id:'burrata-fin',name:'Torn Burrata',desc:'Pulled open over the hot pie at the table. Pure spectacle.',tags:['creamy','rich','mild']},
+    {id:'prosciutto-fin',name:'Draped Prosciutto',desc:'Silky raw ribbons laid over the hot pie — never baked.',tags:['savory','umami','rich']},
+  ]},
+  sparkle: {label:'Finishing Touches', items:[
+    {id:'flaky-salt',name:'Flaky Salt',desc:'A few crunchy flakes — sparkle and contrast.',tags:['savory']},
+    {id:'lemon-fin',name:'Lemon Squeeze / Zest',desc:'Brightness the oven can\'t give — wakes up white and seafood pies.',tags:['bright']},
+    {id:'cracked-pepper',name:'Cracked Black Pepper',desc:'Coarse, fresh, visible.',tags:['spicy','savory']},
+    {id:'red-pepper-flakes',name:'Red Pepper Flakes',desc:'The diner shaker — dry heat on top.',tags:['spicy']},
+  ]},
+};
+
+// Classic pairings (bonus affinity)
+const CLASSIC_PAIRS = [
+  ['fresh-mozz','crushed-tomato','basil'],
+  ['pepperoni','low-moist-mozz','cooked-tomato'],
+  ['soppressata','hot-honey','calabrian'],
+  ['nduja','fresh-mozz','hot-honey'],
+  ['sausage','onion','bell-pepper'],
+  ['mushroom','garlic','fresh-mozz'],
+  ['prosciutto-fin','arugula','parm-fin'],
+  ['ricotta','spinach','garlic'],
+  ['gorgonzola','hot-honey','arugula'],
+  ['clams','garlic','pecorino','oregano-fin'],
+  ['bbq-b','chicken','onion','cheddar'],
+  ['ham','pineapple','jalapeno'],
+  ['anchovy','garlic','olives','oregano-a'],
+  ['vodka-b','fresh-mozz','hot-honey'],
+  ['burrata-fin','cherry-tomato','basil'],
+  ['eggplant','ricotta','basil'],
+  ['brick','cooked-tomato','pepperoni'],
+  ['goat','roasted-pepper','arugula'],
+  ['olives','calabrian','garlic'],
+];
+
+// ============================================================
+//  LOOKUPS & CLASSIC TEMPLATES
+// ============================================================
+const allStylesFlat = STYLES.flatMap(c => c.items);
+const allFinFlat = Object.values(FINISHES).flatMap(c => c.items);
+function styleLookup(id) { const s = allStylesFlat.find(i=>i.id===id); return s ? {id:s.id,name:s.name,weight:s.weight,crumb:s.crumb,family:s.family,capacity:s.capacity,affinity:s.affinity} : null; }
+function cheeseLookup(id) { const c = CHEESES.find(i=>i.id===id); return c ? {id:c.id,name:c.name,tags:c.tags,moisture:c.moisture} : null; }
+function vegLookup(id,prep) { const v = VEGETABLES.find(i=>i.id===id); return v ? {id:v.id,name:v.name,tags:v.tags,moisture:v.moisture,prep} : null; }
+function proLookup(id,prep) { const p = PROTEINS.find(i=>i.id===id); return p ? {id:p.id,name:p.name,tags:p.tags,moisture:p.moisture,prep} : null; }
+function finLookup(id) { for(const[k,c]of Object.entries(FINISHES)){const i=c.items.find(x=>x.id===id);if(i)return{id:i.id,name:i.name,tags:i.tags,cat:k};} return null; }
+function styleFull(id) { return allStylesFlat.find(i=>i.id===id); }
+
+const CLASSIC_TEMPLATES = [
+  {
+    id:'tpl-margherita', name:'Pizza Margherita',
+    desc:'Naples\' flag on a pie: raw San Marzano, fresh mozzarella, basil. The benchmark of restraint.',
+    tags:['Neapolitan','San Marzano','Fresh Mozz'],
+    style:'neapolitan', saucePreset:'pm-san-marzano',
+    cheese:['fresh-mozz'], vegs:[], protein:[],
+    finishes:['basil','evoo-fin'],
+  },
+  {
+    id:'tpl-joes', name:'New York Slice (Joe’s-style)',
+    desc:'The famous foldable slice: raw San Marzano, whole-milk low-moisture mozz, baked at 550°F.',
+    tags:['New York','Raw San Marzano','Whole-Milk Mozz'],
+    style:'newyork', saucePreset:'pm-san-marzano',
+    cheese:['low-moist-mozz'], vegs:[], protein:[],
+    finishes:['oregano-fin'],
+  },
+  {
+    id:'tpl-ny-pepperoni', name:'New York Pepperoni',
+    desc:'Cooked sauce, low-moisture mozz, and cup-and-char pepperoni. The American default, done right.',
+    tags:['New York','Pepperoni'],
+    style:'newyork', saucePreset:'pm-pizza-sauce',
+    cheese:['low-moist-mozz'], vegs:[], protein:[{id:'pepperoni',prep:'cup-and-char'}],
+    finishes:['oregano-fin'],
+  },
+  {
+    id:'tpl-marinara', name:'Marinara (No Cheese)',
+    desc:'The original Neapolitan: tomato, garlic, oregano, oil. No cheese, no apologies.',
+    tags:['Neapolitan','No Cheese','Garlic'],
+    style:'neapolitan', saucePreset:'pm-marinara-noz',
+    cheese:[], vegs:[{id:'garlic',prep:'thin raw'}], protein:[],
+    finishes:['oregano-fin','evoo-fin'],
+  },
+  {
+    id:'tpl-detroit', name:'Detroit Red Top',
+    desc:'Brick cheese fried to the edge, pepperoni, and stripes of sauce on top of a thick airy crust.',
+    tags:['Detroit','Brick Cheese','Red Top'],
+    style:'detroit', saucePreset:'pm-pizza-sauce',
+    cheese:['brick','low-moist-mozz'], vegs:[], protein:[{id:'pepperoni',prep:'cup-and-char'}],
+    finishes:[],
+  },
+  {
+    id:'tpl-diavola', name:'Soppressata & Hot Honey',
+    desc:'Spicy cured salami that cups and chars, finished with a drizzle of hot honey. A modern classic.',
+    tags:['Spicy','Soppressata','Hot Honey'],
+    style:'newyork', saucePreset:'pm-pizza-sauce',
+    cheese:['low-moist-mozz'], vegs:[{id:'calabrian',prep:'chopped'}], protein:[{id:'soppressata',prep:'cup-and-char'}],
+    finishes:['hot-honey','basil'],
+  },
+  {
+    id:'tpl-vodka', name:'Vodka & Hot Honey',
+    desc:'Blushing tomato-cream under fresh mozzarella, lifted with hot honey and basil. Slice-shop royalty.',
+    tags:['Vodka Sauce','Hot Honey','Fresh Mozz'],
+    style:'newyork', saucePreset:'pm-vodka',
+    cheese:['fresh-mozz'], vegs:[], protein:[],
+    finishes:['hot-honey','basil'],
+  },
+  {
+    id:'tpl-whitepie', name:'White Pie (Ricotta & Spinach)',
+    desc:'Garlic-oil base, mozzarella, cool ricotta dollops, and wilted spinach. No tomato in sight.',
+    tags:['White','Ricotta','Spinach'],
+    style:'newyork', saucePreset:'pm-white',
+    cheese:['low-moist-mozz','ricotta'], vegs:[{id:'spinach',prep:'wilted & squeezed'},{id:'garlic',prep:'thin raw'}], protein:[],
+    finishes:['pecorino-fin','evoo-fin'],
+  },
+  {
+    id:'tpl-clam', name:'White Clam Pie',
+    desc:'New Haven’s legend: shucked clams, garlic, oil, pecorino, oregano. No mozzarella.',
+    tags:['New Haven','Clams','No Mozz'],
+    style:'tonda', saucePreset:'pm-white',
+    cheese:['pecorino'], vegs:[{id:'garlic',prep:'thin raw'}], protein:[{id:'clams',prep:'shucked, after par-bake'}],
+    finishes:['oregano-fin','lemon-fin','evoo-fin'],
+  },
+  {
+    id:'tpl-chicago', name:'Chicago Deep Dish',
+    desc:'Inverted and tall: mozzarella on the bottom, sausage, then chunky tomato on top. A 35-minute bake.',
+    tags:['Deep Dish','Sausage','Inverted'],
+    style:'chicago', saucePreset:'pm-deepdish',
+    cheese:['low-moist-mozz'], vegs:[], protein:[{id:'sausage',prep:'raw crumbled'}],
+    finishes:['parm-fin'],
+  },
+  {
+    id:'tpl-sicilian', name:'Sicilian Square',
+    desc:'A thick, spongy, crisp-bottomed square — cooked sauce and mozzarella, built for a crowd.',
+    tags:['Sicilian','Square','Pan'],
+    style:'sicilian', saucePreset:'pm-pizza-sauce',
+    cheese:['low-moist-mozz'], vegs:[], protein:[],
+    finishes:['oregano-fin','evoo-fin'],
+  },
+  {
+    id:'tpl-pesto', name:'Pesto & Cherry Tomato',
+    desc:'A crisp Roman tray with pesto, fresh mozzarella, and roasted cherry tomatoes.',
+    tags:['Pesto','Roman','Cherry Tomato'],
+    style:'romantaglio', saucePreset:'pm-pesto',
+    cheese:['fresh-mozz'], vegs:[{id:'cherry-tomato',prep:'halved & roasted'}], protein:[],
+    finishes:['parm-fin','arugula'],
+  },
+  {
+    id:'tpl-bbq-chicken', name:'BBQ Chicken',
+    desc:'BBQ base, mozzarella and cheddar, grilled chicken, and thin red onion. American specialty done well.',
+    tags:['BBQ','Chicken','Red Onion'],
+    style:'newyork', saucePreset:'pm-bbq',
+    cheese:['low-moist-mozz','cheddar'], vegs:[{id:'onion',prep:'raw red'}], protein:[{id:'chicken',prep:'grilled & diced'}],
+    finishes:[],
+  },
+  {
+    id:'tpl-funghi', name:'Mushroom White',
+    desc:'Garlic-oil base, fresh mozzarella, sautéed mushrooms, and thin garlic. Earthy and clean.',
+    tags:['White','Mushroom','Garlic'],
+    style:'neapolitan', saucePreset:'pm-white',
+    cheese:['fresh-mozz'], vegs:[{id:'mushroom',prep:'sautéed first'},{id:'garlic',prep:'thin raw'}], protein:[],
+    finishes:['parm-fin','evoo-fin'],
+  },
+];
+
+// ============================================================
+//  STATE
+// ============================================================
+const state = {
+  showStartScreen: true,
+  showSavedPage: false,
+  templateName: null,
+  style: null,      // {id, name, weight, crumb, family, capacity, affinity}
+  saucePreset: null,
+  sauceStyle: null,
+  sauceFat: [],
+  sauceAromatics: [],
+  sauceBody: [],
+  sauceUmami: [],
+  cheese: [],       // [{id, name, tags, moisture}]
+  vegs: [],         // [{id, name, tags, moisture, prep}]
+  protein: [],      // [{id, name, tags, moisture, prep}]
+  finishes: [],     // [{id, name, tags, cat}]
+  currentStage: 0,
+};
+
+const STAGES = [
+  {id:'style',title:'Choose Your Style',sub:'Pick one. The style decides the dough, the oven, and how much you can pile on.'},
+  {id:'sauce',title:'Spread the Sauce',sub:'Pick a classic or build your own. Less than you think — the oven concentrates it.'},
+  {id:'cheese',title:'Lay the Cheese',sub:'Pick 1–3. Moisture and melt are everything; the block beats the bag.'},
+  {id:'toppings',title:'Pile the Toppings',sub:'Vegetables and proteins. Pre-cook the wet ones — your crust is keeping score.'},
+  {id:'balance',title:'Load & Balance Check',sub:'Will it bake crisp? Plus acid, salt, fat, and heat.'},
+  {id:'finish',title:'Finish After the Oven',sub:'The last layer, added off the heat — herbs, drizzles, a final shower.'},
+  {id:'bake',title:'Will It Bake?',sub:'Does your style support your build? Plus the dough spec and technique checklist.'},
+  {id:'summary',title:'Your Pizza',sub:'The complete build, with the dough recipe and cooking notes.'},
+];
+
+// Cooking preps that drive moisture OUT of a topping (lower the load)
+const DRY_PREPS = ['sautéed','roasted','grilled','charred','wilted','squeezed','drained','confit','par','fried','blanched','caramelized','crisped','after bake','after par'];
+function prepDriesWater(prep) {
+  if (!prep) return false;
+  const p = prep.toLowerCase();
+  return DRY_PREPS.some(k => p.includes(k));
+}
+
+const CAP_LABEL = {2:'low load',3:'medium load',4:'high load',5:'max load'};
+
+// Cheeses an empty-handed style leans toward
+const STYLE_CHEESE_REC = {
+  neapolitan:['fresh-mozz','buffalo-mozz'],
+  romantaglio:['fresh-mozz','low-moist-mozz'],
+  tonda:['low-moist-mozz'],
+  newyork:['low-moist-mozz'],
+  tavern:['low-moist-mozz','cheddar'],
+  detroit:['brick','low-moist-mozz'],
+  sicilian:['low-moist-mozz'],
+  grandma:['low-moist-mozz','fresh-mozz'],
+  chicago:['low-moist-mozz'],
+};
+
+// ============================================================
+//  PAIRING ENGINE
+// ============================================================
+function getAllSelected() {
+  const ids = new Set();
+  if (state.style) ids.add(state.style.id);
+  state.cheese.forEach(c => ids.add(c.id));
+  state.vegs.forEach(v => ids.add(v.id));
+  state.protein.forEach(p => ids.add(p.id));
+  state.sauceFat.forEach(f => ids.add(f));
+  state.sauceAromatics.forEach(a => ids.add(a));
+  state.sauceBody.forEach(b => ids.add(b));
+  state.sauceUmami.forEach(u => ids.add(u));
+  state.finishes.forEach(f => ids.add(f.id));
+  return ids;
+}
+
+function getAllTags() {
+  const tags = {};
+  const add = (t) => { tags[t] = (tags[t]||0) + 1; };
+  state.cheese.forEach(c => c.tags.forEach(add));
+  state.vegs.forEach(v => v.tags.forEach(add));
+  state.protein.forEach(p => p.tags.forEach(add));
+  state.finishes.forEach(f => f.tags.forEach(add));
+  return tags;
+}
+
+function getAffinityScore(itemId, itemTags) {
+  const selected = getAllSelected();
+  const tagProfile = getAllTags();
+  let score = 0;
+
+  // Contrast pairings
+  if (tagProfile.rich && itemTags.some(t => ['bright','tangy','fresh'].includes(t))) score += 2;
+  if (tagProfile.bitter && itemTags.some(t => ['rich','savory','sweet'].includes(t))) score += 2;
+  if (tagProfile.spicy && itemTags.some(t => ['creamy','mild','sweet'].includes(t))) score += 1;
+  if (tagProfile.earthy && itemTags.some(t => ['bright','tangy'].includes(t))) score += 1;
+
+  // Complement pairings
+  if (tagProfile.umami && itemTags.includes('umami')) score += 1;
+  if (tagProfile.bright && itemTags.includes('herbaceous')) score += 1;
+  if (tagProfile.nutty && itemTags.includes('nutty')) score += 1;
+
+  // Classic pair bonus
+  for (const combo of CLASSIC_PAIRS) {
+    if (combo.includes(itemId)) {
+      const others = combo.filter(c => c !== itemId);
+      const matched = others.filter(c => selected.has(c)).length;
+      if (matched >= 1) score += matched * 2;
+    }
+  }
+
+  return score;
+}
+
+function isRecommended(itemId, itemTags) {
+  return getAffinityScore(itemId, itemTags || []) >= 2;
+}
+
+// Style ↔ sauce style affinity (0 fight / 1 works / 2 classic)
+function styleSauceAffinity(styleId) {
+  if (!state.style || !styleId) return null;
+  const a = state.style.affinity[styleId];
+  return (a === undefined) ? 1 : a;
+}
+
+const FAMILY_LABEL = {artisan:'artisan pie',roman:'Roman tray',thin:'thin crust',american:'slice pie',pan:'pan pizza',deep:'deep dish'};
+
+function bakeVerdict() {
+  if (!state.style || !state.sauceStyle) return null;
+  const pm = state.saucePreset ? PREMADE_SAUCES.find(p=>p.id===state.saucePreset) : null;
+  if (pm && pm.classicStyles.includes(state.style.id)) {
+    return {cls:'good',title:'A classic pairing',
+      text:`${pm.name} on a ${state.style.name} crust is exactly how it's done — tradition has matched the sauce to the dough and the bake for you.`};
+  }
+  const aff = styleSauceAffinity(state.sauceStyle);
+  const styleName = (SAUCE_STYLES.find(s=>s.id===state.sauceStyle)||{}).name || 'this sauce';
+  const fam = FAMILY_LABEL[state.style.family];
+  if (aff === 2) return {cls:'good',title:'A classic pairing',
+    text:`${state.style.name} and a ${styleName.toLowerCase()} sauce are a canonical match — the ${fam}'s build and bake are made for it.`};
+  if (aff === 1) return {cls:'ok',title:'A solid match',
+    text:`${state.style.name} will carry a ${styleName.toLowerCase()} sauce respectably. Not the textbook pairing, but it works — mind the consistency so it doesn't waterlog the base.`};
+  return {cls:'bad',title:'These two are fighting',
+    text:`A ${state.style.name} crust struggles with a ${styleName.toLowerCase()} sauce — the bake and the sauce don't line up. Consider a different sauce, or a style built for it.`};
+}
+
+function bakeWarnings() {
+  const warns = [];
+  const slowBake = state.style && ['pan','deep','roman'].includes(state.style.family);
+  const freshCheese = state.cheese.some(c => ['fresh-mozz','buffalo-mozz'].includes(c.id));
+  if (freshCheese && slowBake) {
+    warns.push('Fresh mozzarella weeps in a long, slower bake — drain it hard, add it partway through, or switch to low-moisture mozz so the center doesn\'t flood.');
+  }
+  const wetRaw = [...state.vegs, ...state.protein].filter(t => (t.moisture||0) >= 2 && !prepDriesWater(t.prep));
+  if (wetRaw.length) {
+    warns.push(`${wetRaw.map(t=>t.name).join(' and ')} ${wetRaw.length>1?'are':'is'} going on wet — in the oven ${wetRaw.length>1?'they':'it'} will steam and leave a soggy patch. Sauté, roast, grill, or drain first.`);
+  }
+  if (state.style && state.style.id === 'chicago' && state.sauceStyle !== 'red-cooked') {
+    warns.push('Deep dish layers chunky cooked tomato on TOP of the cheese — a thin or white sauce will vanish into a 35-minute bake. Use the chunky deep-dish tomato.');
+  }
+  if (state.sauceStyle === 'pesto' && slowBake) {
+    warns.push('Pesto scorches and turns dull-green in a long bake. Swirl it on near the end, or dot it over the pie after the oven.');
+  }
+  if (state.style && state.style.capacity <= 2 && (state.vegs.length + state.protein.length) > 2) {
+    warns.push(`${state.style.name} is a minimalist crust by design — more than a couple of toppings and the thin base can't crisp under the load. Edit it down.`);
+  }
+  const clamPie = state.protein.some(p => p.id === 'clams');
+  if (clamPie && state.cheese.some(c => c.id.includes('mozz'))) {
+    warns.push('A white clam pie traditionally skips mozzarella — just garlic, oil, and a little pecorino, so the briny clams stay center stage. Your call.');
+  }
+  return warns;
+}
+
+// ============================================================
+//  LOAD / MOISTURE ENGINE (signature)
+// ============================================================
+const SAUCE_WET = {'crushed-tomato':2,'cooked-tomato':1.5,'tomato-paste-b':0.3,'cream-b':1.5,'bechamel-b':1.5,'pesto-b':1,'bbq-b':1.3,'vodka-b':0.4};
+const STYLE_WET_FALLBACK = {'red-raw':2,'red-cooked':1.5,white:0.5,pesto:1,vodka:1.5,bbq:1.3};
+
+function calcLoad() {
+  const capacity = state.style ? state.style.capacity : 3;
+  let load = 0;
+  const src = [];
+  // Sauce — one spread layer, however it's composed, caps at SAUCE_LOAD_MAX
+  let sauceLoad = 0;
+  if (state.sauceBody.length) {
+    state.sauceBody.forEach(b => {
+      const w = SAUCE_WET[b] || 0;
+      if (w > 0) { sauceLoad += w; const it = findComponent('body', b); if (it) src.push(it.name); }
+    });
+  } else if (state.sauceStyle) {
+    const w = STYLE_WET_FALLBACK[state.sauceStyle] || 0.5;
+    sauceLoad += w;
+    const s = SAUCE_STYLES.find(s=>s.id===state.sauceStyle);
+    if (s && w > 0) src.push(s.name + ' sauce');
+  }
+  load += Math.min(sauceLoad, 2.5); // a single sauce layer can only hold so much water
+  // Cheese moisture
+  state.cheese.forEach(c => { if (c.moisture > 0) { load += c.moisture; src.push(c.name); } });
+  // Toppings (prep can dry them out)
+  [...state.vegs, ...state.protein].forEach(t => {
+    let m = t.moisture || 0;
+    if (m <= 0) return;
+    if (prepDriesWater(t.prep)) { m *= 0.35; } // cooking drives the water off
+    load += m;
+    src.push(`${t.name}${prepDriesWater(t.prep) ? ' ('+t.prep+')' : ' (raw)'}`);
+  });
+  load = Math.round(load * 10) / 10;
+
+  const diff = load - capacity;
+  let cls, title, text;
+  if (diff <= 0) {
+    cls = 'good'; title = 'Bakes crisp';
+    text = `Your ${state.style ? state.style.name : 'crust'} can comfortably carry this load (${load} vs a capacity of ${capacity}). The bottom will set and crisp before the top overcooks.`;
+  } else if (diff <= 1.5) {
+    cls = 'watch'; title = 'Right at the edge';
+    text = `You're loading this ${state.style ? state.style.name : 'crust'} near its limit (${load} vs a capacity of ${capacity}). Pre-cook any wet toppings and keep the sauce thin, or the center may stay soft.`;
+  } else {
+    cls = 'bad'; title = 'Overloaded — soggy center risk';
+    text = `This is more moisture than a ${state.style ? state.style.name : 'crust'} can drive off in the bake (${load} vs a capacity of ${capacity}). Pre-cook the wet toppings, cut the sauce and fresh cheese, or move to a higher-capacity style like Detroit, Sicilian, or deep dish.`;
+  }
+  return {load, capacity, cls, title, text, src};
+}
+
+// ============================================================
+//  BALANCE CALCULATOR
+// ============================================================
+function findComponent(catKey, id) {
+  return SAUCE_COMPONENTS[catKey].items.find(i => i.id === id);
+}
+
+function calcBalance() {
+  const b = {acid:0, salt:0, fat:0, heat:0, acidSrc:[], saltSrc:[], fatSrc:[], heatSrc:[]};
+  // Sauce fat
+  state.sauceFat.forEach(f => {
+    const it = findComponent('fats', f); if (!it) return;
+    b.fat += 1.5; b.fatSrc.push(it.name);
+    if (f === 'chili-oil-b') { b.heat += 1; b.heatSrc.push(it.name); }
+  });
+  // Aromatics
+  state.sauceAromatics.forEach(a => {
+    const it = findComponent('aromatics', a); if (!it) return;
+    if (a === 'chili-flake') { b.heat += 2; b.heatSrc.push(it.name); }
+    if (a === 'black-pepper') { b.heat += 1; b.heatSrc.push(it.name); }
+  });
+  // Body
+  state.sauceBody.forEach(bd => {
+    const it = findComponent('body', bd); if (!it) return;
+    if (['crushed-tomato','cooked-tomato'].includes(bd)) { b.acid += 1.5; b.acidSrc.push(it.name); }
+    if (bd === 'tomato-paste-b') { b.salt += 0.5; b.saltSrc.push(it.name); }
+    if (bd === 'cream-b' || bd === 'bechamel-b') { b.fat += 1.5; b.fatSrc.push(it.name); }
+    if (bd === 'bbq-b') { b.acid += 0.5; b.acidSrc.push(it.name); }
+    if (bd === 'vodka-b') { b.heat += 0.3; }
+  });
+  // Umami boosters
+  state.sauceUmami.forEach(u => {
+    const it = findComponent('umami', u); if (!it) return;
+    b.salt += 1; b.saltSrc.push(it.name);
+    if (u === 'anchovy-u') { b.salt += 0.5; }
+    if (u === 'nduja-u') { b.heat += 1.5; b.heatSrc.push(it.name); }
+    if (['parm-u','pecorino-u'].includes(u)) { b.fat += 0.3; }
+  });
+  // Cheese
+  state.cheese.forEach(c => {
+    b.fat += 0.6; b.fatSrc.push(c.name);
+    if (c.tags.includes('rich')) b.fat += 0.4;
+    if (c.tags.some(t => ['savory','umami','sharp'].includes(t))) { b.salt += 0.8; b.saltSrc.push(c.name); }
+    if (c.tags.includes('tangy')) { b.acid += 0.4; b.acidSrc.push(c.name); }
+  });
+  // Vegetables
+  state.vegs.forEach(v => {
+    if (v.prep === 'pickled' || v.prep === 'marinated') { b.acid += 1; b.acidSrc.push(v.name+' ('+v.prep+')'); }
+    if (v.tags.includes('bright') || v.tags.includes('tangy')) { b.acid += 0.5; b.acidSrc.push(v.name); }
+    if (v.tags.includes('spicy')) { b.heat += 1.2; b.heatSrc.push(v.name); }
+    if (v.tags.includes('savory') || v.tags.includes('umami')) { b.salt += 0.4; b.saltSrc.push(v.name); }
+    if (v.prep === 'fried') { b.fat += 0.5; b.fatSrc.push(v.name+' (fried)'); }
+  });
+  // Protein
+  state.protein.forEach(p => {
+    if (p.tags.includes('rich')) { b.fat += 1; b.fatSrc.push(p.name); }
+    if (p.tags.includes('umami') || p.tags.includes('savory')) { b.salt += 1; b.saltSrc.push(p.name); }
+    if (p.tags.includes('spicy')) { b.heat += 1.2; b.heatSrc.push(p.name); }
+  });
+  // Finishes
+  state.finishes.forEach(f => {
+    if (f.tags.includes('bright')) { b.acid += 0.5; b.acidSrc.push(f.name); }
+    if (f.tags.includes('tangy')) { b.acid += 0.5; b.acidSrc.push(f.name); }
+    if (f.tags.includes('spicy')) { b.heat += 1.5; b.heatSrc.push(f.name); }
+    if (f.tags.includes('rich') || f.cat === 'grated') { b.fat += 0.5; b.fatSrc.push(f.name); }
+    if ((f.tags.includes('umami') || f.tags.includes('savory')) && f.cat !== 'drizzle') { b.salt += 0.5; b.saltSrc.push(f.name); }
+  });
+  // Normalize
+  const max = 5;
+  ['acid','salt','fat','heat'].forEach(k => { b[k] = Math.min(b[k], max); });
+  return b;
+}
+
+// ============================================================
+//  RENDERERS
+// ============================================================
+const $container = document.getElementById('stageContainer');
+const $progress = document.getElementById('progressBar');
+const $rail = document.getElementById('railWrap');
+const $railNav = document.getElementById('railNav');
+
+function renderProgress() {
+  if (state.showStartScreen) { $rail.style.display = 'none'; return; }
+  $rail.style.display = '';
+  $progress.innerHTML = STAGES.map((s,i) => {
+    let cls = 'progress-step';
+    if (i === state.currentStage) cls += ' active';
+    else if (i < state.currentStage) cls += ' done';
+    return `<div class="${cls}" data-idx="${i}">${s.title}</div>`;
+  }).join('');
+  $progress.querySelectorAll('.progress-step').forEach(el => {
+    el.addEventListener('click', () => goTo(+el.dataset.idx));
+  });
+  renderRailNav();
+}
+
+function renderRailNav() {
+  const isFirst = state.currentStage === 0;
+  const isLast = state.currentStage === STAGES.length - 1;
+  $railNav.innerHTML = `
+    <button class="btn btn-secondary" ${isFirst?'disabled':''} onclick="goTo(${state.currentStage-1})">Back</button>
+    <button class="btn btn-primary" ${isLast?'disabled':''} onclick="goTo(${state.currentStage+1})">Next</button>`;
+}
+
+function goTo(idx) {
+  state.currentStage = idx;
+  renderProgress();
+  renderStage(true);
+}
+
+// Card helper
+function cardHTML(item, selected, extra='', badge=false) {
+  return `<div class="card ${selected?'selected':''}" data-id="${item.id}">
+    ${badge?'<span class="badge">Pairs well</span>':''}
+    <div class="name">${item.name}</div>
+    ${item.desc?`<div class="desc">${item.desc}</div>`:''}
+    ${extra}
+  </div>`;
+}
+
+function doughSpecHTML(styleId) {
+  const s = styleFull(styleId);
+  if (!s || !s.dough) return '';
+  const d = s.dough;
+  return `<div class="dough-spec">
+    <h4>${s.name} Dough</h4>
+    <dl class="spec-list">
+      <dt>Flour</dt><dd>${d.flour}</dd>
+      <dt>Hydration</dt><dd>${d.hydration}</dd>
+      <dt>Ferment</dt><dd>${d.ferment}</dd>
+      <dt>Portion</dt><dd>${d.ball}</dd>
+      <dt>Bake</dt><dd>${d.bake}</dd>
+    </dl>
+    <button class="recipe-toggle" onclick="toggleDough()">Full dough recipe ▸</button>
+    <div class="recipe-expand" id="doughExpand"><h5>Make the ${s.name} Dough</h5>${s.doughRecipe}</div>
+  </div>`;
+}
+
+// ---- STAGE RENDERERS ----
+
+function renderStartScreen() {
+  let html = `<div class="start-screen">
+    <div class="start-fork">
+      <div class="fork-card" onclick="startFromScratch()">
+        <h3>Build from scratch</h3>
+        <p>Start with a bare crust and choose every element yourself.</p>
+      </div>
+      <div class="fork-card" onclick="document.getElementById('templateSection').scrollIntoView({behavior:'smooth'})">
+        <h3>Start from a classic</h3>
+        <p>Pick a proven pie and customize it from there.</p>
+      </div>
+    </div>
+    <div id="templateSection" class="cat-group">
+      <div class="cat-label">Classic Pizzas</div>
+      <div class="template-grid">`;
+  CLASSIC_TEMPLATES.forEach(t => {
+    html += `<div class="template-card" data-id="${t.id}">
+      <div class="name">${t.name}</div>
+      <div class="desc">${t.desc}</div>
+      <div class="tags">${t.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>
+    </div>`;
+  });
+  html += `</div></div>`;
+
+  const savedCount = getSavedPizzas().length;
+  if (savedCount > 0) {
+    html += `<div style="text-align:center;margin-top:2rem"><button class="saved-link-btn" onclick="showSavedPage()">View Saved Pizzas (${savedCount})</button></div>`;
+  }
+
+  html += `</div>`;
+  $container.innerHTML = html;
+
+  $container.querySelectorAll('.template-card').forEach(el => {
+    el.addEventListener('click', () => applyTemplate(el.dataset.id));
+  });
+}
+
+function applySaucePreset(pm) {
+  state.saucePreset = pm.id;
+  state.sauceStyle = pm.style;
+  state.sauceFat = [...pm.fat];
+  state.sauceAromatics = [...pm.aromatics];
+  state.sauceBody = [...pm.body];
+  state.sauceUmami = [...pm.umami];
+}
+
+function clearSauce() {
+  state.saucePreset = null;
+  state.sauceStyle = null;
+  state.sauceFat = [];
+  state.sauceAromatics = [];
+  state.sauceBody = [];
+  state.sauceUmami = [];
+}
+
+function applyTemplate(templateId) {
+  const t = CLASSIC_TEMPLATES.find(c => c.id === templateId);
+  if (!t) return;
+
+  state.style = styleLookup(t.style);
+  state.cheese = (t.cheese||[]).map(id => cheeseLookup(id)).filter(Boolean);
+  state.vegs = t.vegs.map(v => vegLookup(v.id, v.prep)).filter(Boolean);
+  state.protein = t.protein.map(p => proLookup(p.id, p.prep)).filter(Boolean);
+  state.finishes = (t.finishes||[]).map(id => finLookup(id)).filter(Boolean);
+
+  if (t.saucePreset) {
+    const pm = PREMADE_SAUCES.find(p => p.id === t.saucePreset);
+    if (pm) applySaucePreset(pm);
+  } else if (t.sauce) {
+    state.saucePreset = null;
+    state.sauceStyle = t.sauce.style;
+    state.sauceFat = [...t.sauce.fat];
+    state.sauceAromatics = [...t.sauce.aromatics];
+    state.sauceBody = [...t.sauce.body];
+    state.sauceUmami = [...t.sauce.umami];
+  }
+
+  state.templateName = t.name;
+  state.showStartScreen = false;
+  state.currentStage = 0;
+  renderProgress();
+  renderStage(true);
+}
+
+function startFromScratch() {
+  state.showStartScreen = false;
+  state.templateName = null;
+  state.currentStage = 0;
+  renderProgress();
+  renderStage(true);
+}
+
+function renderStyle() {
+  let html = '';
+  STYLES.forEach(cat => {
+    html += `<div class="cat-group"><div class="cat-label">${cat.cat}</div><div class="card-grid">`;
+    cat.items.forEach(item => {
+      const sel = state.style && state.style.id === item.id;
+      // Recommend styles that love the already-chosen sauce
+      const pmSel = state.saucePreset ? PREMADE_SAUCES.find(p=>p.id===state.saucePreset) : null;
+      const rec = !sel && ((pmSel && pmSel.classicStyles.includes(item.id)) ||
+        (!pmSel && state.sauceStyle && item.affinity[state.sauceStyle] === 2));
+      const meta = `<div class="shape-meta"><span class="shape-tag">${item.weight}</span><span class="shape-tag">${CAP_LABEL[item.capacity]}</span></div>`;
+      html += cardHTML(item, sel, meta, rec);
+    });
+    html += '</div></div>';
+  });
+  if (state.style) html += doughSpecHTML(state.style.id);
+  html += `<div class="pick-hint">${state.style ? state.style.name + ' selected' : 'Pick one style'}</div>`;
+  $container.innerHTML = stageWrap(0, html);
+  $container.querySelectorAll('.card').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+      if (state.style && state.style.id === id) { state.style = null; }
+      else { state.style = styleLookup(id); }
+      renderStage();
+    });
+  });
+}
+
+function renderSauce() {
+  let html = '<div class="cat-group"><div class="cat-label">Start with a classic (or build your own below)</div><div class="premade-grid">';
+  PREMADE_SAUCES.forEach(pm => {
+    const sel = state.saucePreset === pm.id;
+    const rec = !sel && state.style && (pm.classicStyles.includes(state.style.id) || state.style.affinity[pm.style] === 2);
+    html += `<div class="premade-card ${sel?'selected':''}" data-id="${pm.id}" data-role="premade">
+      ${rec?'<span class="badge">Loves your style</span>':''}
+      <div class="name">${pm.name}</div>
+      <div class="desc">${pm.desc}</div>
+    </div>`;
+  });
+  html += '</div></div>';
+
+  if (state.saucePreset) {
+    const pm = PREMADE_SAUCES.find(p => p.id === state.saucePreset);
+    if (pm) {
+      html += `<div class="howto-box"><h4>${pm.name} — How to Make It</h4>${pm.howto}</div>`;
+      html += `<button class="btn-secondary btn" style="margin-top:0.5rem" onclick="clearSauce();renderStage()">Build my own instead</button>`;
+    }
+  } else {
+    html += '<div class="or-divider">or build your own</div>';
+
+    html += '<div class="cat-group"><div class="cat-label">Sauce Family</div><div class="card-grid">';
+    SAUCE_STYLES.forEach(s => {
+      const sel = state.sauceStyle === s.id;
+      const aff = state.style ? state.style.affinity[s.id] : null;
+      const rec = !sel && aff === 2;
+      const warn = state.style && aff === 0;
+      html += `<div class="card ${sel?'selected':''}" data-id="${s.id}" data-role="style">
+        ${rec?'<span class="badge">Loves your style</span>':''}
+        <div class="name">${s.name}</div>
+        <div class="desc">${s.desc}${warn?` <em style="color:var(--terra)">(fights with ${state.style.name})</em>`:''}</div>
+      </div>`;
+    });
+    html += '</div></div>';
+
+    if (state.sauceStyle) {
+      const style = state.sauceStyle;
+      const fats = SAUCE_COMPONENTS.fats.items.filter(f => f.styles.includes(style));
+      html += sauceSub('Oil & Fat', fats, state.sauceFat, 'fat');
+      html += sauceSub('Aromatics — pick 1–3', SAUCE_COMPONENTS.aromatics.items, state.sauceAromatics, 'aromatics');
+      html += sauceSub('Tomato & Liquid — pick 1–2', SAUCE_COMPONENTS.body.items, state.sauceBody, 'body');
+      html += sauceSub('Umami & Depth (optional)', SAUCE_COMPONENTS.umami.items, state.sauceUmami, 'umami');
+    }
+  }
+
+  $container.innerHTML = stageWrap(1, html);
+
+  $container.querySelectorAll('[data-role="premade"]').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+      if (state.saucePreset === id) { clearSauce(); }
+      else { const pm = PREMADE_SAUCES.find(p => p.id === id); if (pm) applySaucePreset(pm); }
+      renderStage();
+    });
+  });
+  $container.querySelectorAll('[data-role="style"]').forEach(el => {
+    el.addEventListener('click', () => {
+      clearSauce();
+      state.sauceStyle = el.dataset.id;
+      renderStage();
+    });
+  });
+  $container.querySelectorAll('.chip').forEach(el => {
+    el.addEventListener('click', () => {
+      state.saucePreset = null;
+      const role = el.dataset.role;
+      const id = el.dataset.id;
+      const arr = role==='fat'?state.sauceFat:role==='aromatics'?state.sauceAromatics:role==='body'?state.sauceBody:state.sauceUmami;
+      const maxPick = role==='aromatics'?3:role==='body'?2:role==='fat'?2:3;
+      const idx = arr.indexOf(id);
+      if (idx > -1) arr.splice(idx,1);
+      else if (arr.length < maxPick) arr.push(id);
+      renderStage();
+    });
+  });
+}
+
+function sauceSub(label, items, selected, role) {
+  let html = `<div class="dress-section"><h4>${label}</h4><div class="chip-row">`;
+  items.forEach(item => {
+    const sel = selected.includes(item.id);
+    const rec = !sel && isRecommended(item.id, item.tags);
+    html += `<span class="chip ${sel?'selected':''}" data-id="${item.id}" data-role="${role}">${item.name}${rec?'<span class="rec"> ★</span>':''}</span>`;
+  });
+  html += '</div></div>';
+  return html;
+}
+
+function renderCheese() {
+  let html = '<div class="card-grid">';
+  CHEESES.forEach(c => {
+    const sel = state.cheese.some(x => x.id === c.id);
+    const styleRec = state.style && (STYLE_CHEESE_REC[state.style.id]||[]).includes(c.id);
+    const rec = !sel && (styleRec || isRecommended(c.id, c.tags));
+    const wet = c.moisture >= 2 ? '<span class="wet-tag">wet</span>' : '';
+    const extra = wet ? `<div class="shape-meta">${wet}</div>` : '';
+    html += cardHTML(c, sel, extra, rec);
+  });
+  html += '</div>';
+  html += `<div class="pick-hint">${state.cheese.length} selected — most great pizzas use one or two. Skip cheese entirely for a marinara or clam pie.</div>`;
+  $container.innerHTML = stageWrap(2, html);
+  $container.querySelectorAll('.card').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+      const idx = state.cheese.findIndex(c => c.id === id);
+      if (idx > -1) { state.cheese.splice(idx, 1); }
+      else if (state.cheese.length < 3) { const c = cheeseLookup(id); if (c) state.cheese.push(c); }
+      renderStage();
+    });
+  });
+}
+
+function renderToppings() {
+  // Vegetables
+  let html = '<div class="cat-group"><div class="cat-label">Vegetables (up to 4)</div><div class="card-grid">';
+  VEGETABLES.forEach(veg => {
+    const sel = state.vegs.find(v => v.id === veg.id);
+    const rec = !sel && isRecommended(veg.id, veg.tags);
+    const wet = veg.moisture >= 2 ? '<span class="wet-tag">wet</span>' : '';
+    const preps = veg.preps.map(p =>
+      `<button class="prep-btn ${sel && sel.prep===p?'active':''}" data-vid="${veg.id}" data-prep="${p}">${p}</button>`
+    ).join('');
+    html += `<div class="card veg-card ${sel?'selected':''}" data-id="${veg.id}" data-kind="veg">
+      ${rec?'<span class="badge">Pairs well</span>':''}
+      <div class="name">${veg.name}${wet}</div>
+      <div class="desc">${veg.desc}</div>
+      ${sel ? `<div class="prep-row">${preps}</div>` : ''}
+    </div>`;
+  });
+  html += '</div></div>';
+
+  // Proteins
+  html += '<div class="cat-group"><div class="cat-label">Proteins (up to 3 — optional)</div><div class="card-grid">';
+  PROTEINS.forEach(p => {
+    const sel = state.protein.find(sp => sp.id === p.id);
+    const rec = !sel && isRecommended(p.id, p.tags);
+    const wet = p.moisture >= 2 ? '<span class="wet-tag">wet</span>' : '';
+    const preps = p.preps.map(pr =>
+      `<button class="prep-btn ${sel && sel.prep===pr?'active':''}" data-pid="${p.id}" data-prep="${pr}">${pr}</button>`
+    ).join('');
+    html += `<div class="card veg-card ${sel?'selected':''}" data-id="${p.id}" data-kind="pro">
+      ${rec?'<span class="badge">Pairs well</span>':''}
+      <div class="name">${p.name}${wet}</div>
+      <div class="desc">${p.desc}</div>
+      ${sel ? `<div class="prep-row">${preps}</div>` : ''}
+    </div>`;
+  });
+  html += '</div>';
+  html += `<div class="pick-hint">${state.vegs.length + state.protein.length} toppings — two or three, well distributed, beats a wet heap of six.</div>`;
+  $container.innerHTML = stageWrap(3, html);
+
+  $container.querySelectorAll('[data-kind="veg"]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.classList.contains('prep-btn')) return;
+      const id = el.dataset.id;
+      const idx = state.vegs.findIndex(v => v.id === id);
+      if (idx > -1) { state.vegs.splice(idx, 1); }
+      else { const veg = VEGETABLES.find(v => v.id === id); if (veg && state.vegs.length < 4) state.vegs.push(vegLookup(veg.id, veg.preps[0])); }
+      renderStage();
+    });
+  });
+  $container.querySelectorAll('[data-kind="pro"]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      if (e.target.classList.contains('prep-btn')) return;
+      const id = el.dataset.id;
+      const idx = state.protein.findIndex(p => p.id === id);
+      if (idx > -1) { state.protein.splice(idx, 1); }
+      else { const p = PROTEINS.find(p => p.id === id); if (p && state.protein.length < 3) state.protein.push(proLookup(p.id, p.preps[0])); }
+      renderStage();
+    });
+  });
+  $container.querySelectorAll('.prep-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.vid) { const v = state.vegs.find(v => v.id === btn.dataset.vid); if (v) v.prep = btn.dataset.prep; }
+      else if (btn.dataset.pid) { const p = state.protein.find(p => p.id === btn.dataset.pid); if (p) p.prep = btn.dataset.prep; }
+      renderStage();
+    });
+  });
+}
+
+function renderBalance() {
+  // Signature load gauge first
+  const L = calcLoad();
+  const pctLoad = Math.min(Math.round((L.load / (L.capacity + 2)) * 100), 100);
+  let html = `<div class="load-gauge ${L.cls}">
+    <h4>${L.title}</h4>
+    <div class="load-num">Moisture load ${L.load} · ${state.style ? state.style.name + ' capacity ' + L.capacity : 'pick a style for capacity'}</div>
+    <div class="meter-track"><div class="meter-fill load-${L.cls}" style="width:${pctLoad}%"></div></div>
+    <p>${L.text}</p>`;
+  if (L.cls !== 'good') {
+    html += `<div class="fix-links">
+      <button class="fix-btn" onclick="goTo(3)">Pre-cook or drop wet toppings &rarr;</button>
+      <button class="fix-btn" onclick="goTo(1)">Use a thinner / cooked sauce &rarr;</button>
+      <button class="fix-btn" onclick="goTo(0)">Pick a higher-capacity style &rarr;</button>
+    </div>`;
+  }
+  html += `</div>`;
+
+  // Acid / Salt / Fat / Heat
+  const b = calcBalance();
+  const pct = v => Math.round((v / 5) * 100);
+  const pillars = [
+    {key:'acid',label:'Acid',cls:'acid',val:b.acid,src:b.acidSrc,low:'Needs brightness — a rich pizza without acid eats heavy by the third slice.',fixes:[
+      {text:'Add tomato to the sauce',stage:1},
+      {text:'Add pickled chili or olives',stage:3},
+      {text:'Finish with lemon or balsamic',stage:5},
+    ]},
+    {key:'salt',label:'Salt / Umami',cls:'salt',val:b.salt,src:b.saltSrc,low:'Low on savory depth.',fixes:[
+      {text:'Add a grating cheese',stage:2},
+      {text:'Add cured meat or anchovy',stage:3},
+      {text:'Finish with parm or pecorino',stage:5},
+    ]},
+    {key:'fat',label:'Fat',cls:'fat',val:b.fat,src:b.fatSrc,low:'Could use richness — fat carries flavor and gives the crave.',fixes:[
+      {text:'Add or adjust the cheese',stage:2},
+      {text:'Add a rich protein',stage:3},
+      {text:'Finish with a drizzle of oil',stage:5},
+    ]},
+    {key:'heat',label:'Heat',cls:'heat',val:b.heat,src:b.heatSrc,optional:true,low:'',fixes:[]},
+  ];
+
+  html += '<div class="balance-grid">';
+  pillars.forEach(p => {
+    const weak = !p.optional && p.val < 1.5;
+    let fixHtml = '';
+    if (weak) {
+      fixHtml = `<div class="suggestion">${p.low}</div><div class="fix-links">`;
+      p.fixes.forEach(f => { fixHtml += `<button class="fix-btn" onclick="goTo(${f.stage})">${f.text} &rarr;</button>`; });
+      fixHtml += '</div>';
+    }
+    if (p.optional && p.val === 0) {
+      fixHtml = `<div class="sources" style="margin-top:0.35rem;font-style:italic">No heat — perfectly traditional. Add chili or hot honey if you want a kick.</div>`;
+    }
+    html += `<div class="balance-item">
+      <div class="pillar-name">${p.label}</div>
+      <div class="meter-track"><div class="meter-fill ${p.cls}" style="width:${pct(p.val)}%"></div></div>
+      <div class="sources">${p.src.length ? p.src.join(', ') : 'No sources yet'}</div>
+      ${fixHtml}
+    </div>`;
+  });
+  html += '</div>';
+
+  const weakOnes = pillars.filter(p => !p.optional && p.val < 1.5);
+  if (weakOnes.length === 0 && L.cls === 'good') html += '<p style="color:var(--accent);font-family:var(--font-ui);font-size:0.9rem;margin-top:0.5rem">Balanced and ready to bake. The final tweak happens on the cutting board — taste a slice before you commit to the next.</p>';
+
+  $container.innerHTML = stageWrap(4, html);
+}
+
+function renderFinish() {
+  let html = '';
+  for (const [catKey, cat] of Object.entries(FINISHES)) {
+    html += `<div class="cat-group"><div class="cat-label">${cat.label}</div><div class="card-grid">`;
+    cat.items.forEach(item => {
+      const sel = state.finishes.some(f => f.id === item.id);
+      const rec = !sel && isRecommended(item.id, item.tags);
+      html += cardHTML(item, sel, '', rec);
+    });
+    html += '</div></div>';
+  }
+  html += `<div class="pick-hint">${state.finishes.length} selected — one or two finishing moves, not a second pizza.</div>`;
+  $container.innerHTML = stageWrap(5, html);
+  $container.querySelectorAll('.card').forEach(el => {
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
+      const idx = state.finishes.findIndex(f => f.id === id);
+      if (idx > -1) { state.finishes.splice(idx, 1); }
+      else { const item = finLookup(id); if (item) state.finishes.push(item); }
+      renderStage();
+    });
+  });
+}
+
+function renderBake() {
+  let html = '';
+  const verdict = bakeVerdict();
+  if (verdict) {
+    html += `<div class="verdict ${verdict.cls}"><h4>${verdict.title}</h4><p>${verdict.text}</p></div>`;
+  } else {
+    html += `<div class="verdict ok"><h4>Nothing to judge yet</h4><p>Pick a style and a sauce and come back — this is where we check whether they belong together.</p></div>`;
+  }
+
+  // Load verdict echoed here
+  const L = calcLoad();
+  html += `<div class="verdict ${L.cls === 'good' ? 'good' : L.cls === 'watch' ? 'ok' : 'bad'}"><h4>${L.title} — moisture load ${L.load} / capacity ${L.capacity}</h4><p>${L.text}</p></div>`;
+
+  bakeWarnings().forEach(w => {
+    html += `<div class="verdict bad"><h4>A word of caution</h4><p>${w}</p></div>`;
+  });
+
+  if (state.style) html += doughSpecHTML(state.style.id);
+
+  html += `<div class="cat-label" style="margin-top:1.5rem">The Technique Checklist — non-negotiable</div>
+  <ul class="check-list">
+    <li><span class="check-mark">✓</span> Bake on a screaming-hot surface: a preheated baking steel or stone (45–60 min) for thin styles, an oiled steel pan for Detroit and Sicilian.</li>
+    <li><span class="check-mark">✓</span> Use the hottest oven the style allows — and pick the style to match your oven's ceiling, not the other way around.</li>
+    <li><span class="check-mark">✓</span> Keep the sauce thin and pre-cook wet toppings — every drop of water you add, the oven has to drive back off.</li>
+    <li><span class="check-mark">✓</span> Shred your own low-moisture mozzarella; drain fresh mozzarella; bag-shredded cheese fights the melt.</li>
+    <li><span class="check-mark">✓</span> Check the undercarriage — lift an edge; a pale, floppy bottom means it's underbaked no matter how the top looks.</li>
+    <li><span class="check-mark">✓</span> Finish under the broiler for the last minute, then rest 1–2 minutes before cutting so the cheese sets.</li>
+  </ul>`;
+
+  $container.innerHTML = stageWrap(6, html);
+}
+
+function generatePizzaName() {
+  const styleName = state.style ? state.style.name : 'Pizza';
+  const SKIP_PREP = ['raw','thin','fresh','whole','sliced','torn','dotted','chopped','marinated','jarred'];
+  let notable = null;
+  if (state.protein.length) notable = state.protein[0].name;
+  else if (state.vegs.length) {
+    const v = state.vegs[0];
+    const w = (v.prep || '').split(' ')[0];
+    notable = SKIP_PREP.includes(w) ? v.name : `${w} ${v.name}`;
+  }
+  let descriptor = null;
+  if (['white','pesto','vodka','bbq'].includes(state.sauceStyle)) {
+    descriptor = ((SAUCE_STYLES.find(s=>s.id===state.sauceStyle)||{}).name || '').split(' /')[0];
+  } else if (state.sauceStyle && !state.cheese.length) {
+    descriptor = 'Marinara';
+  } else if (!notable && !state.cheese.length) {
+    descriptor = (SAUCE_STYLES.find(s=>s.id===state.sauceStyle)||{}).name;
+  } else if (!notable) {
+    descriptor = 'Cheese';
+  }
+  const parts = [styleName];
+  if (descriptor) parts.push(descriptor);
+  if (notable) parts.push(notable);
+  parts.push('Pizza');
+  const full = parts.join(' ');
+  return full.split(' ').length <= 12 ? full : `${styleName} Pizza`;
+}
+
+function slugify(str) {
+  return str.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+}
+
+function sauceSummaryParts() {
+  const parts = [];
+  const pm = state.saucePreset ? PREMADE_SAUCES.find(p=>p.id===state.saucePreset) : null;
+  if (pm) parts.push(pm.name);
+  else if (state.sauceStyle) { const s = SAUCE_STYLES.find(s=>s.id===state.sauceStyle); if (s) parts.push(s.name); }
+  const fatNames = state.sauceFat.map(f => findComponent('fats',f)?.name).filter(Boolean);
+  if (fatNames.length) parts.push('Oil/Fat: ' + fatNames.join(' + '));
+  const aroNames = state.sauceAromatics.map(a => findComponent('aromatics',a)?.name).filter(Boolean);
+  if (aroNames.length) parts.push('Aromatics: ' + aroNames.join(', '));
+  const bodyNames = state.sauceBody.map(b => findComponent('body',b)?.name).filter(Boolean);
+  if (bodyNames.length) parts.push('Tomato/Liquid: ' + bodyNames.join(' + '));
+  const umNames = state.sauceUmami.map(u => findComponent('umami',u)?.name).filter(Boolean);
+  if (umNames.length) parts.push('Umami: ' + umNames.join(', '));
+  return parts;
+}
+
+const FIN_LABELS = {herbs:'Herbs & Greens',drizzle:'Drizzles',grated:'Grated & Torn',sparkle:'Finishing'};
+
+function renderSummary() {
+  const pizzaName = generatePizzaName();
+
+  let html = '<div id="summaryCapture">';
+  html += '<div class="summary-card">';
+  html += `<h3>${pizzaName}</h3>`;
+  html += '<div class="summary-sub">Your composed pizza.</div>';
+
+  if (state.style) {
+    html += summarySection('Style', [`${state.style.name} — ${state.style.weight}, ${state.style.crumb} (${FAMILY_LABEL[state.style.family]})`]);
+    const d = styleFull(state.style.id).dough;
+    html += `<button class="recipe-toggle" onclick="toggleDough()">Dough spec &amp; recipe ▸</button>`;
+    html += `<div class="recipe-expand" id="doughExpand"><h5>${state.style.name} Dough</h5><ul><li>Flour: ${d.flour}</li><li>Hydration: ${d.hydration}</li><li>Ferment: ${d.ferment}</li><li>Portion: ${d.ball}</li><li>Bake: ${d.bake}</li></ul>${styleFull(state.style.id).doughRecipe}</div>`;
+  }
+  if (state.sauceStyle) {
+    html += summarySection('Sauce', sauceSummaryParts());
+    const pm = state.saucePreset ? PREMADE_SAUCES.find(p=>p.id===state.saucePreset) : null;
+    if (pm) {
+      html += `<button class="recipe-toggle" onclick="toggleRecipe()">How to make it ▸</button>`;
+      html += `<div class="recipe-expand" id="recipeExpand"><h5>${pm.name}</h5>${pm.howto}</div>`;
+    }
+  }
+  if (state.cheese.length) {
+    html += summarySection('Cheese', state.cheese.map(c => c.name));
+  }
+  if (state.vegs.length) {
+    html += summarySection('Vegetables', state.vegs.map(v => `${v.name} — ${v.prep}`));
+  }
+  if (state.protein.length) {
+    html += summarySection('Protein', state.protein.map(p => `${p.name} — ${p.prep}`));
+  }
+  if (state.finishes.length) {
+    const grouped = {};
+    state.finishes.forEach(f => { const label = FIN_LABELS[f.cat] || 'Finish'; (grouped[label] = grouped[label]||[]).push(f.name); });
+    html += summarySection('After the Oven', Object.entries(grouped).map(([k,v]) => `${k}: ${v.join(', ')}`));
+  }
+
+  html += '</div>';
+
+  const tips = generateCookingNotes();
+  if (tips.length) {
+    html += `<div class="plating-tips"><h4>Cooking Notes</h4><ul>${tips.map(t=>`<li>${t}</li>`).join('')}</ul></div>`;
+  }
+  html += '</div>'; // close #summaryCapture
+
+  html += `<div style="margin-top:1.5rem;display:flex;align-items:center;flex-wrap:wrap;gap:0.5rem">
+    <button class="save-btn" onclick="savePizza()">Save this pizza</button>
+    <span id="saveConfirm" class="save-confirm">Saved!</span>
+    <button class="btn-reset" onclick="resetBuilder()" style="margin-top:0">Start over</button>
+  </div>`;
+
+  html += `<div class="export-row">
+    <button class="export-btn" onclick="exportText()">Copy Text</button>
+    <button class="export-btn" onclick="exportImage()">Save Image</button>
+    <button class="export-btn" onclick="exportPDF()">Download PDF</button>
+    <span id="exportToast" class="export-toast"></span>
+  </div>`;
+
+  $container.innerHTML = stageWrap(7, html);
+}
+
+function summarySection(label, items) {
+  return `<div class="summary-section"><div class="ss-label">${label}</div><ul>${items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
+}
+
+function generateCookingNotes() {
+  const tips = [];
+  const L = calcLoad();
+  if (L.cls === 'bad') tips.push('This build is heavy on moisture for the crust — pre-cook the wet toppings, keep the sauce thin, and consider par-baking the base before topping it.');
+  else if (L.cls === 'watch') tips.push('You\'re near the crust\'s moisture limit — drain and pre-cook anything wet, and go light with the sauce.');
+
+  const verdict = bakeVerdict();
+  if (verdict && verdict.cls === 'bad') tips.push('Your style and sauce are an unusual pairing — lean into it on purpose, but keep the sauce restrained so it doesn\'t fight the bake.');
+
+  if (state.style) {
+    const d = styleFull(state.style.id).dough;
+    tips.push(`Bake setup: ${d.bake}. Temper the dough to room temperature first — cold dough bakes dense.`);
+    if (state.style.id === 'detroit') tips.push('Push the cheese all the way to the pan edge so it fries into the frico crust, and stripe the sauce on top after the bake.');
+    if (state.style.id === 'chicago') tips.push('Layer it inverted: cheese against the dough, then fillings, then the chunky tomato on top — and give it the full 30–40 minutes.');
+    if (state.style.id === 'neapolitan') tips.push('You\'re chasing the leopard: dark blistered spots on a puffed rim. That only happens in a very hot oven, fast.');
+  }
+  if (state.cheese.some(c => ['fresh-mozz','buffalo-mozz'].includes(c.id))) tips.push('Tear and drain the fresh mozzarella on paper towels before it goes on — and place it in patches, not a solid blanket.');
+  if (state.sauceStyle === 'pesto') tips.push('Keep the pesto off direct high heat — swirl it on late or after the oven so it stays bright green.');
+  const wetRaw = [...state.vegs, ...state.protein].filter(t => (t.moisture||0) >= 2 && !prepDriesWater(t.prep));
+  if (wetRaw.length) tips.push(`Pre-cook the ${wetRaw.map(t=>t.name.toLowerCase()).join(' and ')} — raw, ${wetRaw.length>1?'they':'it'} will weep water into the crust.`);
+  if (state.protein.some(p => p.id === 'sausage' && p.prep === 'raw crumbled') && state.style && state.style.id !== 'chicago') tips.push('Raw sausage needs the long bake of a deep dish to cook through — for a faster style, par-cook the crumbles first.');
+  if (state.protein.some(p => p.id === 'pepperoni')) tips.push('For cup-and-char curls, use natural-casing pepperoni sliced thick — it shrinks into little fat-crisped cups.');
+  const drapes = state.finishes.filter(f => ['prosciutto-fin','arugula','basil','burrata-fin'].includes(f.id));
+  if (drapes.length) tips.push(`Add the ${drapes.map(f=>f.name.toLowerCase()).join(', ')} after the pizza leaves the oven — heat would ruin ${drapes.length>1?'them':'it'}.`);
+  if (state.finishes.some(f => f.id === 'hot-honey')) tips.push('Drizzle the hot honey while the pizza is hot so it runs into the cheese — it sets as it cools.');
+  tips.push('Rest the pizza 1–2 minutes before cutting so the cheese sets and the toppings stay put.');
+  return tips;
+}
+
+// ---- Wrapper ----
+function stageWrap(idx, inner) {
+  const s = STAGES[idx];
+  const banner = state.templateName
+    ? `<div class="template-banner"><span>Starting from: <strong>${state.templateName}</strong> — modify anything as you go</span><button onclick="resetBuilder()">Clear all</button></div>`
+    : '';
+  return `<div class="stage active">
+    ${banner}
+    <div class="stage-title">${s.title}</div>
+    <div class="stage-sub">${s.sub}</div>
+    ${inner}
+  </div>`;
+}
+
+// ---- Master render ----
+function renderStage(scrollTop) {
+  if (state.showStartScreen) {
+    renderStartScreen();
+    if (scrollTop) window.scrollTo({top: 0, behavior: 'smooth'});
+    return;
+  }
+  const renderers = [renderStyle, renderSauce, renderCheese, renderToppings, renderBalance, renderFinish, renderBake, renderSummary];
+  renderers[state.currentStage]();
+  if (scrollTop) window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function resetBuilder() {
+  state.showStartScreen = true;
+  state.templateName = null;
+  state.style = null;
+  clearSauce();
+  state.cheese = [];
+  state.vegs = [];
+  state.protein = [];
+  state.finishes = [];
+  state.currentStage = 0;
+  renderProgress();
+  renderStage();
+}
+
+// ============================================================
+//  SAVED PIZZAS
+// ============================================================
+function getSavedPizzas() {
+  try { return JSON.parse(localStorage.getItem('savedPizzas') || '[]'); }
+  catch { return []; }
+}
+
+function buildPreview(s) {
+  const parts = [];
+  if (s.style) parts.push(s.style.name);
+  const pm = s.saucePreset ? PREMADE_SAUCES.find(p=>p.id===s.saucePreset) : null;
+  if (pm) parts.push(pm.name);
+  else if (s.sauceStyle) { const st = SAUCE_STYLES.find(d=>d.id===s.sauceStyle); if(st) parts.push(st.name + ' sauce'); }
+  if (s.cheese && s.cheese.length) parts.push(s.cheese.map(c=>c.name).join(', '));
+  if (s.vegs && s.vegs.length) parts.push(s.vegs.map(v=>`${v.name} (${v.prep})`).join(', '));
+  if (s.protein && s.protein.length) parts.push(s.protein.map(p=>`${p.name} (${p.prep})`).join(', '));
+  if (s.finishes && s.finishes.length) parts.push(s.finishes.map(f=>f.name).join(', '));
+  return parts.join(' · ');
+}
+
+function savePizza() {
+  const pizzas = getSavedPizzas();
+  const stateSnap = JSON.parse(JSON.stringify({
+    style:state.style, saucePreset:state.saucePreset, sauceStyle:state.sauceStyle,
+    sauceFat:state.sauceFat, sauceAromatics:state.sauceAromatics,
+    sauceBody:state.sauceBody, sauceUmami:state.sauceUmami,
+    cheese:state.cheese, vegs:state.vegs, protein:state.protein, finishes:state.finishes,
+  }));
+  const entry = {
+    id: Date.now(),
+    name: generatePizzaName(),
+    date: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+    preview: buildPreview(stateSnap),
+    state: stateSnap,
+  };
+  pizzas.unshift(entry);
+  localStorage.setItem('savedPizzas', JSON.stringify(pizzas));
+  updateSavedLink();
+  const confirm = document.getElementById('saveConfirm');
+  if (confirm) { confirm.classList.add('show'); setTimeout(() => confirm.classList.remove('show'), 2000); }
+}
+
+function loadPizza(id) {
+  const pizzas = getSavedPizzas();
+  const entry = pizzas.find(s => s.id === id);
+  if (!entry) return;
+  Object.assign(state, entry.state);
+  if (!state.cheese) state.cheese = [];
+  state.showStartScreen = false;
+  state.showSavedPage = false;
+  state.templateName = null;
+  state.currentStage = 7;
+  renderProgress();
+  renderStage(true);
+}
+
+function confirmDelete(btn, id) {
+  const wrap = btn.parentElement;
+  btn.style.display = 'none';
+  const confirm = document.createElement('span');
+  confirm.className = 'confirm-del';
+  confirm.innerHTML = `<span>Delete?</span><button class="yes-btn" style="font-family:var(--font-ui);font-size:0.72rem;padding:0.25rem 0.6rem;border-radius:var(--radius);border:1px solid var(--terra);background:var(--surface);color:var(--terra);cursor:pointer">Yes</button><button class="no-btn" style="font-family:var(--font-ui);font-size:0.72rem;padding:0.25rem 0.6rem;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer">Cancel</button>`;
+  wrap.appendChild(confirm);
+  confirm.querySelector('.yes-btn').addEventListener('click', () => deletePizza(id));
+  confirm.querySelector('.no-btn').addEventListener('click', () => { confirm.remove(); btn.style.display = ''; });
+}
+
+function deletePizza(id) {
+  let pizzas = getSavedPizzas();
+  pizzas = pizzas.filter(s => s.id !== id);
+  localStorage.setItem('savedPizzas', JSON.stringify(pizzas));
+  updateSavedLink();
+  showSavedPage();
+}
+
+function renamePizza(id, newName) {
+  const pizzas = getSavedPizzas();
+  const entry = pizzas.find(s => s.id === id);
+  if (entry) { entry.name = newName; localStorage.setItem('savedPizzas', JSON.stringify(pizzas)); }
+}
+
+function showSavedPage() {
+  state.showSavedPage = true;
+  $rail.style.display = 'none';
+  const pizzas = getSavedPizzas();
+
+  let html = '<div class="saved-page">';
+  html += '<button class="back-link" onclick="closeSavedPage()">&larr; Back to builder</button>';
+  html += '<h2>Saved Pizzas</h2>';
+  html += `<div class="saved-sub">${pizzas.length} pizza${pizzas.length===1?'':'s'} saved</div>`;
+
+  if (!pizzas.length) {
+    html += '<p class="no-saved">No saved pizzas yet. Build one and save it from the summary page.</p>';
+  } else {
+    html += '<div class="saved-grid">';
+    pizzas.forEach(s => {
+      const displayName = s.name || 'Untitled Pizza';
+      html += `<div class="saved-card" data-id="${s.id}">
+        <div class="saved-name-row">
+          <div class="saved-name" id="sname-${s.id}">${displayName}</div>
+          <button class="rename-btn" data-id="${s.id}">rename</button>
+        </div>
+        <div class="saved-date">${s.date}</div>
+        <div class="saved-preview">${s.preview || 'No details'}</div>
+        <div class="saved-actions">
+          <button class="load-btn" onclick="loadPizza(${s.id})">Load</button>
+          <button class="del-btn" onclick="confirmDelete(this,${s.id})">Delete</button>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  html += '</div>';
+  $container.innerHTML = html;
+
+  $container.querySelectorAll('.rename-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = +btn.dataset.id;
+      const $name = document.getElementById('sname-'+id);
+      const pizzas = getSavedPizzas();
+      const entry = pizzas.find(s => s.id === id);
+      const curName = (entry && entry.name) || '';
+      $name.innerHTML = `<input type="text" value="${curName}" placeholder="Name this pizza..." autofocus>`;
+      const $input = $name.querySelector('input');
+      $input.focus(); $input.select();
+      const save = () => { renamePizza(id, $input.value.trim()); showSavedPage(); };
+      $input.addEventListener('blur', save);
+      $input.addEventListener('keydown', (e) => { if (e.key === 'Enter') save(); });
+    });
+  });
+}
+
+function closeSavedPage() {
+  state.showSavedPage = false;
+  renderProgress();
+  renderStage(true);
+}
+
+function updateSavedLink() {
+  const count = getSavedPizzas().length;
+  const $link = document.getElementById('savedLink');
+  if (count > 0) $link.innerHTML = `<button class="saved-link-btn" onclick="showSavedPage()">Saved Pizzas (${count})</button>`;
+  else $link.innerHTML = '';
+}
+
+// ============================================================
+//  EXPORT & HELPERS
+// ============================================================
+function toggleRecipe() {
+  const el = document.getElementById('recipeExpand');
+  const btn = el && el.previousElementSibling;
+  if (el) { el.classList.toggle('open'); if (btn) btn.textContent = el.classList.contains('open') ? 'How to make it ▾' : 'How to make it ▸'; }
+}
+function toggleDough() {
+  const el = document.getElementById('doughExpand');
+  const btn = el && el.previousElementSibling;
+  if (el) { el.classList.toggle('open'); if (btn) btn.textContent = el.classList.contains('open') ? (btn.textContent.replace('▸','▾')) : (btn.textContent.replace('▾','▸')); }
+}
+
+function showExportToast(msg) {
+  const el = document.getElementById('exportToast');
+  if (el) { el.textContent = msg; el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 2000); }
+}
+
+function exportText() {
+  const name = generatePizzaName();
+  let lines = [name, ''];
+  if (state.style) {
+    lines.push('STYLE: ' + state.style.name + ' (' + state.style.weight + ', ' + state.style.crumb + ')');
+    const d = styleFull(state.style.id).dough;
+    lines.push('  Dough: ' + d.flour + ', ' + d.hydration + ' hydration, ' + d.ferment + ', bake ' + d.bake);
+  }
+  if (state.sauceStyle) {
+    sauceSummaryParts().forEach((p,i) => lines.push((i===0?'SAUCE: ':'  ') + p));
+    const pm = state.saucePreset ? PREMADE_SAUCES.find(p=>p.id===state.saucePreset) : null;
+    if (pm) {
+      lines.push(''); lines.push('HOW TO MAKE ' + pm.name.toUpperCase() + ':');
+      const temp = document.createElement('div'); temp.innerHTML = pm.howto;
+      temp.querySelectorAll('li').forEach(li => lines.push('  • ' + li.textContent));
+    }
+  }
+  if (state.cheese.length) lines.push('CHEESE: ' + state.cheese.map(c=>c.name).join(', '));
+  if (state.vegs.length) lines.push('VEGETABLES: ' + state.vegs.map(v=>`${v.name} — ${v.prep}`).join(', '));
+  if (state.protein.length) lines.push('PROTEIN: ' + state.protein.map(p=>`${p.name} — ${p.prep}`).join(', '));
+  if (state.finishes.length) {
+    const grouped = {};
+    state.finishes.forEach(f => { const label = FIN_LABELS[f.cat] || 'Finish'; (grouped[label]=grouped[label]||[]).push(f.name); });
+    lines.push('AFTER THE OVEN: ' + Object.entries(grouped).map(([k,v])=>`${k}: ${v.join(', ')}`).join('; '));
+  }
+  const L = calcLoad();
+  lines.push(''); lines.push('MOISTURE LOAD: ' + L.load + ' / capacity ' + L.capacity + ' — ' + L.title);
+  const tips = generateCookingNotes();
+  if (tips.length) { lines.push(''); lines.push('COOKING NOTES:'); tips.forEach(t => lines.push('• ' + t)); }
+  navigator.clipboard.writeText(lines.join('\n')).then(() => showExportToast('Copied!'));
+}
+
+async function exportImage() {
+  const el = document.getElementById('summaryCapture');
+  if (!el || typeof html2canvas === 'undefined') { showExportToast('Loading...'); return; }
+  const expands = el.querySelectorAll('.recipe-expand');
+  const wasOpen = [...expands].map(e => e.classList.contains('open'));
+  expands.forEach(e => e.classList.add('open'));
+  try {
+    const canvas = await html2canvas(el, { backgroundColor: '#faf8f5', scale: 2, useCORS: true });
+    expands.forEach((e,i) => { if (!wasOpen[i]) e.classList.remove('open'); });
+    const link = document.createElement('a');
+    link.download = slugify(generatePizzaName()) + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showExportToast('Image saved!');
+  } catch(e) {
+    expands.forEach((e,i) => { if (!wasOpen[i]) e.classList.remove('open'); });
+    showExportToast('Error saving image');
+  }
+}
+
+async function exportPDF() {
+  const el = document.getElementById('summaryCapture');
+  if (!el || typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') { showExportToast('Loading...'); return; }
+  const expands = el.querySelectorAll('.recipe-expand');
+  const wasOpen = [...expands].map(e => e.classList.contains('open'));
+  expands.forEach(e => e.classList.add('open'));
+  try {
+    const canvas = await html2canvas(el, { backgroundColor: '#faf8f5', scale: 2, useCORS: true });
+    expands.forEach((e,i) => { if (!wasOpen[i]) e.classList.remove('open'); });
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [canvas.width, canvas.height] });
+    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+    pdf.save(slugify(generatePizzaName()) + '.pdf');
+    showExportToast('PDF downloaded!');
+  } catch(e) {
+    expands.forEach((e,i) => { if (!wasOpen[i]) e.classList.remove('open'); });
+    showExportToast('Error creating PDF');
+  }
+}
+
+// Make functions available globally
+window.goTo = goTo;
+window.resetBuilder = resetBuilder;
+window.startFromScratch = startFromScratch;
+window.applyTemplate = applyTemplate;
+window.clearSauce = clearSauce;
+window.renderStage = renderStage;
+window.savePizza = savePizza;
+window.toggleRecipe = toggleRecipe;
+window.toggleDough = toggleDough;
+window.exportText = exportText;
+window.exportImage = exportImage;
+window.exportPDF = exportPDF;
+window.loadPizza = loadPizza;
+window.confirmDelete = confirmDelete;
+window.deletePizza = deletePizza;
+window.showSavedPage = showSavedPage;
+window.closeSavedPage = closeSavedPage;
+
+// Init
+renderProgress();
+renderStage();
+updateSavedLink();
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Food Builder — Restaurant-Level Salads, Sandwiches & Pasta</title>
+<title>Food Builder — Restaurant-Level Salads, Sandwiches, Pasta & Pizza</title>
 <style>
   :root {
     --clr-bg: #faf8f5;
@@ -20,6 +20,9 @@
     --clr-pasta: #b0623a;
     --clr-pasta-light: #f5e3d6;
     --clr-pasta-bg: #faf0e9;
+    --clr-pizza: #c43d2e;
+    --clr-pizza-light: #f8ddd6;
+    --clr-pizza-bg: #fbeae6;
     --font-body: 'Georgia', 'Times New Roman', serif;
     --font-heading: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   }
@@ -100,6 +103,7 @@
   .card--salad { border-top: 4px solid var(--clr-salad); background: linear-gradient(180deg, var(--clr-salad-bg) 0%, var(--clr-surface) 60%); }
   .card--sandwich { border-top: 4px solid var(--clr-sandwich); background: linear-gradient(180deg, var(--clr-sandwich-bg) 0%, var(--clr-surface) 60%); }
   .card--pasta { border-top: 4px solid var(--clr-pasta); background: linear-gradient(180deg, var(--clr-pasta-bg) 0%, var(--clr-surface) 60%); }
+  .card--pizza { border-top: 4px solid var(--clr-pizza); background: linear-gradient(180deg, var(--clr-pizza-bg) 0%, var(--clr-surface) 60%); }
 
   .card h2 {
     font-family: var(--font-heading);
@@ -111,6 +115,7 @@
   .card--salad h2 { color: var(--clr-salad); }
   .card--sandwich h2 { color: var(--clr-sandwich); }
   .card--pasta h2 { color: var(--clr-pasta); }
+  .card--pizza h2 { color: var(--clr-pizza); }
 
   .card p {
     font-size: 0.98rem;
@@ -138,6 +143,8 @@
   .btn--primary-sandwich:hover { background: #7c5a28; }
   .btn--primary-pasta { background: var(--clr-pasta); color: #fff; }
   .btn--primary-pasta:hover { background: #8a4426; }
+  .btn--primary-pizza { background: var(--clr-pizza); color: #fff; }
+  .btn--primary-pizza:hover { background: #9e2e22; }
 
   .btn--secondary {
     background: transparent;
@@ -165,12 +172,13 @@
     <a href="./salad/" class="fb-topnav__link">Salads</a>
     <a href="./sandwich/" class="fb-topnav__link">Sandwiches</a>
     <a href="./pasta/" class="fb-topnav__link">Pasta</a>
+    <a href="./pizza/" class="fb-topnav__link">Pizza</a>
   </div>
 </nav>
 
 <section class="hero">
   <h1>Food Builder</h1>
-  <p>Interactive tools for composing restaurant-level salads, sandwiches, and pasta — one choice at a time.</p>
+  <p>Interactive tools for composing restaurant-level salads, sandwiches, pasta, and pizza — one choice at a time.</p>
 </section>
 
 <section class="cards">
@@ -198,6 +206,15 @@
     <div class="actions">
       <a class="btn btn--primary-pasta" href="./pasta/builder.html">Open Pasta Builder</a>
       <a class="btn btn--secondary" href="./pasta/">Read the guide</a>
+    </div>
+  </article>
+
+  <article class="card card--pizza">
+    <h2>Pizza</h2>
+    <p>Eight stages from dough to the bake. Per-style dough specs, a moisture-load engine that flags a soggy center before it happens, and fourteen classic pies.</p>
+    <div class="actions">
+      <a class="btn btn--primary-pizza" href="./pizza/builder.html">Open Pizza Builder</a>
+      <a class="btn btn--secondary" href="./pizza/">Read the guide</a>
     </div>
   </article>
 </section>
